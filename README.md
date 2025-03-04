@@ -1,2 +1,43 @@
-# grid-lite-dist
-Distribution repo for Highcharts Grid Lite
+# Highcharts Grid Lite
+
+Highcharts Grid Lite is a lightweight, free version of [Highcharts Grid](https://www.highcharts.com/products/grid), a commercial product for interactive grids from the creators of the [Highcharts](https://github.com/highcharts/highcharts) charting library.
+
+- Official website: [highcharts.com](http://www.highcharts.com)
+- Product page: [highcharts.com/products/grid](https://www.highcharts.com/products/grid/)
+- Documentation: [highcharts.com/docs/grid](https://www.highcharts.com/docs/grid/installation)
+- Demos: [highcharts.com/demo](https://www.highcharts.com/demo#highcharts-dashboards-demo-basic)
+- Download page: [highcharts.com/download](http://www.highcharts.com/download)
+- Licensing: [shop.highcharts.com](https://shop.highcharts.com/)
+- Support: [highcharts.com/support](http://www.highcharts.com/support)
+- Issues: [github.com/highcharts](https://github.com/highcharts/highcharts/issues)
+
+Highcharts Grid Lite is a [source available](https://en.wikipedia.org/wiki/Source-available_software) product.
+
+To use full version of Highcharts Grid, you must have a valid license for Highcharts Grid- please refer to [shop.highcharts.com](https://shop.highcharts.com/) for details on licensing.
+
+## Installation
+
+If you simply want to include Highcharts Grid Lite into a project, use the [distribution package](https://www.npmjs.com/package/@highcharts/grid-lite), or read the [download page](http://www.highcharts.com/download).  
+For general installation instructions, see [installation documentation](https://highcharts.com/docs/grid/installation)
+
+### Install from npm
+Using npm by running the following command in your terminal:
+
+```Shell
+    npm install @highcharts/grid-lite
+```
+
+Then import the package in your project:
+
+```JS
+    import Grid from '@highcharts/grid-lite/grid-lite.js'
+```
+
+### Use our CDN
+
+Instead of downloading, you can use our CDN to access files directly. See [code.highcharts.com](https://code.highcharts.com) for details.
+
+```HTML
+    <script src="https://code.highcharts.com/grid-lite/grid-lite.js"></script>
+    <link rel="stylesheet" src="https://code.highcharts.com/grid/css/grid.css">
+```
