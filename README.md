@@ -1,6 +1,6 @@
 # Highcharts Grid Lite
 
-Highcharts Grid Lite is a lightweight, free version of [Highcharts Grid](https://www.highcharts.com/products/grid), a commercial product for interactive grids from the creators of the [Highcharts](https://github.com/highcharts/highcharts) charting library.
+Highcharts Grid Lite is the free version of our [Dashboards Grid](https://www.highcharts.com/docs/dashboards/grid-component) component, from the creators of the [Highcharts](https://github.com/highcharts/highcharts) charting library. Designed to meet modern web standards, Grid Lite is perfect for creating responsive, interactive tables for simple use cases.
 
 - Official website: [highcharts.com](http://www.highcharts.com)
 - Product page: [highcharts.com/products/grid](https://www.highcharts.com/products/grid/)
