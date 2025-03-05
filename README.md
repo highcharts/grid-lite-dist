@@ -38,6 +38,6 @@ Then import the package in your project:
 Instead of downloading, you can use our CDN to access files directly. See [code.highcharts.com](https://code.highcharts.com) for details.
 
 ```HTML
-    <script src="https://code.highcharts.com/grid-lite/grid-lite.js"></script>
+    <script src="https://code.highcharts.com/grid/grid-lite.js"></script>
     <link rel="stylesheet" src="https://code.highcharts.com/grid/css/grid.css">
 ```
