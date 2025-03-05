@@ -17,7 +17,7 @@ To use full version of Highcharts Grid, you must have a valid license for Highch
 
 ## Installation
 
-If you simply want to include Highcharts Grid Lite into a project, use the [distribution package](https://www.npmjs.com/package/@highcharts/grid-lite), or read the [download page](http://www.highcharts.com/download).  
+If you simply want to include Highcharts Grid Lite into a project, use the [distribution package](https://www.npmjs.com/package/@highcharts/grid-lite), or refer to the [download page](http://www.highcharts.com/download).  
 For general installation instructions, see [installation documentation](https://highcharts.com/docs/grid/installation)
 
 ### Install from npm
