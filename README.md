@@ -13,7 +13,7 @@ Highcharts Grid Lite is the free version of our [Dashboards Grid](https://www.hi
 
 Highcharts Grid Lite is a [source available](https://en.wikipedia.org/wiki/Source-available_software) product.
 
-To use full version of Highcharts Grid, you must have a valid license for Highcharts Grid- please refer to [shop.highcharts.com](https://shop.highcharts.com/) for details on licensing.
+To use full version of Highcharts Grid, you must have a valid license for Highcharts Dashboards. Please refer to [shop.highcharts.com](https://shop.highcharts.com/) for details on licensing.
 
 ## Installation
 
