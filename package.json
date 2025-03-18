@@ -16,6 +16,6 @@
       "highcharts"
     ],
     "bugs": "https://github.com/highcharts/highcharts/issues",
-    "license": "https://www.highcharts.com/license",
+    "license": "SEE LICENSE IN LICENSE.txt",
     "types": "grid-lite.d.ts"
 }

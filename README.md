@@ -7,7 +7,8 @@ Highcharts Grid Lite is the free, standalone version of our [Dashboards Grid](ht
 - Documentation: [highcharts.com/docs/grid](https://www.highcharts.com/docs/grid/installation)
 - Demos: [highcharts.com/demo](https://www.highcharts.com/demo#highcharts-dashboards-demo-basic)
 - Download page: [highcharts.com/download](http://www.highcharts.com/download)
-- Licensing: [shop.highcharts.com](https://shop.highcharts.com/)
+- Licensing: [LICENSE.txt](LICENSE.txt)
+- Shop: [shop.highcharts.com](https://shop.highcharts.com/)
 - Support: [highcharts.com/support](http://www.highcharts.com/support)
 - Issues: [github.com/highcharts](https://github.com/highcharts/highcharts/issues)
 
