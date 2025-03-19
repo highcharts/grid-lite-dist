@@ -1,0 +1,47 @@
+End User License Agreement for Highcharts Grid Lite
+
+This End User License Agreement (the “EULA”) shall apply to any use of Highcharts Grid Lite (as defined below) and forms an agreement between Highsoft AS, a Norwegian limited liability company with org. no. 996 840 506 (“Highsoft”) and any entity or person that downloads, accesses or uses  Highcharts Grid Lite (the “User” or “you”), the mutually binding nature and effect of which has been accepted and undertaken by User by downloading, accessing or taking Highcharts Grid Lite into use.
+
+1.Definitions
+Additional to the definitions above, for the purpose of this Agreement, the following terms shall have the following meaning:
+Highcharts Grid- shall mean the component of the Highsoft Software product, Highcharts Dashboard, called Highcharts Grid, made available by Highsoft to paying customers as integral part of Highcharts Dashboard.
+Highcharts Grid Lite- shall mean a free version of Highcharts Grid with limited features and functionality made available for users at no cost subject to the terms and conditions of this EULA.
+Highsoft Software- shall mean any and all other software than Highcharts Grid Lite, supplied or made available by Highsoft, including, but not limited to Highcharts, Highcharts Core, Highcharts Stock, Highcharts Maps, Highcharts Gantt and Highcharts Dashboards.
+
+2. Background and purpose
+In addition to the paid full version Highcharts Grid Dashboards component, Highsoft has released a free version of the product, to provide users with an entry level version at no cost.
+
+User wishes to use the Highcharts Grid Lite for purposes as described in the preceding paragraph, and Highsoft has agreed to allow such use pursuant to the terms and conditions set forth in this EULA.
+User’s use of the Highcharts Grid Lite shall be governed by this EULA solely. For the avoidance of doubt, Highcharts Grid Lite is offered by Highsoft as an additional, free-of-charge service, and shall not be governed by the provisions of, or be deemed part of any Licensed Software under, any existing Standard- Custom- or Master License Agreement or Terms and Conditions for Subscription to Annual License to Highsoft Software, between Highsoft and User. Without limiting the generality of the foregoing, User shall not be entitled to receive any Advantage- or support services set out in such agreements.
+
+3. User’s acceptance of this EULA
+Prior to your first use of the Highcharts Grid Lite, you shall have read and understood this EULA. You shall under any circumstances be deemed to have accepted and undertaken this EULA by downloading, accessing and/or commencing use of Highcharts Grid Lite. Each such action shall confirm that you agree to and undertake to be bound by the terms and conditions set forth herein.
+
+If you are entering into this EULA by downloading, accessing or commencing use of Highcharts Grid Lite on behalf of a legal entity, such as a company, organization or the like, you thereby represent and warrant that you are duly authorized to legally bind the entity to this EULA and to make it party to it. You further undertake to ensure that all users within the legal entity are informed of and shall comply with the terms and conditions set forth herein.
+
+4. License to use
+Subject to the terms and conditions herein, Highsoft hereby grants you a non-exclusive, non-transferrable, limited, revocable right to use Highcharts Grid Lite for such purposes as set out in sections 1 and 2 of this EULA. 
+
+5. Credits/watermark
+By accepting this EULA you agree and undertake not to remove or hide the credits/watermark section below the grid.
+
+6. Intellectual property rights
+This EULA transfers no title or ownership to any data, technology or intellectual property rights, but merely grants to User a limited license to use Highcharts Grid Lite software as set out herein. All proprietary intellectual property rights in and to Highcharts Grid Lite shall remain the full and sole property of Highsoft. For the avoidance of doubt, this EULA does not grant, and shall not be construed as granting, any rights for User in or to any Highsoft Software.
+
+7.User responsibilities
+User shall be fully and solely responsible and liable for, and shall indemnify and hold harmless Highsoft from and against any claim, loss or damages resulting from, User’s own and/or any of its users’ use of Highcharts Grid Lite, included but not limited to for having legal and actual access to any URL, network and content used in relation to Highcharts Grid Lite, for compliance with this Agreement, laws relating to protection of personal data and all other applicable laws and regulations, etc.
+
+User acknowledges and accepts that Highsoft reserves the right to at any time update Highcharts Grid Lite software and the terms and conditions of this EULA. Continued use of Highcharts Grid Lite following such update, by User and/or any of its users, shall be deemed as User’s acceptance of such renewed terms and conditions.
+
+8.No warranties and disclaimer of liability
+Highcharts Grid Lite is provided by Highsoft strictly “as is” and without any express or implied warranties or representations of any kind. Without limiting the generality of the foregoing, Highsoft hereunder provides no warranties or representations against losses, for fitness for purpose, non-infringement, merchantability or any other purpose or issues related to Highcharts Grid Lite or your use of it. 
+
+Highsoft disclaims any and all liabilities for Highcharts Grid Lite and/or your use of it. Without limiting the generality of the foregoing, Highsoft shall not be liable for any direct, indirect, incidental, consequential or punitive damages, including but not limited to loss of profits, data, or other intangible losses, resulting from or related to Highcharts Grid Lite or User’s use or inability to use the software, nor for accuracy or reliability of results or other output from any use of Highcharts Grid Lite.
+
+9. Termination
+This EULA may be terminated at any time, by either party, upon one month’s written notice to the other party. Upon any breach of this EULA by User, Highsoft may terminate the EULA with immediate effect. Highsoft may with binding effect for User provide notice of any such termination on the Highsoft website.
+
+10.Choice of law and legal venue
+This EULA shall be governed by and construed in accordance with the laws of Norway.
+
+Both Parties hereby agree to and accept the ordinary courts of Norway as legal venue with Sogn and Fjordane District Court (Sogn og Fjordane tingrett) as venue in the first instance.
