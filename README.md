@@ -34,11 +34,11 @@ Then import the package in your project:
     import Grid from '@highcharts/grid-lite/grid-lite.js'
 ```
 
-### Use our CDN
+### Use CDN
 
-Instead of downloading, you can use our CDN to access files directly. See [code.highcharts.com](https://code.highcharts.com) for details.
+Instead of downloading, you can use [jsDelivr](https://www.jsdelivr.com/) CDN to access files directly. See [code.highcharts.com](https://code.highcharts.com/#highcharts-grid-lite) for details.
 
 ```HTML
-    <script src="https://code.highcharts.com/grid/grid-lite.js"></script>
-    <link rel="stylesheet" src="https://code.highcharts.com/grid/css/grid.css">
+    <script src="https://cdn.jsdelivr.net/npm/@highcharts/grid-lite/grid-lite.js"></script>
+    <link rel="stylesheet" src="https://cdn.jsdelivr.net/npm/@highcharts/grid-lite/css/grid.css">
 ```
