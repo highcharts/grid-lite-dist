@@ -5,7 +5,7 @@ Highcharts Grid Lite is the free, standalone version of our [Dashboards Grid](ht
 - Official website: [highcharts.com](http://www.highcharts.com)
 - Product page: [highcharts.com/products/grid](https://www.highcharts.com/products/grid/)
 - Documentation: [highcharts.com/docs/grid](https://www.highcharts.com/docs/grid/installation)
-- Demos: [highcharts.com/demo](https://www.highcharts.com/demo#highcharts-dashboards-demo-basic)
+- Demos: [highcharts.com/demo](https://www.highcharts.com/demo#highcharts-grid-demo-general)
 - Download page: [highcharts.com/download](http://www.highcharts.com/download)
 - Licensing: [LICENSE.txt](LICENSE.txt)
 - Shop: [shop.highcharts.com](https://shop.highcharts.com/)
@@ -14,24 +14,26 @@ Highcharts Grid Lite is the free, standalone version of our [Dashboards Grid](ht
 
 Highcharts Grid Lite is a [source available](https://en.wikipedia.org/wiki/Source-available_software) product.
 
-To use full version of Dashboards Grid, you must have a valid license for Highcharts Dashboards. Please refer to [shop.highcharts.com](https://shop.highcharts.com/) for details on licensing.
+To use full version of Higcharts Grid, currently in our Dashboards package, you must have a valid license for Highcharts Dashboards. Please refer to [shop.highcharts.com](https://shop.highcharts.com/) for details on licensing.
 
 ## Installation
 
 If you simply want to include Highcharts Grid Lite into a project, use the [distribution package](https://www.npmjs.com/package/@highcharts/grid-lite), or refer to the [download page](http://www.highcharts.com/download).  
 For general installation instructions, see [installation documentation](https://highcharts.com/docs/grid/installation)
 
-### Install from npm
-Using npm by running the following command in your terminal:
+### Install via NPM
 
-```Shell
-    npm install @highcharts/grid-lite
+You can install **Grid Lite** via NPM:
+
+```bash
+npm install @highcharts/grid-lite
 ```
 
-Then import the package in your project:
+Then, import the package into your project:
 
-```JS
-    import Grid from '@highcharts/grid-lite/grid-lite.js'
+```js
+import Grid from "@highcharts/grid-lite/grid-lite";
+import "@highcharts/grid-lite/css/grid.css";
 ```
 
 ### Use CDN
@@ -39,6 +41,6 @@ Then import the package in your project:
 Instead of downloading, you can use [jsDelivr](https://www.jsdelivr.com/) CDN to access files directly. See [code.highcharts.com](https://code.highcharts.com/#highcharts-grid-lite) for details.
 
 ```HTML
-    <script src="https://cdn.jsdelivr.net/npm/@highcharts/grid-lite/grid-lite.js"></script>
-    <link rel="stylesheet" src="https://cdn.jsdelivr.net/npm/@highcharts/grid-lite/css/grid.css">
+<script src="https://cdn.jsdelivr.net/npm/@highcharts/grid-lite/grid-lite.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@highcharts/grid-lite/css/grid.css">
 ```
