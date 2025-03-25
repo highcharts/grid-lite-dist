@@ -1,21 +1,21 @@
 {
-    "name": "@highcharts/grid-lite",
-    "description": "Highcharts Grid Lite framework",
-    "homepage": "http://www.highcharts.com/grid",
-    "version": "1.0.0",
-    "author": "Highsoft AS <support@highcharts.com> (http://www.highcharts.com/about)",
-    "main": "grid-lite.js",
-    "repository": {
-      "type": "git",
-      "url": "https://github.com/highcharts/grid-lite-dist"
-    },
-    "keywords": [
-      "data",
-      "table",
-      "grid",
-      "highcharts"
-    ],
-    "bugs": "https://github.com/highcharts/highcharts/issues",
-    "license": "SEE LICENSE IN LICENSE.txt",
-    "types": "grid-lite.d.ts"
+  "name": "@highcharts/grid-lite",
+  "description": "Highcharts Grid Lite framework",
+  "homepage": "http://www.highcharts.com/grid",
+  "version": "1.0.0",
+  "author": "Highsoft AS <support@highcharts.com> (http://www.highcharts.com/about)",
+  "main": "grid-lite.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/highcharts/grid-lite-dist"
+  },
+  "keywords": [
+    "data",
+    "table",
+    "grid",
+    "highcharts"
+  ],
+  "bugs": "https://github.com/highcharts/highcharts/issues",
+  "license": "SEE LICENSE IN LICENSE.txt",
+  "types": "grid-lite.d.ts"
 }
