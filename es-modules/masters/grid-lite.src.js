@@ -7,11 +7,6 @@
  * License: www.highcharts.com/license
  */
 'use strict';
-/* *
- *
- *  Imports
- *
- * */
 import AST from '../Core/Renderer/HTML/AST.js';
 import Templating from '../Core/Templating.js';
 import DataConnector from '../Data/Connectors/DataConnector.js';

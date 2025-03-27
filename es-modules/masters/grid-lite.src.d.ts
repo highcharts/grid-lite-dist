@@ -6,6 +6,7 @@
  *
  * License: www.highcharts.com/license
  */
+import type _Options from '../Grid/Core/Options.ts';
 import AST from '../Core/Renderer/HTML/AST.js';
 import Templating from '../Core/Templating.js';
 import DataConnector from '../Data/Connectors/DataConnector.js';
@@ -54,4 +55,7 @@ declare global {
     }
 }
 declare const G: GridNamespace;
+declare namespace G {
+    type Options = _Options;
+}
 export default G;

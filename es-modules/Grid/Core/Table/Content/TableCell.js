@@ -188,6 +188,7 @@ class TableCell extends Cell {
         if (!originalDataTable || rowTableIndex === void 0) {
             return;
         }
+        this.row.data[this.column.id] = this.value;
         originalDataTable.setCell(this.column.id, rowTableIndex, this.value);
         if (vp.grid.querying.willNotModify()) {
             // If the data table does not need to be modified, skip the

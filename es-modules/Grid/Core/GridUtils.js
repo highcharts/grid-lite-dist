@@ -13,6 +13,8 @@
  *
  * */
 import AST from '../../Core/Renderer/HTML/AST.js';
+AST.allowedAttributes.push('srcset', 'media');
+AST.allowedTags.push('picture', 'source');
 /* *
  *
  *  Namespace

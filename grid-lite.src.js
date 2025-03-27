@@ -1,5 +1,5 @@
 /**
- * @license Highcharts Grid v1.0.0 (2025-03-25)
+ * @license Highcharts Grid v1.0.1 (2025-03-27)
  * @module grid/grid-lite
  *
  * (c) 2009-2024 Highsoft AS
@@ -74,7 +74,7 @@ var Globals;
      *  Constants
      *
      * */
-    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '1.0.0', Globals.win = (typeof window !== 'undefined' ?
+    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '1.0.1', Globals.win = (typeof window !== 'undefined' ?
         window :
         {}), // eslint-disable-line node/no-unsupported-features/es-builtins
     Globals.doc = Globals.win.document, Globals.svg = !!Globals.doc?.createElementNS?.(Globals.SVG_NS, 'svg')?.createSVGRect, Globals.pageLang = Globals.doc?.documentElement?.closest('[lang]')?.lang, Globals.userAgent = Globals.win.navigator?.userAgent || '', Globals.isChrome = Globals.win.chrome, Globals.isFirefox = Globals.userAgent.indexOf('Firefox') !== -1, Globals.isMS = /(edge|msie|trident)/i.test(Globals.userAgent) && !Globals.win.opera, Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1, Globals.isTouchDevice = /(Mobile|Android|Windows Phone)/.test(Globals.userAgent), Globals.isWebKit = Globals.userAgent.indexOf('AppleWebKit') !== -1, Globals.deg2rad = Math.PI * 2 / 360, Globals.marginNames = [
@@ -6938,6 +6938,24 @@ const defaultOptions = {
          * @apioption tooltip.distance
          */
         /**
+         * Whether the tooltip should be fixed to one position in the chart, or
+         * located next to the point or mouse. When the tooltip is fixed, the
+         * position can be further specified with the
+         * [tooltip.position](#tooltip.position) options set.
+         *
+         * @sample    highcharts/tooltip/fixed/
+         *            Fixed tooltip and position options
+         * @sample    {highstock} stock/tooltip/fixed/
+         *            Stock chart with fixed tooltip
+         * @sample    {highmaps} maps/tooltip/fixed/
+         *            Map with fixed tooltip
+         *
+         * @type      {boolean}
+         * @default   false
+         * @since     next
+         * @apioption tooltip.fixed
+         */
+        /**
          * Whether the tooltip should follow the mouse as it moves across
          * columns, pie slices and other point types with an extent.
          * By default it behaves this way for pie, polygon, map, sankey
@@ -7115,6 +7133,10 @@ const defaultOptions = {
          * xAxis header. xAxis header is not a point, instead `point` argument
          * contains info: `{ plotX: Number, plotY: Number, isHeader: Boolean }`
          *
+         * Since v12.2, the [tooltip.fixed](#tooltip.fixed) option combined with
+         * [tooltip.position](#tooltip.position) covers most of the use cases
+         * for custom tooltip positioning.
+         *
          * The return should be an object containing x and y values, for example
          * `{ x: 100, y: 100 }`.
          *
@@ -7128,6 +7150,8 @@ const defaultOptions = {
          *         Split tooltip with fixed positions
          * @sample {highstock} stock/tooltip/positioner-scrollable-plotarea/
          *         Scrollable plot area combined with tooltip positioner
+         *
+         * @see [position](#tooltip.position)
          *
          * @type      {Highcharts.TooltipPositionerCallbackFunction}
          * @since     2.2.4
@@ -7358,6 +7382,85 @@ const defaultOptions = {
          */
         padding: 8,
         /**
+         * Positioning options for fixed tooltip, taking effect only when
+         * [tooltip.fixed](#tooltip.fixed) is `true`.
+         *
+         * @sample {highcharts} highcharts/tooltip/fixed/
+         *         Fixed tooltip and position options
+         * @sample {highstock} stock/tooltip/fixed/
+         *         Stock chart with fixed tooltip
+         * @sample {highmaps} maps/tooltip/fixed/
+         *         Map with fixed tooltip
+         *
+         * @since next
+         */
+        position: {
+            /**
+             * The horizontal alignment of the fixed tooltip.
+             *
+             * @sample highcharts/tooltip/fixed/
+             *         Fixed tooltip
+             * @sample {highstock} stock/tooltip/fixed/
+             *         Stock chart with fixed tooltip
+             *
+             * @type {Highcharts.AlignValue}
+             * @default left
+             * @apioption tooltip.position.align
+             */
+            /**
+             * The vertical alignment of the fixed tooltip.
+             *
+             * @sample highcharts/tooltip/fixed/
+             *         Fixed tooltip
+             * @sample {highstock} stock/tooltip/fixed/
+             *         Stock chart with fixed tooltip
+             *
+             * @type {Highcharts.VerticalAlignValue}
+             * @default top
+             * @apioption tooltip.position.verticalAlign
+             */
+            /**
+             * What the fixed tooltip alignment should be relative to.
+             *
+             * The default, `pane`, means that it is aligned within the plot
+             * area for that given series. If the tooltip is split (as default
+             * in Stock charts), each partial tooltip is aligned within the
+             * series' pane.
+             *
+             * @sample highcharts/tooltip/fixed/
+             *         Fixed tooltip
+             * @sample {highstock} stock/tooltip/fixed/
+             *         Stock chart with fixed tooltip
+             *
+             * @type {string}
+             * @default pane
+             * @validvalue ["pane", "chart", "plotBox", "spacingBox"]
+             * @apioption tooltip.position.relativeTo
+             */
+            /**
+             * X pixel offset from the given position. Can be used to shy away
+             * from axis lines, grid lines etc to avoid the tooltip overlapping
+             * other elements.
+             *
+             * @sample highcharts/tooltip/fixed/
+             *         Fixed tooltip
+             * @sample {highstock} stock/tooltip/fixed/
+             *         Stock chart with fixed tooltip
+             */
+            x: 0,
+            /**
+             * Y pixel offset from the given position. Can be used to shy away
+             * from axis lines, grid lines etc to avoid the tooltip overlapping
+             * other elements.
+             *
+             * @sample highcharts/tooltip/fixed/
+             *         Fixed tooltip
+             * @sample {highstock} stock/tooltip/fixed/
+             *         Stock chart with fixed tooltip
+             */
+            y: 3
+        },
+        /**
          * The name of a symbol to use for the border around the tooltip. Can
          * be one of: `"callout"`, `"circle"` or `"rect"`. When
          * [tooltip.split](#tooltip.split)
@@ -7369,10 +7472,14 @@ const defaultOptions = {
          * `Highcharts.SVGRenderer.prototype.symbols` the same way as for
          * [series.marker.symbol](plotOptions.line.marker.symbol).
          *
+         * Defaults to `callout` for floating tooltip, `rect` for
+         * [fixed](#tooltip.fixed) tooltip.
+         *
          * @type  {Highcharts.TooltipShapeValue}
          * @since 4.0
+         * @default undefined
+         * @apioption tooltip.shape
          */
-        shape: 'callout',
         /**
          * Shows information in the tooltip for all points with the same X
          * value. When the tooltip is shared, the entire plot area will capture
@@ -7444,8 +7551,10 @@ const defaultOptions = {
          * The HTML of the null point's line in the tooltip. Works analogously
          * to [pointFormat](#tooltip.pointFormat).
          *
+         * @sample {highcharts} highcharts/series/null-interaction
+         *         Line chart with null interaction
          * @sample {highcharts} highcharts/plotoptions/series-nullformat
-         *         Format data label and tooltip for null point.
+         *         Heatmap with null interaction
          *
          * @type      {string}
          * @apioption tooltip.nullFormat
@@ -7501,7 +7610,7 @@ const defaultOptions = {
         backgroundColor: "#ffffff" /* Palette.backgroundColor */,
         /**
          * The pixel width of the tooltip border. Defaults to 0 for single
-         * tooltips and 1 for split tooltips.
+         * tooltips and fixed tooltips, otherwise 1 for split tooltips.
          *
          * In styled mode, the stroke width is set in the
          * `.highcharts-tooltip-box` class.
@@ -7525,7 +7634,8 @@ const defaultOptions = {
          */
         borderWidth: void 0,
         /**
-         * Whether to apply a drop shadow to the tooltip.
+         * Whether to apply a drop shadow to the tooltip. Defaults to true,
+         * unless the tooltip is [fixed](#tooltip.fixed).
          *
          * @sample {highcharts} highcharts/tooltip/bordercolor-default/
          *         True by default
@@ -7535,8 +7645,9 @@ const defaultOptions = {
          *         Fixed tooltip position, border and shadow disabled
          *
          * @type {boolean|Highcharts.ShadowOptionsObject}
+         * @default undefined
+         * @apioption tooltip.shadow
          */
-        shadow: true,
         /**
          * Prevents the tooltip from switching or closing when touched or
          * pointed.
@@ -11641,6 +11752,8 @@ var Globals_Globals;
  *
  * */
 
+HTML_AST.allowedAttributes.push('srcset', 'media');
+HTML_AST.allowedTags.push('picture', 'source');
 /* *
  *
  *  Namespace
@@ -13477,6 +13590,7 @@ class TableCell extends Table_Cell {
         if (!originalDataTable || rowTableIndex === void 0) {
             return;
         }
+        this.row.data[this.column.id] = this.value;
         originalDataTable.setCell(this.column.id, rowTableIndex, this.value);
         if (vp.grid.querying.willNotModify()) {
             // If the data table does not need to be modified, skip the
@@ -16486,7 +16600,7 @@ DataPool.version = '1.0.0';
 
 
 
-const { makeHTMLElement: Credits_makeHTMLElement } = Core_GridUtils;
+const { makeHTMLElement: Credits_makeHTMLElement, setHTMLContent: Credits_setHTMLContent } = Core_GridUtils;
 /* *
  *
  *  Class
@@ -16538,7 +16652,7 @@ class Credits {
             this.textElement = this.renderAnchor();
         }
         if (text && href) {
-            this.textElement.innerHTML = text;
+            Credits_setHTMLContent(this.textElement, text);
             this.textElement.setAttribute('href', href || '');
         }
         if (grid.descriptionElement) {
@@ -18775,11 +18889,6 @@ Modifiers_DataModifier.registerType('Range', RangeModifier);
 ;// ./code/grid/es-modules/masters/grid-lite.src.js
 
 
-/* *
- *
- *  Imports
- *
- * */
 
 
 

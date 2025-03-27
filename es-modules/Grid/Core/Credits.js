@@ -16,7 +16,7 @@
 'use strict';
 import Globals from './Globals.js';
 import GridUtils from './GridUtils.js';
-const { makeHTMLElement } = GridUtils;
+const { makeHTMLElement, setHTMLContent } = GridUtils;
 /* *
  *
  *  Class
@@ -68,7 +68,7 @@ class Credits {
             this.textElement = this.renderAnchor();
         }
         if (text && href) {
-            this.textElement.innerHTML = text;
+            setHTMLContent(this.textElement, text);
             this.textElement.setAttribute('href', href || '');
         }
         if (grid.descriptionElement) {

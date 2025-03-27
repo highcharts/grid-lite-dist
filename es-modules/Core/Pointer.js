@@ -517,8 +517,10 @@ class Pointer {
                 });
                 // Get all points with the same x value as the hoverPoint
                 searchSeries.forEach(function (s) {
+                    const nullInteraction = s.options?.nullInteraction;
                     let point = find(s.points, function (p) {
-                        return p.x === hoverPoint.x && !p.isNull;
+                        return (p.x === hoverPoint.x && (!p.isNull ||
+                            !!nullInteraction));
                     });
                     if (isObject(point)) {
                         /*
