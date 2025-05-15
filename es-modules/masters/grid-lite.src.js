@@ -2,13 +2,14 @@
  * @license Highcharts Grid v@product.version@ (@product.date@)
  * @module grid/grid-lite
  *
- * (c) 2009-2024 Highsoft AS
+ * (c) 2009-2025 Highsoft AS
  *
  * License: www.highcharts.com/license
  */
 'use strict';
 import AST from '../Core/Renderer/HTML/AST.js';
 import Templating from '../Core/Templating.js';
+import ColumnDistribution from '../Grid/Core/Table/ColumnDistribution/ColumnDistribution.js';
 import DataConnector from '../Data/Connectors/DataConnector.js';
 import DataConverter from '../Data/Converters/DataConverter.js';
 import DataCursor from '../Data/DataCursor.js';
@@ -44,6 +45,7 @@ G.DataConverter = DataConverter;
 G.Grid = _Grid;
 G.grid = _Grid.grid;
 G.grids = _Grid.grids;
+G.ColumnDistribution = ColumnDistribution;
 G.DataModifier = DataModifier;
 G.DataPool = DataPool;
 G.DataTable = DataTable;

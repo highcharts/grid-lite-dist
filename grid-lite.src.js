@@ -1,8 +1,8 @@
 /**
- * @license Highcharts Grid v1.0.1 (2025-03-27)
+ * @license Highcharts Grid v1.1.0 (2025-05-15)
  * @module grid/grid-lite
  *
- * (c) 2009-2024 Highsoft AS
+ * (c) 2009-2025 Highsoft AS
  *
  * License: www.highcharts.com/license
  */
@@ -50,7 +50,7 @@ __webpack_require__.d(__webpack_exports__, {
 ;// ./code/grid/es-modules/Core/Globals.js
 /* *
  *
- *  (c) 2010-2024 Torstein Honsi
+ *  (c) 2010-2025 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -74,7 +74,7 @@ var Globals;
      *  Constants
      *
      * */
-    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '1.0.1', Globals.win = (typeof window !== 'undefined' ?
+    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '1.1.0', Globals.win = (typeof window !== 'undefined' ?
         window :
         {}), // eslint-disable-line node/no-unsupported-features/es-builtins
     Globals.doc = Globals.win.document, Globals.svg = !!Globals.doc?.createElementNS?.(Globals.SVG_NS, 'svg')?.createSVGRect, Globals.pageLang = Globals.doc?.documentElement?.closest('[lang]')?.lang, Globals.userAgent = Globals.win.navigator?.userAgent || '', Globals.isChrome = Globals.win.chrome, Globals.isFirefox = Globals.userAgent.indexOf('Firefox') !== -1, Globals.isMS = /(edge|msie|trident)/i.test(Globals.userAgent) && !Globals.win.opera, Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1, Globals.isTouchDevice = /(Mobile|Android|Windows Phone)/.test(Globals.userAgent), Globals.isWebKit = Globals.userAgent.indexOf('AppleWebKit') !== -1, Globals.deg2rad = Math.PI * 2 / 360, Globals.marginNames = [
@@ -179,7 +179,7 @@ var Globals;
 ;// ./code/grid/es-modules/Core/Utilities.js
 /* *
  *
- *  (c) 2010-2024 Torstein Honsi
+ *  (c) 2010-2025 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -2170,7 +2170,7 @@ const Utilities = {
 ;// ./code/grid/es-modules/Core/Renderer/HTML/AST.js
 /* *
  *
- *  (c) 2010-2024 Torstein Honsi
+ *  (c) 2010-2025 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -2505,9 +2505,9 @@ AST.allowedAttributes = [
     'cx',
     'cy',
     'd',
+    'disabled',
     'dx',
     'dy',
-    'disabled',
     'fill',
     'filterUnits',
     'flood-color',
@@ -2531,22 +2531,22 @@ AST.allowedAttributes = [
     'radius',
     'refX',
     'refY',
+    'result',
     'role',
+    'rowspan',
     'scope',
     'slope',
     'src',
     'startOffset',
     'stdDeviation',
-    'stroke',
     'stroke-linecap',
     'stroke-width',
+    'stroke',
     'style',
-    'tableValues',
-    'result',
-    'rowspan',
     'summary',
-    'target',
     'tabindex',
+    'tableValues',
+    'target',
     'text-align',
     'text-anchor',
     'textAnchor',
@@ -2603,6 +2603,7 @@ AST.allowedReferences = [
  * @type    {Array<string>}
  */
 AST.allowedTags = [
+    '#text',
     'a',
     'abbr',
     'b',
@@ -2627,10 +2628,10 @@ AST.allowedTags = [
     'feFuncG',
     'feFuncR',
     'feGaussianBlur',
-    'feMorphology',
-    'feOffset',
     'feMerge',
     'feMergeNode',
+    'feMorphology',
+    'feOffset',
     'filter',
     'h1',
     'h2',
@@ -2659,18 +2660,17 @@ AST.allowedTags = [
     'sup',
     'svg',
     'table',
+    'tbody',
+    'td',
     'text',
     'textPath',
+    'th',
     'thead',
     'title',
-    'tbody',
-    'tspan',
-    'td',
-    'th',
     'tr',
+    'tspan',
     'u',
-    'ul',
-    '#text'
+    'ul'
 ];
 AST.emptyHTML = emptyHTML;
 /**
@@ -2734,7 +2734,7 @@ AST.bypassHTMLFiltering = false;
 ;// ./code/grid/es-modules/Core/Chart/ChartDefaults.js
 /* *
  *
- *  (c) 2010-2024 Torstein Honsi
+ *  (c) 2010-2025 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -3193,6 +3193,10 @@ const ChartDefaults = {
          * [`endOnTick`](#yAxis.endOnTick) were set to `false`. After the
          * panning action is finished, the axes will adjust to their actual
          * settings.
+         *
+         * **Note:** For non-cartesian series, the only supported panning type
+         * is `xy`, as zooming in a single direction is not applicable due to
+         * the radial nature of the coordinate system.
          *
          * @sample {highcharts} highcharts/chart/panning-type
          *         Zooming and xy panning
@@ -3733,6 +3737,11 @@ const ChartDefaults = {
     /**
      * Chart zooming options.
      * @since 10.2.1
+     *
+     * @sample     highcharts/plotoptions/sankey-inverted
+     *             Zooming in sankey series
+     * @sample     highcharts/series-treegraph/link-types
+     *             Zooming in treegraph series
      */
     zooming: {
         /**
@@ -3754,6 +3763,10 @@ const ChartDefaults = {
         /**
          * Decides in what dimensions the user can zoom by dragging the mouse.
          * Can be one of `x`, `y` or `xy`.
+         *
+         * **Note:** For non-cartesian series, the only supported zooming type
+         * is `xy`, as zooming in a single direction is not applicable due to
+         * the radial nature of the coordinate system.
          *
          * @declare    Highcharts.OptionsChartZoomingTypeValue
          * @type       {string}
@@ -4051,7 +4064,7 @@ const SeriesPalettes = {
 ;// ./code/grid/es-modules/Shared/TimeBase.js
 /* *
  *
- *  (c) 2010-2024 Torstein Honsi
+ *  (c) 2010-2025 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -4879,7 +4892,7 @@ class TimeBase {
 ;// ./code/grid/es-modules/Core/Time.js
 /* *
  *
- *  (c) 2010-2024 Torstein Honsi
+ *  (c) 2010-2025 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -5053,7 +5066,7 @@ class Time extends Shared_TimeBase {
 ;// ./code/grid/es-modules/Core/Defaults.js
 /* *
  *
- *  (c) 2010-2024 Torstein Honsi
+ *  (c) 2010-2025 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -5149,7 +5162,7 @@ const defaultOptions = {
         /**
          * The default chart title.
          *
-         * @since next
+         * @since 12.2.0
          */
         chartTitle: 'Chart title',
         /**
@@ -5191,7 +5204,7 @@ const defaultOptions = {
         /**
          * [Format string](https://www.highcharts.com/docs/chart-concepts/templating) for the default series name.
          *
-         * @since next
+         * @since 12.2.0
          */
         seriesName: 'Series {add index 1}',
         /**
@@ -5278,7 +5291,7 @@ const defaultOptions = {
         numericSymbols: ['k', 'M', 'G', 'T', 'P', 'E'],
         /**
          * The default name for a pie slice (point).
-         * @since next
+         * @since 12.2.0
          */
         pieSliceName: 'Slice',
         /**
@@ -5318,7 +5331,7 @@ const defaultOptions = {
         /**
          * The default title of the Y axis
          *
-         * @since next
+         * @since 12.2.0
          */
         yAxisTitle: 'Values',
         resetZoomTitle: 'Reset zoom level 1:1'
@@ -6952,7 +6965,7 @@ const defaultOptions = {
          *
          * @type      {boolean}
          * @default   false
-         * @since     next
+         * @since 12.2.0
          * @apioption tooltip.fixed
          */
         /**
@@ -7392,7 +7405,7 @@ const defaultOptions = {
          * @sample {highmaps} maps/tooltip/fixed/
          *         Map with fixed tooltip
          *
-         * @since next
+         * @since 12.2.0
          */
         position: {
             /**
@@ -8013,7 +8026,7 @@ const DefaultOptions = {
 ;// ./code/grid/es-modules/Core/Templating.js
 /* *
  *
- *  (c) 2010-2024 Torstein Honsi
+ *  (c) 2010-2025 Torstein Honsi
  *
  *  License: www.highcharts.com/license
  *
@@ -8413,11 +8426,896 @@ const Templating = {
     numberFormat
 };
 /* harmony default export */ const Core_Templating = (Templating);
+/* *
+ * API Declarations
+ * */
+/**
+ * @interface Highcharts.Templating
+ *
+ * The Highcharts.Templating interface provides a structure for defining
+ * helpers. Helpers can be used as conditional blocks or functions within
+ * expressions. Highcharts includes several built-in helpers and supports
+ * the addition of custom helpers.
+ *
+ * @see [More information](
+ * https://www.highcharts.com/docs/chart-concepts/templating#helpers)
+ *
+ * @example
+ * // Define a custom helper to return the absolute value of a number
+ * Highcharts.Templating.helpers.abs = value => Math.abs(value);
+ *
+ * // Usage in a format string
+ * format: 'Absolute value: {abs point.y}'
+ *
+ * @name Highcharts.Templating#helpers
+ * @type {Record<string, Function>}
+ */
+(''); // Keeps doclets above in file
+
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/ColumnDistributionStrategy.js
+/* *
+ *
+ *  Column Distribution Strategy abstract class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+const { getStyle: ColumnDistributionStrategy_getStyle } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Represents a column distribution strategy.
+ */
+class ColumnDistributionStrategy {
+    /* *
+    *
+    *  Constructor
+    *
+    * */
+    /**
+     * Creates a new column distribution strategy.
+     *
+     * @param viewport
+     * The table that the column distribution strategy is applied to.
+     */
+    constructor(viewport) {
+        /**
+         * The current widths values of the columns.
+         */
+        this.columnWidths = {};
+        this.viewport = viewport;
+    }
+    /**
+     * Loads the column to the distribution strategy. Should be called before
+     * the table is rendered.
+     */
+    loadColumns() {
+        const { columns } = this.viewport;
+        for (let i = 0, iEnd = columns.length; i < iEnd; ++i) {
+            this.loadColumn(columns[i]);
+        }
+    }
+    /**
+     * Recaulculates the changing dimentions of the table.
+     */
+    reflow() {
+        if (this.type === 'full') {
+            return;
+        }
+        const vp = this.viewport;
+        let rowsWidth = 0;
+        for (let i = 0, iEnd = vp.columns.length; i < iEnd; ++i) {
+            rowsWidth += this.getColumnWidth(vp.columns[i]);
+        }
+        vp.rowsWidth = rowsWidth;
+    }
+    /**
+     * Returns the current column distribution strategy metadata.
+     * @internal
+     */
+    exportMetadata() {
+        return {
+            type: this.type,
+            columnWidths: this.columnWidths
+        };
+    }
+    /**
+     * Imports the column distribution strategy metadata. Used to restore the
+     * column distribution strategy after the table is destroyed and recreated.
+     *
+     * @param metadata
+     * The metadata to import.
+     *
+     * @param columnIterator
+     * A function that is called for each significant column in the table.
+     */
+    importMetadata(metadata, columnIterator) {
+        const { enabledColumns } = this.viewport.grid;
+        const savedColumnIds = Object.keys(metadata.columnWidths);
+        if (this.invalidated ||
+            this.type !== metadata.type ||
+            !enabledColumns?.length) {
+            return;
+        }
+        let columnId;
+        for (let i = 0, iEnd = savedColumnIds.length; i < iEnd; ++i) {
+            columnId = savedColumnIds[i];
+            if (enabledColumns.indexOf(columnId) === -1) {
+                continue;
+            }
+            this.columnWidths[columnId] = metadata.columnWidths[columnId];
+            columnIterator?.(columnId);
+        }
+    }
+    /**
+     * Validates the column distribution strategy on update. This method
+     * is used to determine whether the current distribution strategy metadata
+     * should be invalidated when the table is updated.
+     *
+     * @param newOptions
+     * The new options to validate.
+     */
+    validateOnUpdate(newOptions) {
+        if (Object.hasOwnProperty.call(newOptions.rendering?.columns || {}, 'distribution') &&
+            newOptions.rendering?.columns?.distribution !== this.type) {
+            this.invalidated = true;
+        }
+    }
+    /* *
+     *
+     * Static Methods
+     *
+     * */
+    /**
+     * Returns the minimum width of the column.
+     *
+     * @param column
+     * The column to get the minimum width for.
+     *
+     * @returns
+     * The minimum width in pixels.
+     */
+    static getMinWidth(column) {
+        const tableColumnEl = column.cells[0]?.htmlElement;
+        const headerColumnEl = column.header?.htmlElement;
+        const getElPaddings = (el) => ((ColumnDistributionStrategy_getStyle(el, 'padding-left', true) || 0) +
+            (ColumnDistributionStrategy_getStyle(el, 'padding-right', true) || 0) +
+            (ColumnDistributionStrategy_getStyle(el, 'border-left', true) || 0) +
+            (ColumnDistributionStrategy_getStyle(el, 'border-right', true) || 0));
+        let result = ColumnDistributionStrategy.MIN_COLUMN_WIDTH;
+        if (tableColumnEl) {
+            result = Math.max(result, getElPaddings(tableColumnEl));
+        }
+        if (headerColumnEl) {
+            result = Math.max(result, getElPaddings(headerColumnEl));
+        }
+        return result;
+    }
+}
+/* *
+*
+*  Static Properties
+*
+* */
+/**
+ * The minimum width of a column.
+ * @internal
+ */
+ColumnDistributionStrategy.MIN_COLUMN_WIDTH = 20;
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnDistribution_ColumnDistributionStrategy = (ColumnDistributionStrategy);
+
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/MixedDistributionStrategy.js
+/* *
+ *
+ *  Mixed Distribution Strategy class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+const { defined: MixedDistributionStrategy_defined } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+class MixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStrategy {
+    constructor() {
+        /* *
+         *
+         *  Properties
+         *
+         * */
+        super(...arguments);
+        this.type = 'mixed';
+        /**
+         * Array of units for each column width value. Codified as:
+         * - `0` - px
+         * - `1` - %
+         */
+        this.columnWidthUnits = {};
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    loadColumn(column) {
+        const raw = column.options.width;
+        if (!raw) {
+            return;
+        }
+        let value;
+        let unitCode = 0;
+        if (typeof raw === 'number') {
+            value = raw;
+            unitCode = 0;
+        }
+        else {
+            value = parseFloat(raw);
+            unitCode = raw.charAt(raw.length - 1) === '%' ? 1 : 0;
+        }
+        this.columnWidthUnits[column.id] = unitCode;
+        this.columnWidths[column.id] = value;
+    }
+    getColumnWidth(column) {
+        const vp = this.viewport;
+        const widthValue = this.columnWidths[column.id];
+        const minWidth = ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column);
+        if (!MixedDistributionStrategy_defined(widthValue)) {
+            const freeWidth = vp.tbodyElement.clientWidth - this.calculateOccupiedWidth();
+            const freeColumns = (vp.grid.enabledColumns?.length || 0) -
+                Object.keys(this.columnWidths).length;
+            // If undefined width:
+            return Math.max(freeWidth / freeColumns, minWidth);
+        }
+        if (this.columnWidthUnits[column.id] === 0) {
+            // If px:
+            return widthValue;
+        }
+        // If %:
+        return Math.max(vp.getWidthFromRatio(widthValue / 100), minWidth);
+    }
+    resize(resizer, diff) {
+        const vp = this.viewport;
+        const column = resizer.draggedColumn;
+        if (!column) {
+            return;
+        }
+        const colW = resizer.columnStartWidth ?? 0;
+        const minWidth = ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column);
+        const nextCol = vp.columns[column.index + 1];
+        const newW = Math.max(colW + diff, minWidth);
+        this.columnWidths[column.id] = newW;
+        this.columnWidthUnits[column.id] = 0; // Always save in px
+        if (nextCol) {
+            this.columnWidths[nextCol.id] = Math.max((resizer.nextColumnStartWidth ?? 0) + colW - newW, minWidth);
+            this.columnWidthUnits[nextCol.id] = 0; // Always save in px
+        }
+    }
+    /**
+     * Calculates defined (px and %) widths of all defined columns in the grid.
+     * Total in px.
+     */
+    calculateOccupiedWidth() {
+        const vp = this.viewport;
+        let occupiedWidth = 0;
+        let unit, width;
+        const columnIds = Object.keys(this.columnWidths);
+        let columnId;
+        for (let i = 0, iEnd = columnIds.length; i < iEnd; ++i) {
+            columnId = columnIds[i];
+            unit = this.columnWidthUnits[columnId];
+            if (unit === 0) {
+                occupiedWidth += this.columnWidths[columnId];
+                continue;
+            }
+            width = this.columnWidths[columnId];
+            occupiedWidth += vp.getWidthFromRatio(width / 100);
+        }
+        return occupiedWidth;
+    }
+    exportMetadata() {
+        return {
+            ...super.exportMetadata(),
+            columnWidthUnits: this.columnWidthUnits
+        };
+    }
+    importMetadata(metadata) {
+        super.importMetadata(metadata, (colId) => {
+            const unit = metadata.columnWidthUnits[colId];
+            if (MixedDistributionStrategy_defined(unit)) {
+                this.columnWidthUnits[colId] = unit;
+            }
+        });
+    }
+    validateOnUpdate(newOptions) {
+        super.validateOnUpdate(newOptions);
+        if (!this.invalidated && (Object.hasOwnProperty.call(newOptions.columnDefaults || {}, 'width') ||
+            newOptions.columns?.some((col) => Object.hasOwnProperty.call(col || {}, 'width')))) {
+            this.invalidated = true;
+        }
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnDistribution_MixedDistributionStrategy = (MixedDistributionStrategy);
+
+;// ./code/grid/es-modules/Grid/Core/Globals.js
+/* *
+ *
+ *  (c) 2009-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *  - Sebastian Bochan
+ *
+ * */
+
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Globals Grid namespace.
+ */
+var Globals_Globals;
+(function (Globals) {
+    /* *
+     *
+     *  Declarations
+     *
+     * */
+    /* *
+     *
+     *  Constants
+     *
+     * */
+    Globals.classNamePrefix = 'hcg-';
+    Globals.rawClassNames = {
+        container: 'container',
+        tableElement: 'table',
+        captionElement: 'caption',
+        descriptionElement: 'description',
+        theadElement: 'thead',
+        tbodyElement: 'tbody',
+        rowElement: 'row',
+        rowEven: 'row-even',
+        rowOdd: 'row-odd',
+        hoveredRow: 'hovered-row',
+        columnElement: 'column',
+        hoveredCell: 'hovered-cell',
+        hoveredColumn: 'hovered-column',
+        syncedRow: 'synced-row',
+        syncedCell: 'synced-cell',
+        syncedColumn: 'synced-column',
+        editedCell: 'edited-cell',
+        mockedRow: 'mocked-row',
+        rowsContentNowrap: 'rows-content-nowrap',
+        virtualization: 'virtualization',
+        scrollableContent: 'scrollable-content',
+        headerCell: 'header-cell',
+        headerCellContent: 'header-cell-content',
+        headerRow: 'head-row-content',
+        noData: 'no-data',
+        columnFirst: 'column-first',
+        columnSortable: 'column-sortable',
+        columnSortableIcon: 'column-sortable-icon',
+        columnSortedAsc: 'column-sorted-asc',
+        columnSortedDesc: 'column-sorted-desc',
+        resizableContent: 'resizable-content',
+        resizerHandles: 'column-resizer',
+        resizedColumn: 'column-resized',
+        creditsContainer: 'credits-container',
+        creditsText: 'credits',
+        creditsPro: 'credits-pro',
+        visuallyHidden: 'visually-hidden',
+        lastHeaderCellInRow: 'last-header-cell-in-row',
+        loadingWrapper: 'loading-wrapper',
+        loadingSpinner: 'spinner',
+        loadingMessage: 'loading-message'
+    };
+    Globals.win = window;
+    Globals.composed = [];
+    Globals.userAgent = (Globals.win.navigator && Globals.win.navigator.userAgent) || '';
+    Globals.isChrome = Globals.userAgent.indexOf('Chrome') !== -1;
+    Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1;
+    Globals.getClassName = (classNameKey) => Globals.classNamePrefix + Globals.rawClassNames[classNameKey];
+})(Globals_Globals || (Globals_Globals = {}));
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Grid_Core_Globals = (Globals_Globals);
+
+;// ./code/grid/es-modules/Grid/Core/GridUtils.js
+/* *
+ *
+ *  Grid utilities
+ *
+ *  (c) 2009-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+HTML_AST.allowedAttributes.push('srcset', 'media');
+HTML_AST.allowedTags.push('picture', 'source');
+/* *
+ *
+ *  Namespace
+ *
+ * */
+var GridUtils;
+(function (GridUtils) {
+    /* *
+     *
+     *  Declarations
+     *
+     * */
+    /* *
+     *
+     *  Functions
+     *
+     * */
+    /**
+     * Creates a HTML element with the provided options.
+     *
+     * @param tagName
+     * The tag name of the element.
+     *
+     * @param params
+     * The parameters of the element.
+     *
+     * @param parent
+     * The parent element.
+     */
+    function makeHTMLElement(tagName, params, parent) {
+        const element = document.createElement(tagName);
+        if (params) {
+            const paramsKeys = Object.keys(params);
+            for (let i = 0; i < paramsKeys.length; i++) {
+                const key = paramsKeys[i];
+                const value = params[key];
+                if (value !== void 0) {
+                    if (key === 'style') {
+                        Object.assign(element.style, value);
+                    }
+                    else {
+                        element[key] = value;
+                    }
+                }
+            }
+        }
+        if (parent) {
+            parent.appendChild(element);
+        }
+        return element;
+    }
+    GridUtils.makeHTMLElement = makeHTMLElement;
+    /**
+     * Creates a div element with the provided class name and id.
+     *
+     * @param className
+     * The class name of the div.
+     *
+     * @param id
+     * The id of the element.
+     */
+    function makeDiv(className, id) {
+        return makeHTMLElement('div', { className, id });
+    }
+    GridUtils.makeDiv = makeDiv;
+    /**
+     * Check if there's a possibility that the given string is an HTML
+     * (contains '<').
+     *
+     * @param str
+     * Text to verify.
+     */
+    function isHTML(str) {
+        return str.indexOf('<') !== -1;
+    }
+    GridUtils.isHTML = isHTML;
+    /**
+     * Returns a string containing plain text format by removing HTML tags
+     *
+     * @param text
+     * String to be sanitized
+     *
+     * @returns
+     * Sanitized plain text string
+     */
+    function sanitizeText(text) {
+        try {
+            return new DOMParser().parseFromString(text, 'text/html')
+                .body.textContent || '';
+        }
+        catch (error) {
+            return '';
+        }
+    }
+    GridUtils.sanitizeText = sanitizeText;
+    /**
+     * Sets an element's content, checking whether it is HTML or plain text.
+     * Should be used instead of element.innerText when the content can be HTML.
+     *
+     * @param element
+     * Parent element where the content should be.
+     *
+     * @param content
+     * Content to render.
+     */
+    function setHTMLContent(element, content) {
+        if (isHTML(content)) {
+            const formattedNodes = new HTML_AST(content);
+            formattedNodes.addToDOM(element);
+        }
+        else {
+            element.innerText = content;
+        }
+    }
+    GridUtils.setHTMLContent = setHTMLContent;
+})(GridUtils || (GridUtils = {}));
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Core_GridUtils = (GridUtils);
+
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/FixedDistributionStrategy.js
+/* *
+ *
+ *  Fixed Distribution Strategy class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+const { makeHTMLElement } = Core_GridUtils;
+/* *
+ *
+ *  Class
+ *
+ * */
+class FixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStrategy {
+    constructor() {
+        /* *
+         *
+         *  Properties
+         *
+         * */
+        super(...arguments);
+        this.type = 'fixed';
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    loadColumn(column) {
+        this.columnWidths[column.id] = this.getInitialColumnWidth(column);
+    }
+    getColumnWidth(column) {
+        return this.columnWidths[column.id];
+    }
+    resize(resizer, diff) {
+        const column = resizer.draggedColumn;
+        if (!column) {
+            return;
+        }
+        this.columnWidths[column.id] = Math.max((resizer.columnStartWidth || 0) + diff, ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column));
+    }
+    /**
+     * Creates a mock element to measure the width of the column from the CSS.
+     * The element is appended to the viewport container and then removed.
+     * It should be called only once for each column.
+     *
+     * @param column
+     * The column for which the initial width is being calculated.
+     *
+     * @returns The initial width of the column.
+     */
+    getInitialColumnWidth(column) {
+        const { viewport } = this;
+        // Set the initial width of the column.
+        const mock = makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('columnElement')
+        }, viewport.grid.container);
+        mock.setAttribute('data-column-id', column.id);
+        if (column.options.className) {
+            mock.classList.add(...column.options.className.split(/\s+/g));
+        }
+        const result = mock.offsetWidth || 100;
+        mock.remove();
+        return result;
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnDistribution_FixedDistributionStrategy = (FixedDistributionStrategy);
+
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/FullDistributionStrategy.js
+/* *
+ *
+ *  Full Distribution Strategy class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+const { makeHTMLElement: FullDistributionStrategy_makeHTMLElement } = Core_GridUtils;
+/* *
+ *
+ *  Class
+ *
+ * */
+class FullDistributionStrategy extends ColumnDistribution_ColumnDistributionStrategy {
+    constructor() {
+        /* *
+        *
+        *  Properties
+        *
+        * */
+        super(...arguments);
+        this.type = 'full';
+        this.allPreviousWidths = 0;
+    }
+    /* *
+    *
+    *  Methods
+    *
+    * */
+    loadColumn(column) {
+        const width = this.getInitialColumnWidth(column);
+        this.allPreviousWidths += width;
+        this.columnWidths[column.id] = width;
+    }
+    getColumnWidth(column) {
+        return this.viewport.getWidthFromRatio(this.columnWidths[column.id] || 0);
+    }
+    resize(resizer, diff) {
+        const vp = this.viewport;
+        const column = resizer.draggedColumn;
+        if (!column) {
+            return;
+        }
+        const nextColumn = vp.columns[column.index + 1];
+        if (!nextColumn) {
+            return;
+        }
+        const leftColW = resizer.columnStartWidth ?? 0;
+        const rightColW = resizer.nextColumnStartWidth ?? 0;
+        const minWidth = ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column);
+        let newLeftW = leftColW + diff;
+        let newRightW = rightColW - diff;
+        if (newLeftW < minWidth) {
+            newLeftW = minWidth;
+            newRightW = leftColW + rightColW - minWidth;
+        }
+        if (newRightW < minWidth) {
+            newRightW = minWidth;
+            newLeftW = leftColW + rightColW - minWidth;
+        }
+        this.columnWidths[column.id] = vp.getRatioFromWidth(newLeftW);
+        this.columnWidths[nextColumn.id] = vp.getRatioFromWidth(newRightW);
+    }
+    /**
+     * The initial width of the column in the full distribution mode. The last
+     * column in the viewport will have to fill the remaining space.
+     *
+     * @param column
+     * The column to measure the width.
+     *
+     * @param mock
+     * The mock element to measure the width.
+     */
+    getInitialFullDistWidth(column, mock) {
+        const vp = column.viewport;
+        const columnsCount = vp.grid.enabledColumns?.length ?? 0;
+        if (column.index < columnsCount - 1) {
+            return vp.getRatioFromWidth(mock.offsetWidth) || 1 / columnsCount;
+        }
+        const result = 1 - this.allPreviousWidths;
+        if (result < 0) {
+            // eslint-disable-next-line no-console
+            console.warn('The sum of the columns\' widths exceeds the ' +
+                'viewport width. It may cause unexpected behavior in the ' +
+                'full distribution mode. Check the CSS styles of the ' +
+                'columns. Corrections may be needed.');
+        }
+        return result;
+    }
+    /**
+     * Creates a mock element to measure the width of the column from the CSS.
+     * The element is appended to the viewport container and then removed.
+     * It should be called only once for each column.
+     *
+     * @param column
+     * The column to measure the width.
+     *
+     * @returns The initial width of the column.
+     */
+    getInitialColumnWidth(column) {
+        const { viewport } = column;
+        // Set the initial width of the column.
+        const mock = FullDistributionStrategy_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('columnElement')
+        }, viewport.grid.container);
+        mock.setAttribute('data-column-id', column.id);
+        if (column.options.className) {
+            mock.classList.add(...column.options.className.split(/\s+/g));
+        }
+        const result = this.getInitialFullDistWidth(column, mock);
+        mock.remove();
+        return result;
+    }
+    importMetadata(metadata) {
+        if (Object.keys(metadata.columnWidths).length !==
+            this.viewport.grid.enabledColumns?.length) {
+            return;
+        }
+        super.importMetadata(metadata);
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnDistribution_FullDistributionStrategy = (FullDistributionStrategy);
+
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/ColumnDistribution.js
+/* *
+ *
+ *  Column Distribution namespace
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+
+
+const { defined: ColumnDistribution_defined } = Core_Utilities;
+/* *
+ *
+ *  Namespace
+ *
+ * */
+var ColumnDistribution;
+(function (ColumnDistribution) {
+    /**
+     * Abstract class representing a column distribution strategy.
+     */
+    ColumnDistribution.AbstractStrategy = ColumnDistribution_ColumnDistributionStrategy;
+    /**
+     * Registry of column distribution strategies.
+     */
+    ColumnDistribution.types = {
+        mixed: ColumnDistribution_MixedDistributionStrategy,
+        fixed: ColumnDistribution_FixedDistributionStrategy,
+        full: ColumnDistribution_FullDistributionStrategy
+    };
+    /**
+     * Returns the column distribution of the table according to the options:
+     * 1. If `columns.distribution` defined, use it. If not:
+     * 2. If any column has a width defined, use `mixed`. If not:
+     * 3. Use `full`.
+     *
+     * @param viewport
+     * The table that the column distribution strategy is applied to.
+     */
+    function assumeDistributionType(viewport) {
+        const { options } = viewport.grid;
+        const result = options?.rendering?.columns?.distribution;
+        if (result) {
+            return result;
+        }
+        if (options?.columns?.some((column) => ColumnDistribution_defined(column.width)) || ColumnDistribution_defined(options?.columnDefaults?.width)) {
+            return 'mixed';
+        }
+        return 'full';
+    }
+    /**
+     * Creates a new column distribution strategy instance based on the
+     * viewport's options.
+     *
+     * @param viewport
+     * The table that the column distribution strategy is applied to.
+     *
+     * @returns
+     * The proper column distribution strategy.
+     */
+    function initStrategy(viewport) {
+        return new ColumnDistribution.types[assumeDistributionType(viewport)](viewport);
+    }
+    ColumnDistribution.initStrategy = initStrategy;
+})(ColumnDistribution || (ColumnDistribution = {}));
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnDistribution_ColumnDistribution = (ColumnDistribution);
 
 ;// ./code/grid/es-modules/Data/Modifiers/DataModifier.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -8700,7 +9598,7 @@ class DataModifier {
 ;// ./code/grid/es-modules/Data/ColumnUtils.js
 /* *
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -8815,7 +9713,7 @@ var ColumnUtils;
 ;// ./code/grid/es-modules/Data/DataTableCore.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -8884,6 +9782,11 @@ class DataTableCore {
         this.modified = this;
         this.rowCount = 0;
         this.versionTag = DataTableCore_uniqueKey();
+        this.columnNames = options.columnNames;
+        this.firstRowAsNames = options.firstRowAsNames;
+        this.orientation = options.orientation;
+        this.dataModifier = options.dataModifier;
+        this.beforeParse = options.beforeParse;
         let rowCount = 0;
         DataTableCore_objectEach(options.columns || {}, (column, columnName) => {
             this.columns[columnName] = column.slice();
@@ -9124,7 +10027,7 @@ class DataTableCore {
 ;// ./code/grid/es-modules/Data/DataTable.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -10243,7 +11146,7 @@ DataTable.version = '1.0.0';
 ;// ./code/grid/es-modules/Data/Connectors/DataConnector.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -10281,16 +11184,48 @@ class DataConnector {
      *
      * @param {DataConnector.UserOptions} [options]
      * Options to use in the connector.
+     *
+     * @param {Array<DataTable>} [dataTables]
+     * Multiple connector data tables options.
      */
-    constructor(options = {}) {
-        this.table = new Data_DataTable(options.dataTable);
+    constructor(options = {}, dataTables = []) {
+        /**
+         * Tables managed by this DataConnector instance.
+         */
+        this.dataTables = {};
         this.metadata = options.metadata || { columns: {} };
+        // Create a data table for each defined in the dataTables user options.
+        let dataTableIndex = 0;
+        if (dataTables?.length > 0) {
+            for (let i = 0, iEnd = dataTables.length; i < iEnd; ++i) {
+                const dataTable = dataTables[i];
+                const key = dataTable?.key;
+                this.dataTables[key ?? dataTableIndex] =
+                    new Data_DataTable(dataTable);
+                if (!key) {
+                    dataTableIndex++;
+                }
+            }
+            // If user options dataTables is not defined, generate a default table.
+        }
+        else {
+            this.dataTables[0] = new Data_DataTable(options.dataTable);
+        }
     }
     /**
      * Poll timer ID, if active.
      */
     get polling() {
         return !!this._polling;
+    }
+    /**
+     * Gets the first data table.
+     *
+     * @return {DataTable}
+     * The data table instance.
+     */
+    get table() {
+        return this.getTable();
     }
     /* *
      *
@@ -10349,6 +11284,22 @@ class DataConnector {
         if (names.length) {
             return names.sort((a, b) => (DataConnector_pick(columns[a].index, 0) - DataConnector_pick(columns[b].index, 0)));
         }
+    }
+    /**
+     * Returns a single data table instance based on the provided key.
+     * Otherwise, returns the first data table.
+     *
+     * @param {string} [key]
+     * The data table key.
+     *
+     * @return {DataTable}
+     * The data table instance.
+     */
+    getTable(key) {
+        if (key) {
+            return this.dataTables[key];
+        }
+        return Object.values(this.dataTables)[0];
     }
     /**
      * Retrieves the columns of the dataTable,
@@ -10415,14 +11366,16 @@ class DataConnector {
             connector.describeColumn(columnNames[i], { index: i });
         }
     }
-    setModifierOptions(modifierOptions) {
-        const ModifierClass = (modifierOptions &&
-            Modifiers_DataModifier.types[modifierOptions.type]);
-        return this.table
-            .setModifier(ModifierClass ?
-            new ModifierClass(modifierOptions) :
-            void 0)
-            .then(() => this);
+    async setModifierOptions(modifierOptions) {
+        for (const table of Object.values(this.dataTables)) {
+            const mergedModifierOptions = DataConnector_merge(table.dataModifier, modifierOptions);
+            const ModifierClass = (mergedModifierOptions &&
+                Modifiers_DataModifier.types[mergedModifierOptions.type]);
+            await table.setModifier(ModifierClass ?
+                new ModifierClass(mergedModifierOptions) :
+                void 0);
+        }
+        return this;
     }
     /**
      * Starts polling new data after the specific time span in milliseconds.
@@ -10432,12 +11385,16 @@ class DataConnector {
      */
     startPolling(refreshTime = 1000) {
         const connector = this;
+        const tables = connector.dataTables;
+        // Assign a new abort controller.
+        this.pollingController = new AbortController();
+        // Clear the polling timeout.
         window.clearTimeout(connector._polling);
         connector._polling = window.setTimeout(() => connector
             .load()['catch']((error) => connector.emit({
             type: 'loadError',
             error,
-            table: connector.table
+            tables
         }))
             .then(() => {
             if (connector._polling) {
@@ -10450,6 +11407,9 @@ class DataConnector {
      */
     stopPolling() {
         const connector = this;
+        // Abort the existing request.
+        connector?.pollingController?.abort();
+        // Clear the polling timeout.
         window.clearTimeout(connector._polling);
         delete connector._polling;
     }
@@ -10464,6 +11424,35 @@ class DataConnector {
      */
     whatIs(name) {
         return this.metadata.columns[name];
+    }
+    /**
+     * Iterates over the dataTables and initiates the corresponding converters.
+     * Updates the dataTables and assigns the first converter.
+     *
+     * @param {T}[data]
+     * Data specific to the corresponding converter.
+     *
+     * @param {DataConnector.CreateConverterFunction}[createConverter]
+     * Creates a specific converter combining the dataTable options.
+     *
+     * @param {DataConnector.ParseDataFunction<T>}[parseData]
+     * Runs the converter parse method with the specific data type.
+     */
+    initConverters(data, createConverter, parseData) {
+        let index = 0;
+        for (const [key, table] of Object.entries(this.dataTables)) {
+            // Create a proper converter and parse its data.
+            const converter = createConverter(key, table);
+            parseData(converter, data);
+            // Update the dataTable.
+            table.deleteColumns();
+            table.setColumns(converter.getTable().getColumns());
+            // Assign the first converter.
+            if (index === 0) {
+                this.converter = converter;
+            }
+            index++;
+        }
     }
 }
 /* *
@@ -10525,7 +11514,7 @@ class DataConnector {
 ;// ./code/grid/es-modules/Data/Converters/DataConverter.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -11153,7 +12142,7 @@ DataConverter.defaultOptions = {
 ;// ./code/grid/es-modules/Data/DataCursor.js
 /* *
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -11539,7 +12528,7 @@ DataCursor.version = '1.0.0';
 ;// ./code/grid/es-modules/Accessibility/HighContrastMode.js
 /* *
  *
- *  (c) 2009-2024 Øystein Moseng
+ *  (c) 2009-2025 Øystein Moseng
  *
  *  Handling for Windows High Contrast Mode.
  *
@@ -11564,11 +12553,6 @@ const { doc: HighContrastMode_doc, isMS, win: HighContrastMode_win } = Core_Glob
  * @return {boolean} Returns true if the browser is in High Contrast mode.
  */
 function isHighContrastModeActive() {
-    // Use media query on Edge, but not on IE
-    const isEdge = /(Edg)/.test(HighContrastMode_win.navigator.userAgent);
-    if (HighContrastMode_win.matchMedia && isEdge) {
-        return HighContrastMode_win.matchMedia('(-ms-high-contrast: active)').matches;
-    }
     // Test BG image for IE
     if (isMS && HighContrastMode_win.getComputedStyle) {
         const testDiv = HighContrastMode_doc.createElement('div');
@@ -11643,246 +12627,12 @@ const whcm = {
 };
 /* harmony default export */ const HighContrastMode = (whcm);
 
-;// ./code/grid/es-modules/Grid/Core/Globals.js
-/* *
- *
- *  (c) 2009-2024 Highsoft AS
- *
- *  License: www.highcharts.com/license
- *
- *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
- *
- *  Authors:
- *  - Dawid Dragula
- *  - Sebastian Bochan
- *
- * */
-
-/* *
- *
- *  Class
- *
- * */
-/**
- * Globals Grid namespace.
- */
-var Globals_Globals;
-(function (Globals) {
-    /* *
-     *
-     *  Declarations
-     *
-     * */
-    /* *
-     *
-     *  Constants
-     *
-     * */
-    Globals.classNamePrefix = 'hcg-';
-    Globals.rawClassNames = {
-        container: 'container',
-        tableElement: 'table',
-        captionElement: 'caption',
-        descriptionElement: 'description',
-        theadElement: 'thead',
-        tbodyElement: 'tbody',
-        rowElement: 'row',
-        rowEven: 'row-even',
-        rowOdd: 'row-odd',
-        hoveredRow: 'hovered-row',
-        columnElement: 'column',
-        hoveredCell: 'hovered-cell',
-        hoveredColumn: 'hovered-column',
-        syncedRow: 'synced-row',
-        syncedCell: 'synced-cell',
-        syncedColumn: 'synced-column',
-        editedCell: 'edited-cell',
-        mockedRow: 'mocked-row',
-        rowsContentNowrap: 'rows-content-nowrap',
-        virtualization: 'virtualization',
-        scrollableContent: 'scrollable-content',
-        headerCell: 'header-cell',
-        headerCellContent: 'header-cell-content',
-        headerRow: 'head-row-content',
-        noData: 'no-data',
-        columnFirst: 'column-first',
-        columnSortable: 'column-sortable',
-        columnSortableIcon: 'column-sortable-icon',
-        columnSortedAsc: 'column-sorted-asc',
-        columnSortedDesc: 'column-sorted-desc',
-        resizerWrapper: 'resizer-content',
-        resizerHandles: 'column-resizer',
-        resizedColumn: 'column-resized',
-        creditsContainer: 'credits-container',
-        creditsText: 'credits',
-        creditsPro: 'credits-pro',
-        visuallyHidden: 'visually-hidden',
-        lastHeaderCellInRow: 'last-header-cell-in-row',
-        loadingWrapper: 'loading-wrapper',
-        loadingSpinner: 'spinner',
-        loadingMessage: 'loading-message'
-    };
-    Globals.win = window;
-    Globals.composed = [];
-    Globals.userAgent = (Globals.win.navigator && Globals.win.navigator.userAgent) || '';
-    Globals.isChrome = Globals.userAgent.indexOf('Chrome') !== -1;
-    Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1;
-    Globals.getClassName = (classNameKey) => Globals.classNamePrefix + Globals.rawClassNames[classNameKey];
-})(Globals_Globals || (Globals_Globals = {}));
-/* *
- *
- *  Default Export
- *
- * */
-/* harmony default export */ const Grid_Core_Globals = (Globals_Globals);
-
-;// ./code/grid/es-modules/Grid/Core/GridUtils.js
-/* *
- *
- *  Grid utilities
- *
- *  (c) 2009-2024 Highsoft AS
- *
- *  License: www.highcharts.com/license
- *
- *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
- *
- *  Authors:
- *  - Dawid Dragula
- *
- * */
-
-HTML_AST.allowedAttributes.push('srcset', 'media');
-HTML_AST.allowedTags.push('picture', 'source');
-/* *
- *
- *  Namespace
- *
- * */
-var GridUtils;
-(function (GridUtils) {
-    /* *
-     *
-     *  Declarations
-     *
-     * */
-    /* *
-     *
-     *  Functions
-     *
-     * */
-    /**
-     * Creates a HTML element with the provided options.
-     *
-     * @param tagName
-     * The tag name of the element.
-     *
-     * @param params
-     * The parameters of the element.
-     *
-     * @param parent
-     * The parent element.
-     */
-    function makeHTMLElement(tagName, params, parent) {
-        const element = document.createElement(tagName);
-        if (params) {
-            const paramsKeys = Object.keys(params);
-            for (let i = 0; i < paramsKeys.length; i++) {
-                const key = paramsKeys[i];
-                const value = params[key];
-                if (value !== void 0) {
-                    if (key === 'style') {
-                        Object.assign(element.style, value);
-                    }
-                    else {
-                        element[key] = value;
-                    }
-                }
-            }
-        }
-        if (parent) {
-            parent.appendChild(element);
-        }
-        return element;
-    }
-    GridUtils.makeHTMLElement = makeHTMLElement;
-    /**
-     * Creates a div element with the provided class name and id.
-     *
-     * @param className
-     * The class name of the div.
-     *
-     * @param id
-     * The id of the element.
-     */
-    function makeDiv(className, id) {
-        return makeHTMLElement('div', { className, id });
-    }
-    GridUtils.makeDiv = makeDiv;
-    /**
-     * Check if there's a possibility that the given string is an HTML
-     * (contains '<').
-     *
-     * @param str
-     * Text to verify.
-     */
-    function isHTML(str) {
-        return str.indexOf('<') !== -1;
-    }
-    GridUtils.isHTML = isHTML;
-    /**
-     * Returns a string containing plain text format by removing HTML tags
-     *
-     * @param text
-     * String to be sanitized
-     *
-     * @returns
-     * Sanitized plain text string
-     */
-    function sanitizeText(text) {
-        try {
-            return new DOMParser().parseFromString(text, 'text/html')
-                .body.textContent || '';
-        }
-        catch (error) {
-            return '';
-        }
-    }
-    GridUtils.sanitizeText = sanitizeText;
-    /**
-     * Sets an element's content, checking whether it is HTML or plain text.
-     * Should be used instead of element.innerText when the content can be HTML.
-     *
-     * @param element
-     * Parent element where the content should be.
-     *
-     * @param content
-     * Content to render.
-     */
-    function setHTMLContent(element, content) {
-        if (isHTML(content)) {
-            const formattedNodes = new HTML_AST(content);
-            formattedNodes.addToDOM(element);
-        }
-        else {
-            element.innerText = content;
-        }
-    }
-    GridUtils.setHTMLContent = setHTMLContent;
-})(GridUtils || (GridUtils = {}));
-/* *
- *
- *  Default Export
- *
- * */
-/* harmony default export */ const Core_GridUtils = (GridUtils);
-
 ;// ./code/grid/es-modules/Grid/Core/Accessibility/Accessibility.js
 /* *
  *
  *  Grid Accessibility class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -11897,7 +12647,7 @@ var GridUtils;
 
 
 
-const { makeHTMLElement } = Core_GridUtils;
+const { makeHTMLElement: Accessibility_makeHTMLElement } = Core_GridUtils;
 /**
  *  Representing the accessibility functionalities for the Data Grid.
  */
@@ -11938,7 +12688,7 @@ class Accessibility {
         if (!sortableLang) {
             return;
         }
-        makeHTMLElement('span', {
+        Accessibility_makeHTMLElement('span', {
             className: Grid_Core_Globals.getClassName('visuallyHidden'),
             innerText: ', ' + sortableLang
         }, element);
@@ -12081,7 +12831,7 @@ class Accessibility {
  *
  *  Grid default options
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -12130,9 +12880,6 @@ var Defaults_Defaults;
             timezone: 'UTC'
         },
         rendering: {
-            columns: {
-                distribution: 'full'
-            },
             rows: {
                 bufferSize: 10,
                 minVisibleRows: 2,
@@ -12175,7 +12922,7 @@ var Defaults_Defaults;
  *
  *  Grid Column class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -12190,9 +12937,7 @@ var Defaults_Defaults;
 
 
 
-
 const { merge: Column_merge } = Core_Utilities;
-const { makeHTMLElement: Column_makeHTMLElement } = Core_GridUtils;
 /* *
  *
  *  Class
@@ -12228,7 +12973,6 @@ class Column {
         this.id = id;
         this.index = index;
         this.viewport = viewport;
-        this.width = this.getInitialWidth();
         this.loadData();
     }
     /* *
@@ -12274,10 +13018,7 @@ class Column {
      * Returns the width of the column in pixels.
      */
     getWidth() {
-        const vp = this.viewport;
-        return vp.columnDistribution === 'full' ?
-            vp.getWidthFromRatio(this.width) :
-            this.width;
+        return this.viewport.columnDistribution.getColumnWidth(this);
     }
     /**
      * Adds or removes the hovered CSS class to the column element
@@ -12306,60 +13047,6 @@ class Column {
         }
     }
     /**
-     * Creates a mock element to measure the width of the column from the CSS.
-     * The element is appended to the viewport container and then removed.
-     * It should be called only once for each column.
-     *
-     * @returns The initial width of the column.
-     */
-    getInitialWidth() {
-        let result;
-        const { viewport } = this;
-        // Set the initial width of the column.
-        const mock = Column_makeHTMLElement('div', {
-            className: Grid_Core_Globals.getClassName('columnElement')
-        }, viewport.grid.container);
-        mock.setAttribute('data-column-id', this.id);
-        if (this.options.className) {
-            mock.classList.add(...this.options.className.split(/\s+/g));
-        }
-        if (viewport.columnDistribution === 'full') {
-            result = this.getInitialFullDistWidth(mock);
-        }
-        else {
-            result = mock.offsetWidth || 100;
-        }
-        mock.remove();
-        return result;
-    }
-    /**
-     * The initial width of the column in the full distribution mode. The last
-     * column in the viewport will have to fill the remaining space.
-     *
-     * @param mock
-     * The mock element to measure the width.
-     */
-    getInitialFullDistWidth(mock) {
-        const vp = this.viewport;
-        const columnsCount = vp.grid.enabledColumns?.length ?? 0;
-        if (this.index < columnsCount - 1) {
-            return vp.getRatioFromWidth(mock.offsetWidth) || 1 / columnsCount;
-        }
-        let allPreviousWidths = 0;
-        for (let i = 0, iEnd = columnsCount - 1; i < iEnd; i++) {
-            allPreviousWidths += vp.columns[i].width;
-        }
-        const result = 1 - allPreviousWidths;
-        if (result < 0) {
-            // eslint-disable-next-line no-console
-            console.warn('The sum of the columns\' widths exceeds the ' +
-                'viewport width. It may cause unexpected behavior in the ' +
-                'full distribution mode. Check the CSS styles of the ' +
-                'columns. Corrections may be needed.');
-        }
-        return result;
-    }
-    /**
      * Returns the formatted string where the templating context is the column.
      *
      * @param template
@@ -12373,16 +13060,6 @@ class Column {
     }
 }
 /* *
-*
-*  Static Properties
-*
-* */
-/**
- * The minimum width of a column.
- * @internal
- */
-Column.MIN_COLUMN_WIDTH = 20;
-/* *
  *
  *  Default Export
  *
@@ -12394,7 +13071,7 @@ Column.MIN_COLUMN_WIDTH = 20;
  *
  *  Grid Row abstract class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -12526,7 +13203,7 @@ class Row {
  *
  *  Grid Cell abstract class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -12727,7 +13404,7 @@ class Cell {
  *
  *  Grid ColumnSorting class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -12869,7 +13546,7 @@ class ColumnSorting {
  *
  *  Grid HeaderCell class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -13031,7 +13708,7 @@ class HeaderCell extends Table_Cell {
     onClick(e) {
         const column = this.column;
         if (!column || (e.target !== this.htmlElement &&
-            e.target !== column.header?.headerContent)) {
+            e.target !== column.header?.headerContent) || column.viewport.columnsResizer?.isResizing) {
             return;
         }
         if (column.options.sorting?.sortable) {
@@ -13074,7 +13751,7 @@ class HeaderCell extends Table_Cell {
  *
  *  Grid HeaderRow class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -13250,7 +13927,7 @@ class HeaderRow extends Table_Row {
  *
  *  Grid TableHeader class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -13348,7 +14025,7 @@ class TableHeader {
         }
         if (header &&
             bordersWidth > 0 &&
-            this.viewport.columnDistribution === 'full') {
+            this.viewport.columnDistribution.type === 'full') {
             const row = this.columns[this.columns.length - 1].header?.row;
             const lastCellEl = row?.cells[row.cells.length - 1]?.htmlElement;
             if (lastCellEl) {
@@ -13404,7 +14081,7 @@ class TableHeader {
  *
  *  Grid class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -13570,10 +14247,8 @@ class TableCell extends Table_Cell {
     async setValue(value, updateTable) {
         this.value = value;
         const vp = this.column.viewport;
-        const element = this.htmlElement;
-        const cellContent = this.formatCell();
         // Render the table cell element content.
-        TableCell_setHTMLContent(element, cellContent);
+        TableCell_setHTMLContent(this.htmlElement, this.formatCell());
         this.htmlElement.setAttribute('data-value', this.value + '');
         this.setCustomClassName(this.column.options.cells?.className);
         TableCell_fireEvent(this, 'afterSetValue', {
@@ -13661,7 +14336,7 @@ class TableCell extends Table_Cell {
  *
  *  Grid TableRow class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -13816,7 +14491,7 @@ class TableRow extends Table_Row {
  *
  *  Grid Rows Renderer class.
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -14154,7 +14829,7 @@ class RowsVirtualizer {
  *
  *  Grid Columns Resizer class.
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -14169,9 +14844,8 @@ class RowsVirtualizer {
 
 
 
-
 const { makeHTMLElement: ColumnsResizer_makeHTMLElement } = Core_GridUtils;
-const { fireEvent: ColumnsResizer_fireEvent, getStyle: ColumnsResizer_getStyle } = Core_Utilities;
+const { fireEvent: ColumnsResizer_fireEvent } = Core_Utilities;
 /* *
  *
  *  Class
@@ -14187,6 +14861,10 @@ class ColumnsResizer {
      *
      * */
     constructor(viewport) {
+        /**
+         * Any column is being resized. Turned off after slight delay.
+         */
+        this.isResizing = false;
         /**
          * The handles and their mouse down event listeners.
          */
@@ -14205,13 +14883,8 @@ class ColumnsResizer {
             }
             const diff = e.pageX - (this.dragStartX || 0);
             const vp = this.viewport;
-            if (vp.columnDistribution === 'full') {
-                this.fullDistributionResize(diff);
-            }
-            else {
-                this.fixedDistributionResize(diff);
-            }
-            vp.reflow(true);
+            vp.columnDistribution.resize(this, diff);
+            vp.reflow();
             if (vp.grid.options?.rendering?.rows?.virtualization) {
                 vp.rowsVirtualizer.adjustRowHeights();
             }
@@ -14230,6 +14903,9 @@ class ColumnsResizer {
             this.draggedResizeHandle = void 0;
             this.columnStartWidth = void 0;
             this.nextColumnStartWidth = void 0;
+            requestAnimationFrame(() => {
+                this.isResizing = false;
+            });
         };
         this.viewport = viewport;
         document.addEventListener('mousemove', this.onDocumentMouseMove);
@@ -14251,7 +14927,7 @@ class ColumnsResizer {
      */
     renderColumnDragHandles(column, cell) {
         const vp = column.viewport;
-        if (vp.columnsResizer && (vp.columnDistribution !== 'full' ||
+        if (vp.columnsResizer && (vp.columnDistribution.type !== 'full' ||
             (vp.grid.enabledColumns &&
                 column.index < vp.grid.enabledColumns.length - 1))) {
             const handle = ColumnsResizer_makeHTMLElement('div', {
@@ -14260,57 +14936,6 @@ class ColumnsResizer {
             handle.setAttribute('aria-hidden', true);
             vp.columnsResizer?.addHandleListeners(handle, column);
         }
-    }
-    /**
-     * Resizes the columns in the full distribution mode.
-     *
-     * @param diff
-     * The X position difference in pixels.
-     */
-    fullDistributionResize(diff) {
-        const vp = this.viewport;
-        const column = this.draggedColumn;
-        if (!column) {
-            return;
-        }
-        const nextColumn = vp.columns[column.index + 1];
-        if (!nextColumn) {
-            return;
-        }
-        const leftColW = this.columnStartWidth ?? 0;
-        const rightColW = this.nextColumnStartWidth ?? 0;
-        const minWidth = ColumnsResizer.getMinWidth(column);
-        let newLeftW = leftColW + diff;
-        let newRightW = rightColW - diff;
-        if (newLeftW < minWidth) {
-            newLeftW = minWidth;
-            newRightW = leftColW + rightColW - minWidth;
-        }
-        if (newRightW < minWidth) {
-            newRightW = minWidth;
-            newLeftW = leftColW + rightColW - minWidth;
-        }
-        column.width = vp.getRatioFromWidth(newLeftW);
-        nextColumn.width = vp.getRatioFromWidth(newRightW);
-    }
-    /**
-     * Resizes the columns in the fixed distribution mode.
-     *
-     * @param diff
-     * The X position difference in pixels.
-     */
-    fixedDistributionResize(diff) {
-        const column = this.draggedColumn;
-        if (!column) {
-            return;
-        }
-        const colW = this.columnStartWidth ?? 0;
-        const minWidth = ColumnsResizer.getMinWidth(column);
-        let newW = colW + diff;
-        if (newW < minWidth) {
-            newW = minWidth;
-        }
-        column.width = newW;
     }
     /**
      * Adds event listeners to the handle.
@@ -14324,12 +14949,8 @@ class ColumnsResizer {
     addHandleListeners(handle, column) {
         const onHandleMouseDown = (e) => {
             const vp = column.viewport;
-            const { grid } = vp;
-            if (!grid.options?.rendering?.rows?.virtualization) {
-                grid.contentWrapper?.classList.add(Grid_Core_Globals.getClassName('resizerWrapper'));
-                // Apply widths before resizing
-                vp.reflow(true);
-            }
+            this.isResizing = true;
+            vp.reflow();
             this.dragStartX = e.pageX;
             this.draggedColumn = column;
             this.draggedResizeHandle = handle;
@@ -14353,31 +14974,6 @@ class ColumnsResizer {
             handle.removeEventListener('mousedown', listener);
         }
     }
-    /**
-     * Returns the minimum width of the column.
-     *
-     * @param column
-     * The column to get the minimum width for.
-     *
-     * @returns
-     * The minimum width in pixels.
-     */
-    static getMinWidth(column) {
-        const tableColumnEl = column.cells[1].htmlElement;
-        const headerColumnEl = column.header?.htmlElement;
-        const getElPaddings = (el) => ((ColumnsResizer_getStyle(el, 'padding-left', true) || 0) +
-            (ColumnsResizer_getStyle(el, 'padding-right', true) || 0) +
-            (ColumnsResizer_getStyle(el, 'border-left', true) || 0) +
-            (ColumnsResizer_getStyle(el, 'border-right', true) || 0));
-        let result = Table_Column.MIN_COLUMN_WIDTH;
-        if (tableColumnEl) {
-            result = Math.max(result, getElPaddings(tableColumnEl));
-        }
-        if (headerColumnEl) {
-            result = Math.max(result, getElPaddings(headerColumnEl));
-        }
-        return result;
-    }
 }
 /* *
  *
@@ -14391,7 +14987,7 @@ class ColumnsResizer {
  *
  *  Grid Table Viewport class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -14402,6 +14998,7 @@ class ColumnsResizer {
  *  - Sebastian Bochan
  *
  * */
+
 
 
 
@@ -14460,7 +15057,7 @@ class Table {
          * Handles the resize event.
          */
         this.onResize = () => {
-            this.reflow(this.scrollable);
+            this.reflow();
         };
         /**
          * Handles the scroll event.
@@ -14475,10 +15072,8 @@ class Table {
         this.dataTable = this.grid.presentationTable;
         const dgOptions = grid.options;
         const customClassName = dgOptions?.rendering?.table?.className;
-        this.columnDistribution =
-            dgOptions?.rendering?.columns?.distribution;
+        this.columnDistribution = ColumnDistribution_ColumnDistribution.initStrategy(this);
         this.virtualRows = !!dgOptions?.rendering?.rows?.virtualization;
-        this.scrollable = !!(this.grid.initialContainerHeight || this.virtualRows);
         if (dgOptions?.rendering?.header?.enabled) {
             this.theadElement = Table_makeHTMLElement('thead', {}, tableElement);
         }
@@ -14501,10 +15096,8 @@ class Table {
         // Add event listeners
         this.resizeObserver = new ResizeObserver(this.onResize);
         this.resizeObserver.observe(tableElement);
+        tableElement.classList.add(Grid_Core_Globals.getClassName('scrollableContent'));
         this.tbodyElement.addEventListener('scroll', this.onScroll);
-        if (this.scrollable) {
-            tableElement.classList.add(Grid_Core_Globals.getClassName('scrollableContent'));
-        }
         this.tbodyElement.addEventListener('focus', this.onTBodyFocus);
     }
     /* *
@@ -14553,6 +15146,7 @@ class Table {
             columnId = enabledColumns[i];
             this.columns.push(new Table_Column(this, columnId, i));
         }
+        this.columnDistribution.loadColumns();
     }
     /**
      * Fires an empty update to properly load the virtualization, only if
@@ -14565,7 +15159,7 @@ class Table {
             Core_Defaults.defaultOptions.rendering?.rows?.virtualizationThreshold);
         const rowCount = Number(this.dataTable?.rowCount);
         if (rows?.virtualization !== (rowCount >= threshold)) {
-            this.grid.update();
+            void this.grid.update();
         }
     }
     /**
@@ -14581,27 +15175,13 @@ class Table {
     }
     /**
      * Reflows the table's content dimensions.
-     *
-     * @param reflowColumns
-     * Force reflow columns and recalculate widths.
-     *
      */
-    reflow(reflowColumns = false) {
-        const isVirtualization = this.grid.options?.rendering?.rows?.virtualization;
-        // Get the width of the rows.
-        if (this.columnDistribution === 'fixed') {
-            let rowsWidth = 0;
-            for (let i = 0, iEnd = this.columns.length; i < iEnd; ++i) {
-                rowsWidth += this.columns[i].width;
-            }
-            this.rowsWidth = rowsWidth;
-        }
-        if (isVirtualization || reflowColumns) {
-            // Reflow the head
-            this.header?.reflow();
-            // Reflow rows content dimensions
-            this.rowsVirtualizer.reflowRows();
-        }
+    reflow() {
+        this.columnDistribution.reflow();
+        // Reflow the head
+        this.header?.reflow();
+        // Reflow rows content dimensions
+        this.rowsVirtualizer.reflowRows();
     }
     /**
      * Scrolls the table to the specified row.
@@ -14678,7 +15258,6 @@ class Table {
             scrollTop: this.tbodyElement.scrollTop,
             scrollLeft: this.tbodyElement.scrollLeft,
             columnDistribution: this.columnDistribution,
-            columnWidths: this.columns.map((column) => column.width),
             focusCursor: this.focusCursor
         };
     }
@@ -14692,18 +15271,14 @@ class Table {
     applyStateMeta(meta) {
         this.tbodyElement.scrollTop = meta.scrollTop;
         this.tbodyElement.scrollLeft = meta.scrollLeft;
-        if (this.columnDistribution === meta.columnDistribution &&
-            this.columns.length === meta.columnWidths.length) {
-            const widths = meta.columnWidths;
-            for (let i = 0, iEnd = widths.length; i < iEnd; ++i) {
-                this.columns[i].width = widths[i];
-            }
-            this.reflow();
-            if (meta.focusCursor) {
-                const [rowIndex, columnIndex] = meta.focusCursor;
-                const row = this.rows[rowIndex - this.rows[0].index];
-                row?.cells[columnIndex]?.htmlElement.focus();
-            }
+        if (!meta.columnDistribution.invalidated) {
+            const colDistMeta = meta.columnDistribution.exportMetadata();
+            this.columnDistribution.importMetadata(colDistMeta);
+        }
+        if (meta.focusCursor) {
+            const [rowIndex, columnIndex] = meta.focusCursor;
+            const row = this.rows[rowIndex - this.rows[0].index];
+            row?.cells[columnIndex]?.htmlElement.focus();
         }
     }
     /**
@@ -14743,7 +15318,7 @@ class Table {
 ;// ./code/grid/es-modules/Data/Modifiers/ChainModifier.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -15075,7 +15650,7 @@ Modifiers_DataModifier.registerType('Chain', ChainModifier);
 ;// ./code/grid/es-modules/Data/Modifiers/SortModifier.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -15344,7 +15919,7 @@ Modifiers_DataModifier.registerType('Sort', SortModifier);
  *
  *  Grid Sorting Controller class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -15483,7 +16058,7 @@ class SortingController {
  *
  *  Grid Querying Controller class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -15596,7 +16171,7 @@ class QueryingController {
  *
  *  Highcharts Grid class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -15859,6 +16434,7 @@ class Grid {
             newDataTable = true;
             this.initVirtualization();
         }
+        this.viewport?.columnDistribution.validateOnUpdate(options);
         this.querying.loadOptions();
         if (render) {
             await this.querying.proceed(newDataTable);
@@ -16052,10 +16628,8 @@ class Grid {
         }
         this.renderDescription();
         this.accessibility?.setA11yOptions();
-        if (this.viewport?.virtualRows) {
-            this.viewport.reflow();
-        }
         Grid_fireEvent(this, 'afterRenderViewport');
+        this.viewport?.reflow();
     }
     /**
      * Renders the table (viewport) of the Grid.
@@ -16290,7 +16864,7 @@ Grid.grids = [];
 ;// ./code/grid/es-modules/Data/DataPoolDefaults.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -16319,7 +16893,7 @@ const DataPoolDefaults = {
 ;// ./code/grid/es-modules/Data/DataPool.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -16504,7 +17078,7 @@ class DataPool {
             if (!ConnectorClass) {
                 throw new Error(`Connector type not found. (${options.type})`);
             }
-            const connector = new ConnectorClass(options.options);
+            const connector = new ConnectorClass(options.options, options.dataTables);
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             connector
                 .load()
@@ -16586,7 +17160,7 @@ DataPool.version = '1.0.0';
  *
  *  Grid Credits class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -16641,7 +17215,7 @@ class Credits {
     * */
     /**
      * Render the credits. If the credits are disabled, they will be removed
-     * from the container. If also reflows the viewport dimensions.
+     * from the container.
      */
     render() {
         const grid = this.grid;
@@ -16661,7 +17235,6 @@ class Credits {
         else {
             contentWrapper?.appendChild(this.containerElement);
         }
-        this.grid.viewport?.reflow();
     }
     renderAnchor() {
         const anchorElement = Credits_makeHTMLElement('a', {
@@ -16715,7 +17288,7 @@ Credits.defaultOptions = {
  *
  *  Grid Credits class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -16786,7 +17359,7 @@ var CreditsLiteComposition;
 ;// ./code/grid/es-modules/Data/Converters/CSVConverter.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -17229,7 +17802,7 @@ Converters_DataConverter.registerType('CSV', CSVConverter);
 ;// ./code/grid/es-modules/Data/Connectors/CSVConnector.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -17268,11 +17841,14 @@ class CSVConnector extends Connectors_DataConnector {
      *
      * @param {CSVConnector.UserOptions} [options]
      * Options for the connector and converter.
+     *
+     * @param {Array<DataTable>} [dataTables]
+     * Multiple connector data tables options.
+     *
      */
-    constructor(options) {
+    constructor(options, dataTables) {
         const mergedOptions = CSVConnector_merge(CSVConnector.defaultOptions, options);
-        super(mergedOptions);
-        this.converter = new Converters_CSVConverter(mergedOptions);
+        super(mergedOptions, dataTables);
         this.options = mergedOptions;
         if (mergedOptions.enablePolling) {
             this.startPolling(Math.max(mergedOptions.dataRefreshRate || 0, 1) * 1000);
@@ -17293,23 +17869,35 @@ class CSVConnector extends Connectors_DataConnector {
      * @emits CSVConnector#afterLoad
      */
     load(eventDetail) {
-        const connector = this, converter = connector.converter, table = connector.table, { csv, csvURL, dataModifier } = connector.options;
+        const connector = this, tables = connector.dataTables, { csv, csvURL, dataModifier } = connector.options;
         connector.emit({
             type: 'load',
             csv,
             detail: eventDetail,
-            table
+            tables
         });
         return Promise
             .resolve(csvURL ?
-            fetch(csvURL).then((response) => response.text()) :
+            fetch(csvURL, {
+                signal: connector?.pollingController?.signal
+            }).then((response) => response.text()) :
             csv || '')
             .then((csv) => {
             if (csv) {
-                // If already loaded, clear the current rows
-                table.deleteColumns();
-                converter.parse({ csv });
-                table.setColumns(converter.getTable().getColumns());
+                this.initConverters(csv, (key, table) => {
+                    const options = this.options;
+                    // Takes over the connector default options.
+                    const dataTableOptions = {
+                        dataTableKey: key,
+                        firstRowAsNames: table.firstRowAsNames ??
+                            options.firstRowAsNames,
+                        beforeParse: table.beforeParse ??
+                            options.beforeParse
+                    };
+                    return new Converters_CSVConverter(CSVConnector_merge(this.options, dataTableOptions));
+                }, (converter, data) => {
+                    converter.parse({ csv: data });
+                });
             }
             return connector
                 .setModifierOptions(dataModifier)
@@ -17320,7 +17908,7 @@ class CSVConnector extends Connectors_DataConnector {
                 type: 'afterLoad',
                 csv,
                 detail: eventDetail,
-                table
+                tables
             });
             return connector;
         })['catch']((error) => {
@@ -17328,7 +17916,7 @@ class CSVConnector extends Connectors_DataConnector {
                 type: 'loadError',
                 detail: eventDetail,
                 error,
-                table
+                tables
             });
             throw error;
         });
@@ -17357,7 +17945,7 @@ Connectors_DataConnector.registerType('CSV', CSVConnector);
 ;// ./code/grid/es-modules/Data/Converters/GoogleSheetsConverter.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -17495,7 +18083,7 @@ Converters_DataConverter.registerType('GoogleSheets', GoogleSheetsConverter);
 ;// ./code/grid/es-modules/Data/Connectors/GoogleSheetsConnector.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -17551,9 +18139,9 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
      * @param {GoogleSheetsConnector.UserOptions} [options]
      * Options for the connector and converter.
      */
-    constructor(options) {
+    constructor(options, dataTables) {
         const mergedOptions = GoogleSheetsConnector_merge(GoogleSheetsConnector.defaultOptions, options);
-        super(mergedOptions);
+        super(mergedOptions, dataTables);
         this.converter = new Converters_GoogleSheetsConverter(mergedOptions);
         this.options = mergedOptions;
     }
@@ -17572,36 +18160,43 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
      * Same connector instance with modified table.
      */
     load(eventDetail) {
-        const connector = this, converter = connector.converter, table = connector.table, { dataModifier, dataRefreshRate, enablePolling, firstRowAsNames, googleAPIKey, googleSpreadsheetKey } = connector.options, url = GoogleSheetsConnector.buildFetchURL(googleAPIKey, googleSpreadsheetKey, connector.options);
+        const connector = this, tables = connector.dataTables, { dataModifier, dataRefreshRate, enablePolling, googleAPIKey, googleSpreadsheetKey } = connector.options, url = GoogleSheetsConnector.buildFetchURL(googleAPIKey, googleSpreadsheetKey, connector.options);
         connector.emit({
             type: 'load',
             detail: eventDetail,
-            table,
+            tables,
             url
         });
         if (!URL.canParse(url)) {
             throw new Error('Invalid URL: ' + url);
         }
-        return fetch(url)
+        return fetch(url, { signal: connector?.pollingController?.signal })
             .then((response) => (response.json()))
             .then((json) => {
             if (isGoogleError(json)) {
                 throw new Error(json.error.message);
             }
-            converter.parse({
-                firstRowAsNames,
-                json
+            this.initConverters(json, (key, table) => {
+                const options = this.options;
+                // Takes over the connector default options.
+                const dataTableOptions = {
+                    dataTableKey: key,
+                    firstRowAsNames: table.firstRowAsNames ??
+                        options.firstRowAsNames,
+                    beforeParse: table.beforeParse ??
+                        options.beforeParse
+                };
+                return new Converters_GoogleSheetsConverter(GoogleSheetsConnector_merge(this.options, dataTableOptions));
+            }, (converter, data) => {
+                converter.parse({ json: data });
             });
-            // If already loaded, clear the current table
-            table.deleteColumns();
-            table.setColumns(converter.getTable().getColumns());
             return connector.setModifierOptions(dataModifier);
         })
             .then(() => {
             connector.emit({
                 type: 'afterLoad',
                 detail: eventDetail,
-                table,
+                tables,
                 url
             });
             // Polling
@@ -17614,7 +18209,7 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
                 type: 'loadError',
                 detail: eventDetail,
                 error,
-                table
+                tables
             });
             throw error;
         });
@@ -17702,7 +18297,7 @@ Connectors_DataConnector.registerType('GoogleSheets', GoogleSheetsConnector);
 ;// ./code/grid/es-modules/Data/Converters/HTMLTableConverter.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -18072,7 +18667,7 @@ Converters_DataConverter.registerType('HTMLTable', HTMLTableConverter);
 ;// ./code/grid/es-modules/Data/Connectors/HTMLTableConnector.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -18135,7 +18730,7 @@ class HTMLTableConnector extends Connectors_DataConnector {
         connector.emit({
             type: 'load',
             detail: eventDetail,
-            table,
+            tables: { table },
             tableElement: connector.tableElement
         });
         let tableElement;
@@ -18154,7 +18749,7 @@ class HTMLTableConnector extends Connectors_DataConnector {
                 type: 'loadError',
                 detail: eventDetail,
                 error,
-                table
+                tables: { table }
             });
             return Promise.reject(new Error(error));
         }
@@ -18168,7 +18763,7 @@ class HTMLTableConnector extends Connectors_DataConnector {
             connector.emit({
                 type: 'afterLoad',
                 detail: eventDetail,
-                table,
+                tables: { table },
                 tableElement: connector.tableElement
             });
             return connector;
@@ -18194,7 +18789,7 @@ Connectors_DataConnector.registerType('HTMLTable', HTMLTableConnector);
 ;// ./code/grid/es-modules/Data/Converters/JSONConverter.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -18378,7 +18973,7 @@ Converters_DataConverter.registerType('JSON', JSONConverter);
 ;// ./code/grid/es-modules/Data/Connectors/JSONConnector.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -18414,11 +19009,13 @@ class JSONConnector extends Connectors_DataConnector {
      *
      * @param {JSONConnector.UserOptions} [options]
      * Options for the connector and converter.
+     *
+     * @param {Array<DataTable>} [dataTables]
+     * Multiple connector data tables options.
      */
-    constructor(options) {
+    constructor(options, dataTables) {
         const mergedOptions = JSONConnector_merge(JSONConnector.defaultOptions, options);
-        super(mergedOptions);
-        this.converter = new Converters_JSONConverter(mergedOptions);
+        super(mergedOptions, dataTables);
         this.options = mergedOptions;
         if (mergedOptions.enablePolling) {
             this.startPolling(Math.max(mergedOptions.dataRefreshRate || 0, 1) * 1000);
@@ -18439,40 +19036,57 @@ class JSONConnector extends Connectors_DataConnector {
      * @emits JSONConnector#afterLoad
      */
     load(eventDetail) {
-        const connector = this, converter = connector.converter, table = connector.table, { data, dataUrl, dataModifier } = connector.options;
+        const connector = this, tables = connector.dataTables, { data, dataUrl, dataModifier } = connector.options;
         connector.emit({
             type: 'load',
             data,
             detail: eventDetail,
-            table
+            tables
         });
         return Promise
             .resolve(dataUrl ?
-            fetch(dataUrl).then((response) => response.json())['catch']((error) => {
+            fetch(dataUrl, {
+                signal: connector?.pollingController?.signal
+            }).then((response) => response.json())['catch']((error) => {
                 connector.emit({
                     type: 'loadError',
                     detail: eventDetail,
                     error,
-                    table
+                    tables
                 });
                 console.warn(`Unable to fetch data from ${dataUrl}.`); // eslint-disable-line no-console
             }) :
             data || [])
             .then((data) => {
             if (data) {
-                // If already loaded, clear the current rows
-                table.deleteColumns();
-                converter.parse({ data });
-                table.setColumns(converter.getTable().getColumns());
+                this.initConverters(data, (key, table) => {
+                    const options = this.options;
+                    // Takes over the connector default options.
+                    const dataTableOptions = {
+                        dataTableKey: key,
+                        columnNames: table.columnNames ??
+                            options.columnNames,
+                        firstRowAsNames: table.firstRowAsNames ??
+                            options.firstRowAsNames,
+                        orientation: table.orientation ??
+                            options.orientation,
+                        beforeParse: table.beforeParse ??
+                            options.beforeParse
+                    };
+                    return new Converters_JSONConverter(JSONConnector_merge(this.options, dataTableOptions));
+                }, (converter, data) => {
+                    converter.parse({ data });
+                });
             }
-            return connector.setModifierOptions(dataModifier).then(() => data);
+            return connector.setModifierOptions(dataModifier)
+                .then(() => data);
         })
             .then((data) => {
             connector.emit({
                 type: 'afterLoad',
                 data,
                 detail: eventDetail,
-                table
+                tables
             });
             return connector;
         })['catch']((error) => {
@@ -18480,7 +19094,7 @@ class JSONConnector extends Connectors_DataConnector {
                 type: 'loadError',
                 detail: eventDetail,
                 error,
-                table
+                tables
             });
             throw error;
         });
@@ -18509,7 +19123,7 @@ Connectors_DataConnector.registerType('JSON', JSONConnector);
 ;// ./code/grid/es-modules/Data/Modifiers/InvertModifier.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -18747,7 +19361,7 @@ Modifiers_DataModifier.registerType('Invert', InvertModifier);
 ;// ./code/grid/es-modules/Data/Modifiers/RangeModifier.js
 /* *
  *
- *  (c) 2009-2024 Highsoft AS
+ *  (c) 2009-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -18904,6 +19518,7 @@ Modifiers_DataModifier.registerType('Range', RangeModifier);
 
 
 
+
 // Fill registries
 
 
@@ -18926,6 +19541,7 @@ G.DataConverter = Converters_DataConverter;
 G.Grid = Core_Grid;
 G.grid = Core_Grid.grid;
 G.grids = Core_Grid.grids;
+G.ColumnDistribution = ColumnDistribution_ColumnDistribution;
 G.DataModifier = Modifiers_DataModifier;
 G.DataPool = Data_DataPool;
 G.DataTable = Data_DataTable;

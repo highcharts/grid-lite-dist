@@ -2,7 +2,7 @@
  *
  *  Grid Credits class
  *
- *  (c) 2020-2024 Highsoft AS
+ *  (c) 2020-2025 Highsoft AS
  *
  *  License: www.highcharts.com/license
  *
@@ -57,7 +57,7 @@ class Credits {
     * */
     /**
      * Render the credits. If the credits are disabled, they will be removed
-     * from the container. If also reflows the viewport dimensions.
+     * from the container.
      */
     render() {
         const grid = this.grid;
@@ -77,7 +77,6 @@ class Credits {
         else {
             contentWrapper?.appendChild(this.containerElement);
         }
-        this.grid.viewport?.reflow();
     }
     renderAnchor() {
         const anchorElement = makeHTMLElement('a', {
