@@ -1,5 +1,5 @@
 /**
- * @license Highcharts Grid v1.1.0 (2025-05-15)
+ * @license Highcharts Grid v1.2.0 (2025-06-30)
  * @module grid/grid-lite
  *
  * (c) 2009-2025 Highsoft AS
@@ -74,7 +74,7 @@ var Globals;
      *  Constants
      *
      * */
-    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '1.1.0', Globals.win = (typeof window !== 'undefined' ?
+    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '1.2.0', Globals.win = (typeof window !== 'undefined' ?
         window :
         {}), // eslint-disable-line node/no-unsupported-features/es-builtins
     Globals.doc = Globals.win.document, Globals.svg = !!Globals.doc?.createElementNS?.(Globals.SVG_NS, 'svg')?.createSVGRect, Globals.pageLang = Globals.doc?.documentElement?.closest('[lang]')?.lang, Globals.userAgent = Globals.win.navigator?.userAgent || '', Globals.isChrome = Globals.win.chrome, Globals.isFirefox = Globals.userAgent.indexOf('Firefox') !== -1, Globals.isMS = /(edge|msie|trident)/i.test(Globals.userAgent) && !Globals.win.opera, Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1, Globals.isTouchDevice = /(Mobile|Android|Windows Phone)/.test(Globals.userAgent), Globals.isWebKit = Globals.userAgent.indexOf('AppleWebKit') !== -1, Globals.deg2rad = Math.PI * 2 / 360, Globals.marginNames = [
@@ -3523,11 +3523,12 @@ const ChartDefaults = {
      * others series in a stack. The shadow can be an object configuration
      * containing `color`, `offsetX`, `offsetY`, `opacity` and `width`.
      *
-     * @sample highcharts/chart/seriesgroupshadow/ Shadow
+     * @sample highcharts/chart/seriesgroupshadow/
+     *         Shadow
      *
      * @type      {boolean|Highcharts.ShadowOptionsObject}
      * @default   false
-     * @apioption chart.shadow
+     * @apioption chart.seriesGroupShadow
      */
     /**
      * Whether to apply a drop shadow to the outer chart area. Requires
@@ -3738,7 +3739,7 @@ const ChartDefaults = {
      * Chart zooming options.
      * @since 10.2.1
      *
-     * @sample     highcharts/plotoptions/sankey-inverted
+     * @sample     highcharts/plotoptions/sankey-node-color
      *             Zooming in sankey series
      * @sample     highcharts/series-treegraph/link-types
      *             Zooming in treegraph series
@@ -4187,7 +4188,7 @@ class TimeBase {
     update(options = {}) {
         this.dTLCache = {};
         this.options = options = TimeBase_merge(true, this.options, options);
-        const { timezoneOffset, useUTC } = options;
+        const { timezoneOffset, useUTC, locale } = options;
         // Allow using a different Date class
         this.Date = options.Date || TimeBase_win.Date || Date;
         // Assign the time zone. Handle the legacy, deprecated `useUTC` option.
@@ -4207,6 +4208,10 @@ class TimeBase {
         this.variableTimezone = timezone !== 'UTC' &&
             timezone?.indexOf('Etc/GMT') !== 0;
         this.timezone = timezone;
+        // Update locale.
+        if (this.lang && locale) {
+            this.lang.locale = locale;
+        }
         // Assign default time formats from locale strings
         ['months', 'shortMonths', 'weekdays', 'shortWeekdays'].forEach((name) => {
             const isMonth = /months/i.test(name), isShort = /short/.test(name), options = {
@@ -6793,6 +6798,10 @@ const defaultOptions = {
                 /**
                  * @ignore
                  */
+                color: "#333333" /* Palette.neutralColor80 */,
+                /**
+                 * @ignore
+                 */
                 fontSize: '0.8em',
                 /**
                  * @ignore
@@ -8158,7 +8167,7 @@ function format(str = '', ctx, owner) {
     // The sub expression regex is the same as the top expression regex,
     // but except parens and block helpers (#), and surrounded by parens
     // instead of curly brackets.
-    subRegex = /\(([a-zA-Z\u00C0-\u017F\d:\.,;\-\/<>\[\]%_@+"'= ]+)\)/g, matches = [], floatRegex = /f$/, decRegex = /\.(\d)/, lang = owner?.options?.lang || Templating_defaultOptions.lang, time = owner?.time || Templating_defaultTime, numberFormatter = owner?.numberFormatter || numberFormat;
+    subRegex = /\(([a-zA-Z\u00C0-\u017F\d:\.,;\-\/<>\[\]%_@+"'= ]+)\)/g, matches = [], floatRegex = /f$/, decRegex = /\.(\d)/, lang = owner?.options?.lang || Templating_defaultOptions.lang, time = owner?.time || Templating_defaultTime, numberFormatter = owner?.numberFormatter || numberFormat.bind(owner);
     /*
      * Get a literal or variable value inside a template expression. May be
      * extended with other types like string or null if needed, but keep it
@@ -8293,9 +8302,11 @@ function format(str = '', ctx, owner) {
                 [expression] : expression.split(':');
             replacement = resolveProperty(valueAndFormat.shift() || '');
             // Format the replacement
-            if (valueAndFormat.length && typeof replacement === 'number') {
+            const isFloat = replacement % 1 !== 0;
+            if (typeof replacement === 'number' &&
+                (valueAndFormat.length || isFloat)) {
                 const segment = valueAndFormat.join(':');
-                if (floatRegex.test(segment)) { // Float
+                if (floatRegex.test(segment) || isFloat) { // Float
                     const decimals = parseInt((segment.match(decRegex) || ['', '-1'])[1], 10);
                     if (replacement !== null) {
                         replacement = numberFormatter(replacement, decimals, lang.decimalPoint, segment.indexOf(',') > -1 ? lang.thousandsSep : '');
@@ -8390,8 +8401,7 @@ function numberFormat(number, decimals, decimalPoint, thousandsSep) {
         options.useGrouping = false;
     }
     const hasSeparators = thousandsSep || decimalPoint, locale = hasSeparators ?
-        'en' :
-        (this?.locale || lang.locale || Templating_pageLang), cacheKey = JSON.stringify(options) + locale, nf = numberFormatCache[cacheKey] ?? (numberFormatCache[cacheKey] = new Intl.NumberFormat(locale, options));
+        'en' : (this?.locale || lang.locale || Templating_pageLang), cacheKey = JSON.stringify(options) + locale, nf = numberFormatCache[cacheKey] ?? (numberFormatCache[cacheKey] = new Intl.NumberFormat(locale, options));
     ret = nf.format(number);
     // If thousandsSep or decimalPoint are set, fall back to using English
     // format with string replacement for the separators.
@@ -8568,7 +8578,11 @@ class ColumnDistributionStrategy {
      * The new options to validate.
      */
     validateOnUpdate(newOptions) {
-        if (Object.hasOwnProperty.call(newOptions.rendering?.columns || {}, 'distribution') &&
+        if (Object.hasOwnProperty.call(newOptions.rendering?.columns || {}, 'resizing') &&
+            newOptions.rendering?.columns?.resizing?.mode !== this.type) {
+            this.invalidated = true;
+        }
+        else if (Object.hasOwnProperty.call(newOptions.rendering?.columns || {}, 'distribution') &&
             newOptions.rendering?.columns?.distribution !== this.type) {
             this.invalidated = true;
         }
@@ -8667,19 +8681,19 @@ class MixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStr
      *
      * */
     loadColumn(column) {
-        const raw = column.options.width;
-        if (!raw) {
+        const rawWidth = column.options.width;
+        if (!rawWidth) {
             return;
         }
         let value;
         let unitCode = 0;
-        if (typeof raw === 'number') {
-            value = raw;
+        if (typeof rawWidth === 'number') {
+            value = rawWidth;
             unitCode = 0;
         }
         else {
-            value = parseFloat(raw);
-            unitCode = raw.charAt(raw.length - 1) === '%' ? 1 : 0;
+            value = parseFloat(rawWidth);
+            unitCode = rawWidth.charAt(rawWidth.length - 1) === '%' ? 1 : 0;
         }
         this.columnWidthUnits[column.id] = unitCode;
         this.columnWidths[column.id] = value;
@@ -8832,6 +8846,7 @@ var Globals_Globals;
         headerCellContent: 'header-cell-content',
         headerRow: 'head-row-content',
         noData: 'no-data',
+        noPadding: 'no-padding',
         columnFirst: 'column-first',
         columnSortable: 'column-sortable',
         columnSortableIcon: 'column-sortable-icon',
@@ -8988,6 +9003,7 @@ var GridUtils;
      */
     function setHTMLContent(element, content) {
         if (isHTML(content)) {
+            element.innerHTML = HTML_AST.emptyHTML;
             const formattedNodes = new HTML_AST(content);
             formattedNodes.addToDOM(element);
         }
@@ -9024,6 +9040,8 @@ var GridUtils;
 
 
 const { makeHTMLElement } = Core_GridUtils;
+
+const { defined: FixedDistributionStrategy_defined } = Core_Utilities;
 /* *
  *
  *  Class
@@ -9038,6 +9056,12 @@ class FixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStr
          * */
         super(...arguments);
         this.type = 'fixed';
+        /**
+         * Array of units for each column width value. Codified as:
+         * - `0` - px
+         * - `1` - %
+         */
+        this.columnWidthUnits = {};
     }
     /* *
      *
@@ -9045,10 +9069,35 @@ class FixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStr
      *
      * */
     loadColumn(column) {
-        this.columnWidths[column.id] = this.getInitialColumnWidth(column);
+        const rawWidth = column.options.width;
+        if (!rawWidth) {
+            this.columnWidths[column.id] = this.getInitialColumnWidth(column);
+            this.columnWidthUnits[column.id] = 0;
+            return;
+        }
+        let value;
+        let unitCode = 0;
+        if (typeof rawWidth === 'number') {
+            value = rawWidth;
+            unitCode = 0;
+        }
+        else {
+            value = parseFloat(rawWidth);
+            unitCode = rawWidth.charAt(rawWidth.length - 1) === '%' ? 1 : 0;
+        }
+        this.columnWidthUnits[column.id] = unitCode;
+        this.columnWidths[column.id] = value;
     }
     getColumnWidth(column) {
-        return this.columnWidths[column.id];
+        const vp = this.viewport;
+        const widthValue = this.columnWidths[column.id];
+        const minWidth = ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column);
+        if (this.columnWidthUnits[column.id] === 1) {
+            // If %:
+            return Math.max(vp.getWidthFromRatio(widthValue / 100), minWidth);
+        }
+        // If px:
+        return widthValue || 100; // Default to 100px if not defined
     }
     resize(resizer, diff) {
         const column = resizer.draggedColumn;
@@ -9056,6 +9105,7 @@ class FixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStr
             return;
         }
         this.columnWidths[column.id] = Math.max((resizer.columnStartWidth || 0) + diff, ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column));
+        this.columnWidthUnits[column.id] = 0; // Always save in px
     }
     /**
      * Creates a mock element to measure the width of the column from the CSS.
@@ -9080,6 +9130,27 @@ class FixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStr
         const result = mock.offsetWidth || 100;
         mock.remove();
         return result;
+    }
+    exportMetadata() {
+        return {
+            ...super.exportMetadata(),
+            columnWidthUnits: this.columnWidthUnits
+        };
+    }
+    importMetadata(metadata) {
+        super.importMetadata(metadata, (colId) => {
+            const unit = metadata.columnWidthUnits[colId];
+            if (FixedDistributionStrategy_defined(unit)) {
+                this.columnWidthUnits[colId] = unit;
+            }
+        });
+    }
+    validateOnUpdate(newOptions) {
+        super.validateOnUpdate(newOptions);
+        if (!this.invalidated && (Object.hasOwnProperty.call(newOptions.columnDefaults || {}, 'width') ||
+            newOptions.columns?.some((col) => Object.hasOwnProperty.call(col || {}, 'width')))) {
+            this.invalidated = true;
+        }
     }
 }
 /* *
@@ -9272,7 +9343,7 @@ var ColumnDistribution;
     };
     /**
      * Returns the column distribution of the table according to the options:
-     * 1. If `columns.distribution` defined, use it. If not:
+     * 1. If `columns.resizing.mode` defined, use it. If not:
      * 2. If any column has a width defined, use `mixed`. If not:
      * 3. Use `full`.
      *
@@ -9281,7 +9352,9 @@ var ColumnDistribution;
      */
     function assumeDistributionType(viewport) {
         const { options } = viewport.grid;
-        const result = options?.rendering?.columns?.distribution;
+        const colRendering = options?.rendering?.columns;
+        const result = colRendering?.resizing?.mode ||
+            colRendering?.distribution;
         if (result) {
             return result;
         }
@@ -9782,11 +9855,6 @@ class DataTableCore {
         this.modified = this;
         this.rowCount = 0;
         this.versionTag = DataTableCore_uniqueKey();
-        this.columnNames = options.columnNames;
-        this.firstRowAsNames = options.firstRowAsNames;
-        this.orientation = options.orientation;
-        this.dataModifier = options.dataModifier;
-        this.beforeParse = options.beforeParse;
         let rowCount = 0;
         DataTableCore_objectEach(options.columns || {}, (column, columnName) => {
             this.columns[columnName] = column.slice();
@@ -11185,7 +11253,7 @@ class DataConnector {
      * @param {DataConnector.UserOptions} [options]
      * Options to use in the connector.
      *
-     * @param {Array<DataTable>} [dataTables]
+     * @param {Array<DataTableOptions>} [dataTables]
      * Multiple connector data tables options.
      */
     constructor(options = {}, dataTables = []) {
@@ -11193,6 +11261,11 @@ class DataConnector {
          * Tables managed by this DataConnector instance.
          */
         this.dataTables = {};
+        /**
+         * Helper flag for detecting whether the data connector is loaded.
+         * @internal
+         */
+        this.loaded = false;
         this.metadata = options.metadata || { columns: {} };
         // Create a data table for each defined in the dataTables user options.
         let dataTableIndex = 0;
@@ -11366,9 +11439,10 @@ class DataConnector {
             connector.describeColumn(columnNames[i], { index: i });
         }
     }
-    async setModifierOptions(modifierOptions) {
-        for (const table of Object.values(this.dataTables)) {
-            const mergedModifierOptions = DataConnector_merge(table.dataModifier, modifierOptions);
+    async setModifierOptions(modifierOptions, tablesOptions) {
+        for (const [key, table] of Object.entries(this.dataTables)) {
+            const tableOptions = tablesOptions?.find((dataTable) => dataTable.key === key);
+            const mergedModifierOptions = DataConnector_merge(tableOptions?.dataModifier, modifierOptions);
             const ModifierClass = (mergedModifierOptions &&
                 Modifiers_DataModifier.types[mergedModifierOptions.type]);
             await table.setModifier(ModifierClass ?
@@ -11403,10 +11477,13 @@ class DataConnector {
         }), refreshTime);
     }
     /**
-     * Stops polling data.
+     * Stops polling data. Shouldn't be performed if polling is already stopped.
      */
     stopPolling() {
         const connector = this;
+        if (!connector.polling) {
+            return;
+        }
         // Abort the existing request.
         connector?.pollingController?.abort();
         // Clear the polling timeout.
@@ -12837,7 +12914,7 @@ class Accessibility {
  *
  *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
  *
-*  Authors:
+ *  Authors:
  *  - Dawid Dragula
  *  - Sebastian Bochan
  *
@@ -12889,13 +12966,17 @@ var Defaults_Defaults;
             header: {
                 enabled: true
             },
+            columns: {
+                resizing: {
+                    enabled: true
+                }
+            },
             theme: 'hcg-theme-default'
         },
         columnDefaults: {
             sorting: {
                 sortable: true
-            },
-            resizing: true
+            }
         }
     };
     /**
@@ -12917,6 +12998,148 @@ var Defaults_Defaults;
  * */
 /* harmony default export */ const Core_Defaults = (Defaults_Defaults);
 
+;// ./code/grid/es-modules/Grid/Core/Table/CellContent/CellContent.js
+/* *
+ *
+ *  Cell Content abstract class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Represents a cell content in the grid.
+ */
+class CellContent {
+    /**
+     * Creates and renders the cell content.
+     *
+     * @param cell
+     * The cell to which the content belongs.
+     */
+    constructor(cell) {
+        this.cell = cell;
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const CellContent_CellContent = (CellContent);
+
+;// ./code/grid/es-modules/Grid/Core/Table/CellContent/TextContent.js
+/* *
+ *
+ *  Text Cell Content class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+const { setHTMLContent } = Core_GridUtils;
+
+const { defined: TextContent_defined } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Represents a text type of content.
+ */
+class TextContent extends CellContent_CellContent {
+    constructor(cell) {
+        super(cell);
+        this.add();
+    }
+    add() {
+        this.update();
+    }
+    destroy() {
+        this.cell.htmlElement.innerHTML = HTML_AST.emptyHTML;
+    }
+    update() {
+        setHTMLContent(this.cell.htmlElement, this.format());
+    }
+    /**
+     * Returns the formatted value of the cell.
+     *
+     * @internal
+     */
+    format() {
+        const { cell } = this;
+        const cellsDefaults = cell.row.viewport.grid.options?.columnDefaults?.cells || {};
+        const { format, formatter } = cell.column.options.cells || {};
+        let value = cell.value;
+        if (!TextContent_defined(value)) {
+            value = '';
+        }
+        let cellContent = '';
+        if (!format && !formatter) {
+            return cell.format(TextContent.defaultFormatsForDataTypes[cell.column.dataType]);
+        }
+        const isDefaultFormat = cellsDefaults.format === format;
+        const isDefaultFormatter = cellsDefaults.formatter === formatter;
+        if (isDefaultFormat && isDefaultFormatter) {
+            cellContent = formatter ?
+                formatter.call(cell).toString() :
+                (format ? cell.format(format) : value + '');
+        }
+        else if (isDefaultFormat) {
+            cellContent = formatter?.call(cell).toString() || value + '';
+        }
+        else if (isDefaultFormatter) {
+            cellContent = format ? cell.format(format) : value + '';
+        }
+        return cellContent;
+    }
+}
+/* *
+ *
+ *  Namespace
+ *
+ * */
+(function (TextContent) {
+    /**
+     * Default formats for data types.
+     */
+    TextContent.defaultFormatsForDataTypes = {
+        string: '{value}',
+        number: '{value}',
+        'boolean': '{value}',
+        datetime: '{value:%Y-%m-%d %H:%M:%S}'
+    };
+})(TextContent || (TextContent = {}));
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const CellContent_TextContent = (TextContent);
+
 ;// ./code/grid/es-modules/Grid/Core/Table/Column.js
 /* *
  *
@@ -12937,7 +13160,8 @@ var Defaults_Defaults;
 
 
 
-const { merge: Column_merge } = Core_Utilities;
+
+const { defined: Column_defined, merge: Column_merge, fireEvent: Column_fireEvent } = Core_Utilities;
 /* *
  *
  *  Class
@@ -12969,11 +13193,14 @@ class Column {
          * The cells of the column.
          */
         this.cells = [];
-        this.options = Column_merge(viewport.grid.options?.columnDefaults ?? {}, viewport.grid.columnOptionsMap?.[id] ?? {});
+        const { grid } = viewport;
         this.id = id;
         this.index = index;
         this.viewport = viewport;
         this.loadData();
+        this.dataType = this.assumeDataType();
+        this.options = Column_merge(grid.options?.columnDefaults ?? {}, grid.columnOptionsMap?.[id] ?? {});
+        Column_fireEvent(this, 'afterInit');
     }
     /* *
     *
@@ -12985,6 +13212,55 @@ class Column {
      */
     loadData() {
         this.data = this.viewport.dataTable.getColumn(this.id, true);
+    }
+    /**
+     * Creates a cell content instance.
+     *
+     * @param cell
+     * The cell that is to be edited.
+     *
+     */
+    createCellContent(cell) {
+        return new CellContent_TextContent(cell);
+    }
+    /**
+     * Assumes the data type of the column based on the options or data in the
+     * column if not specified.
+     */
+    assumeDataType() {
+        const { grid } = this.viewport;
+        const type = grid.columnOptionsMap?.[this.id]?.dataType ??
+            grid.options?.columnDefaults?.dataType;
+        if (type) {
+            return type;
+        }
+        if (!this.data) {
+            return 'string';
+        }
+        if (!Array.isArray(this.data)) {
+            // Typed array
+            return 'number';
+        }
+        for (let i = 0, iEnd = Math.min(this.data.length, 30); i < iEnd; ++i) {
+            if (!Column_defined(this.data[i])) {
+                // If the data is null or undefined, we should look
+                // at the next value to determine the type.
+                continue;
+            }
+            switch (typeof this.data[i]) {
+                case 'number':
+                    return 'number';
+                case 'boolean':
+                    return 'boolean';
+                default:
+                    return 'string';
+            }
+        }
+        // eslint-disable-next-line no-console
+        console.warn(`Column "${this.id}" contains too few data points with ` +
+            'unambiguous types to correctly determine its dataType. It\'s ' +
+            'recommended to set the `dataType` option for it.');
+        return 'string';
     }
     /**
      * Registers a cell in the column.
@@ -13333,6 +13609,7 @@ class Cell {
      */
     render() {
         this.row.htmlElement.appendChild(this.htmlElement);
+        this.reflow();
     }
     /**
      * Reflows the cell dimensions.
@@ -13452,6 +13729,10 @@ class ColumnSorting {
             const viewport = this.column.viewport;
             const querying = viewport.grid.querying;
             const sortingController = querying.sorting;
+            // Do not call sorting when cell is currently edited and validated.
+            if (viewport.validator?.errorCell) {
+                return;
+            }
             const currentOrder = (sortingController.currentSorting?.columnId === this.column.id ?
                 sortingController.currentSorting.order : null) || 'none';
             const consequents = {
@@ -13563,7 +13844,7 @@ class ColumnSorting {
 
 
 
-const { makeHTMLElement: HeaderCell_makeHTMLElement, setHTMLContent } = Core_GridUtils;
+const { makeHTMLElement: HeaderCell_makeHTMLElement, setHTMLContent: HeaderCell_setHTMLContent } = Core_GridUtils;
 const { fireEvent: HeaderCell_fireEvent, merge: HeaderCell_merge, isString: HeaderCell_isString } = Core_Utilities;
 /* *
  *
@@ -13659,7 +13940,7 @@ class HeaderCell extends Table_Cell {
             className: Grid_Core_Globals.getClassName('headerCellContent')
         }, this.htmlElement);
         // Render the header cell element content.
-        setHTMLContent(this.headerContent, this.value);
+        HeaderCell_setHTMLContent(this.headerContent, this.value);
         this.htmlElement.setAttribute('scope', 'col');
         if (this.options.className) {
             this.htmlElement.classList.add(...this.options.className.split(/\s+/g));
@@ -13679,6 +13960,9 @@ class HeaderCell extends Table_Cell {
             this.initColumnSorting();
         }
         this.setCustomClassName(options.header?.className);
+        HeaderCell_fireEvent(this, 'afterRender', {
+            target: column
+        });
     }
     reflow() {
         const th = this.htmlElement;
@@ -14076,7 +14360,7 @@ class TableHeader {
  * */
 /* harmony default export */ const Header_TableHeader = (TableHeader);
 
-;// ./code/grid/es-modules/Grid/Core/Table/Content/TableCell.js
+;// ./code/grid/es-modules/Grid/Core/Table/Body/TableCell.js
 /* *
  *
  *  Grid class
@@ -14095,9 +14379,7 @@ class TableHeader {
 
 
 
-
-const { setHTMLContent: TableCell_setHTMLContent } = Core_GridUtils;
-const { defined: TableCell_defined, fireEvent: TableCell_fireEvent } = Core_Utilities;
+const { fireEvent: TableCell_fireEvent } = Core_Utilities;
 /* *
  *
  *  Class
@@ -14138,7 +14420,7 @@ class TableCell extends Table_Cell {
     render() {
         super.render();
         // It may happen that `await` will be needed here in the future.
-        void this.setValue(this.column.data?.[this.row.index], false);
+        void this.setValue();
     }
     initEvents() {
         this.cellEvents.push(['dblclick', (e) => (this.onDblClick(e))]);
@@ -14239,21 +14521,25 @@ class TableCell extends Table_Cell {
      * Sets the value & updating content of the cell.
      *
      * @param value
-     * The raw value to set.
+     * The raw value to set. If not provided, it will use the value from the
+     * data table for the current row and column.
      *
      * @param updateTable
-     * Whether to update the table after setting the content.
+     * Whether to update the table after setting the content. Defaults to
+     * `false`, meaning the table will not be updated.
      */
-    async setValue(value, updateTable) {
+    async setValue(value = this.column.data?.[this.row.index], updateTable = false) {
         this.value = value;
         const vp = this.column.viewport;
-        // Render the table cell element content.
-        TableCell_setHTMLContent(this.htmlElement, this.formatCell());
+        if (this.content) {
+            this.content.update();
+        }
+        else {
+            this.content = this.column.createCellContent(this);
+        }
         this.htmlElement.setAttribute('data-value', this.value + '');
         this.setCustomClassName(this.column.options.cells?.className);
-        TableCell_fireEvent(this, 'afterSetValue', {
-            target: this
-        });
+        TableCell_fireEvent(this, 'afterRender', { target: this });
         if (!updateTable) {
             return;
         }
@@ -14289,38 +14575,11 @@ class TableCell extends Table_Cell {
         }
     }
     /**
-     * Handle the formatting content of the cell.
-     *
-     * @internal
-     */
-    formatCell() {
-        const cellsDefaults = this.row.viewport.grid.options?.columnDefaults?.cells || {};
-        const options = this.column.options.cells || {};
-        const { format, formatter } = options;
-        const isDefaultFormat = cellsDefaults.format === format;
-        const isDefaultFormatter = cellsDefaults.formatter === formatter;
-        let value = this.value;
-        if (!TableCell_defined(value)) {
-            value = '';
-        }
-        let cellContent = '';
-        if (isDefaultFormat && isDefaultFormatter) {
-            cellContent = formatter ?
-                formatter.call(this).toString() :
-                (format ? this.format(format) : value + '');
-        }
-        else if (isDefaultFormat) {
-            cellContent = formatter?.call(this).toString() || value + '';
-        }
-        else if (isDefaultFormatter) {
-            cellContent = format ? this.format(format) : value + '';
-        }
-        return cellContent;
-    }
-    /**
      * Destroys the cell.
      */
     destroy() {
+        this.content?.destroy();
+        delete this.content;
         super.destroy();
     }
 }
@@ -14329,9 +14588,9 @@ class TableCell extends Table_Cell {
  *  Default Export
  *
  * */
-/* harmony default export */ const Content_TableCell = (TableCell);
+/* harmony default export */ const Body_TableCell = (TableCell);
 
-;// ./code/grid/es-modules/Grid/Core/Table/Content/TableRow.js
+;// ./code/grid/es-modules/Grid/Core/Table/Body/TableRow.js
 /* *
  *
  *  Grid TableRow class
@@ -14400,7 +14659,7 @@ class TableRow extends Table_Row {
     *
     * */
     createCell(column) {
-        return new Content_TableCell(this, column);
+        return new Body_TableCell(this, column);
     }
     /**
      * Loads the row data from the data table.
@@ -14484,7 +14743,7 @@ class TableRow extends Table_Row {
  *  Default Export
  *
  * */
-/* harmony default export */ const Content_TableRow = (TableRow);
+/* harmony default export */ const Body_TableRow = (TableRow);
 
 ;// ./code/grid/es-modules/Grid/Core/Table/Actions/RowsVirtualizer.js
 /* *
@@ -14658,24 +14917,31 @@ class RowsVirtualizer {
      */
     renderRows(rowCursor) {
         const { viewport: vp, buffer } = this;
+        const rowCount = vp.dataTable.getRowCount();
+        // Stop rendering if there are no rows to render.
+        if (rowCount < 1) {
+            return;
+        }
         const isVirtualization = this.rowSettings?.virtualization;
         const rowsPerPage = isVirtualization ? Math.ceil((vp.grid.tableElement?.clientHeight || 0) /
             this.defaultRowHeight) : Infinity; // Need to be refactored when add pagination
         let rows = vp.rows;
         if (!isVirtualization && rows.length > 50) {
             // eslint-disable-next-line no-console
-            console.warn('Grid: a large dataset can cause performance issues.');
+            console.warn('Grid: a large dataset can cause performance issues when ' +
+                'virtualization is disabled. Consider enabling ' +
+                'virtualization in the rows settings.');
         }
         if (!rows.length) {
-            const last = new Content_TableRow(vp, vp.dataTable.getRowCount() - 1);
+            const last = new Body_TableRow(vp, rowCount - 1);
+            vp.tbodyElement.appendChild(last.htmlElement);
             last.render();
             rows.push(last);
-            vp.tbodyElement.appendChild(last.htmlElement);
             if (isVirtualization) {
                 last.setTranslateY(last.getDefaultTopOffset());
             }
         }
-        const from = Math.max(0, Math.min(rowCursor - buffer, vp.dataTable.getRowCount() - rowsPerPage));
+        const from = Math.max(0, Math.min(rowCursor - buffer, rowCount - rowsPerPage));
         const to = Math.min(rowCursor + rowsPerPage + buffer, rows[rows.length - 1].index - 1);
         const alwaysLastRow = rows.pop();
         const tempRows = [];
@@ -14696,7 +14962,7 @@ class RowsVirtualizer {
             const row = rows[i - (rows[0]?.index || 0)];
             // Recreate row when it is destroyed and it is in the range.
             if (!row) {
-                const newRow = new Content_TableRow(vp, i);
+                const newRow = new Body_TableRow(vp, i);
                 rows.push(newRow);
                 newRow.rendered = false;
                 if (isVirtualization) {
@@ -14707,8 +14973,8 @@ class RowsVirtualizer {
         rows.sort((a, b) => a.index - b.index);
         for (let i = 0, iEnd = rows.length; i < iEnd; ++i) {
             if (!rows[i].rendered) {
-                rows[i].render();
                 vp.tbodyElement.insertBefore(rows[i].htmlElement, vp.tbodyElement.lastChild);
+                rows[i].render();
             }
         }
         if (alwaysLastRow) {
@@ -14807,11 +15073,11 @@ class RowsVirtualizer {
      */
     getDefaultRowHeight() {
         const vp = this.viewport;
-        const mockRow = new Content_TableRow(vp, 0);
+        const mockRow = new Body_TableRow(vp, 0);
         mockRow.htmlElement.style.position = 'absolute';
         mockRow.htmlElement.classList.add(Grid_Core_Globals.getClassName('mockedRow'));
-        mockRow.render();
         this.viewport.tbodyElement.appendChild(mockRow.htmlElement);
+        mockRow.render();
         const defaultRowHeight = mockRow.htmlElement.offsetHeight;
         mockRow.destroy();
         return defaultRowHeight;
@@ -15081,12 +15347,14 @@ class Table {
         if (this.virtualRows) {
             tableElement.classList.add(Grid_Core_Globals.getClassName('virtualization'));
         }
-        if (dgOptions?.columnDefaults?.resizing) {
+        if (!(dgOptions?.rendering?.columns?.resizing?.enabled === false ||
+            dgOptions?.columnDefaults?.resizing === false)) {
             this.columnsResizer = new Actions_ColumnsResizer(this);
         }
         if (customClassName) {
             tableElement.classList.add(...customClassName.split(/\s+/g));
         }
+        tableElement.classList.add(Grid_Core_Globals.getClassName('scrollableContent'));
         // Load columns
         this.loadColumns();
         // Virtualization
@@ -15096,7 +15364,6 @@ class Table {
         // Add event listeners
         this.resizeObserver = new ResizeObserver(this.onResize);
         this.resizeObserver.observe(tableElement);
-        tableElement.classList.add(Grid_Core_Globals.getClassName('scrollableContent'));
         this.tbodyElement.addEventListener('scroll', this.onScroll);
         this.tbodyElement.addEventListener('focus', this.onTBodyFocus);
     }
@@ -15120,6 +15387,7 @@ class Table {
         // this.footer = new TableFooter(this);
         // this.footer.render();
         this.rowsVirtualizer.initialRender();
+        Table_fireEvent(this, 'afterInit');
     }
     /**
      * Sets the minimum height of the table body.
@@ -15234,7 +15502,7 @@ class Table {
         return this.tbodyElement.clientWidth * ratio;
     }
     /**
-     * Destroys the data grid table.
+     * Destroys the grid table.
      */
     destroy() {
         this.tbodyElement.removeEventListener('focus', this.onTBodyFocus);
@@ -15305,6 +15573,9 @@ class Table {
      * The ID of the row.
      */
     getRow(id) {
+        // TODO: Change `find` to a method using `vp.dataTable.getLocalRowIndex`
+        // and rows[presentationRowIndex - firstRowIndex]. Needs more testing,
+        // but it should be faster.
         return this.rows.find((row) => row.id === id);
     }
 }
@@ -16436,6 +16707,12 @@ class Grid {
         }
         this.viewport?.columnDistribution.validateOnUpdate(options);
         this.querying.loadOptions();
+        // Update locale.
+        const locale = options.lang?.locale;
+        if (locale) {
+            this.locale = locale;
+            this.time.update(Grid_extend(options.time || {}, { locale: this.locale }));
+        }
         if (render) {
             await this.querying.proceed(newDataTable);
             this.renderViewport();
@@ -16963,7 +17240,7 @@ class DataPool {
     getConnector(connectorId) {
         const connector = this.connectors[connectorId];
         // Already loaded
-        if (connector) {
+        if (connector?.loaded) {
             return Promise.resolve(connector);
         }
         let waitingList = this.waiting[connectorId];
@@ -17078,12 +17355,14 @@ class DataPool {
             if (!ConnectorClass) {
                 throw new Error(`Connector type not found. (${options.type})`);
             }
-            const connector = new ConnectorClass(options.options, options.dataTables);
+            const connector = this.connectors[options.id] = new ConnectorClass(options.options, options.dataTables);
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             connector
                 .load()
-                .then((connector) => {
-                this.connectors[options.id] = connector;
+                .then(({ converter, dataTables }) => {
+                connector.dataTables = dataTables;
+                connector.converter = converter;
+                connector.loaded = true;
                 this.emit({
                     type: 'afterLoad',
                     options
@@ -17091,6 +17370,15 @@ class DataPool {
                 resolve(connector);
             })['catch'](reject);
         });
+    }
+    /**
+     * Cancels all data connectors pending requests.
+     */
+    cancelPendingRequests() {
+        const { connectors } = this;
+        for (const connectorKey of Object.keys(connectors)) {
+            connectors[connectorKey].stopPolling();
+        }
     }
     /**
      * Registers a callback for a specific event.
@@ -17181,7 +17469,7 @@ const { makeHTMLElement: Credits_makeHTMLElement, setHTMLContent: Credits_setHTM
  *
  * */
 /**
- * Represents a credits in the data grid.
+ * Represents a credits in the grid.
  */
 class Credits {
     /* *
@@ -17819,7 +18107,7 @@ Converters_DataConverter.registerType('CSV', CSVConverter);
 
 
 
-const { merge: CSVConnector_merge } = Core_Utilities;
+const { merge: CSVConnector_merge, defined: CSVConnector_defined } = Core_Utilities;
 /* *
  *
  *  Class
@@ -17842,14 +18130,15 @@ class CSVConnector extends Connectors_DataConnector {
      * @param {CSVConnector.UserOptions} [options]
      * Options for the connector and converter.
      *
-     * @param {Array<DataTable>} [dataTables]
+     * @param {Array<DataTableOptions>} [dataTables]
      * Multiple connector data tables options.
      *
      */
     constructor(options, dataTables) {
         const mergedOptions = CSVConnector_merge(CSVConnector.defaultOptions, options);
         super(mergedOptions, dataTables);
-        this.options = mergedOptions;
+        this.options = CSVConnector_defined(dataTables) ?
+            CSVConnector_merge(mergedOptions, { dataTables }) : mergedOptions;
         if (mergedOptions.enablePolling) {
             this.startPolling(Math.max(mergedOptions.dataRefreshRate || 0, 1) * 1000);
         }
@@ -17869,7 +18158,7 @@ class CSVConnector extends Connectors_DataConnector {
      * @emits CSVConnector#afterLoad
      */
     load(eventDetail) {
-        const connector = this, tables = connector.dataTables, { csv, csvURL, dataModifier } = connector.options;
+        const connector = this, tables = connector.dataTables, { csv, csvURL, dataModifier, dataTables } = connector.options;
         connector.emit({
             type: 'load',
             csv,
@@ -17884,23 +18173,24 @@ class CSVConnector extends Connectors_DataConnector {
             csv || '')
             .then((csv) => {
             if (csv) {
-                this.initConverters(csv, (key, table) => {
+                this.initConverters(csv, (key) => {
                     const options = this.options;
+                    const tableOptions = dataTables?.find((dataTable) => dataTable.key === key);
                     // Takes over the connector default options.
-                    const dataTableOptions = {
+                    const mergedTableOptions = {
                         dataTableKey: key,
-                        firstRowAsNames: table.firstRowAsNames ??
+                        firstRowAsNames: tableOptions?.firstRowAsNames ??
                             options.firstRowAsNames,
-                        beforeParse: table.beforeParse ??
+                        beforeParse: tableOptions?.beforeParse ??
                             options.beforeParse
                     };
-                    return new Converters_CSVConverter(CSVConnector_merge(this.options, dataTableOptions));
+                    return new Converters_CSVConverter(CSVConnector_merge(this.options, mergedTableOptions));
                 }, (converter, data) => {
                     converter.parse({ csv: data });
                 });
             }
             return connector
-                .setModifierOptions(dataModifier)
+                .setModifierOptions(dataModifier, dataTables)
                 .then(() => csv);
         })
             .then((csv) => {
@@ -18101,7 +18391,7 @@ Converters_DataConverter.registerType('GoogleSheets', GoogleSheetsConverter);
 
 
 
-const { merge: GoogleSheetsConnector_merge, pick: GoogleSheetsConnector_pick } = Core_Utilities;
+const { merge: GoogleSheetsConnector_merge, pick: GoogleSheetsConnector_pick, defined: GoogleSheetsConnector_defined } = Core_Utilities;
 /* *
  *
  *  Functions
@@ -18138,12 +18428,16 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
      *
      * @param {GoogleSheetsConnector.UserOptions} [options]
      * Options for the connector and converter.
+     *
+     * @param {Array<DataTableOptions>} [dataTables]
+     * Multiple connector data tables options.
+     *
      */
     constructor(options, dataTables) {
         const mergedOptions = GoogleSheetsConnector_merge(GoogleSheetsConnector.defaultOptions, options);
         super(mergedOptions, dataTables);
-        this.converter = new Converters_GoogleSheetsConverter(mergedOptions);
-        this.options = mergedOptions;
+        this.options = GoogleSheetsConnector_defined(dataTables) ?
+            GoogleSheetsConnector_merge(mergedOptions, { dataTables }) : mergedOptions;
     }
     /* *
      *
@@ -18160,7 +18454,7 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
      * Same connector instance with modified table.
      */
     load(eventDetail) {
-        const connector = this, tables = connector.dataTables, { dataModifier, dataRefreshRate, enablePolling, googleAPIKey, googleSpreadsheetKey } = connector.options, url = GoogleSheetsConnector.buildFetchURL(googleAPIKey, googleSpreadsheetKey, connector.options);
+        const connector = this, tables = connector.dataTables, { dataModifier, dataRefreshRate, enablePolling, googleAPIKey, googleSpreadsheetKey, dataTables } = connector.options, url = GoogleSheetsConnector.buildFetchURL(googleAPIKey, googleSpreadsheetKey, connector.options);
         connector.emit({
             type: 'load',
             detail: eventDetail,
@@ -18176,21 +18470,22 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
             if (isGoogleError(json)) {
                 throw new Error(json.error.message);
             }
-            this.initConverters(json, (key, table) => {
+            this.initConverters(json, (key) => {
                 const options = this.options;
+                const tableOptions = dataTables?.find((dataTable) => dataTable.key === key);
                 // Takes over the connector default options.
-                const dataTableOptions = {
+                const mergedTableOptions = {
                     dataTableKey: key,
-                    firstRowAsNames: table.firstRowAsNames ??
+                    firstRowAsNames: tableOptions?.firstRowAsNames ??
                         options.firstRowAsNames,
-                    beforeParse: table.beforeParse ??
+                    beforeParse: tableOptions?.beforeParse ??
                         options.beforeParse
                 };
-                return new Converters_GoogleSheetsConverter(GoogleSheetsConnector_merge(this.options, dataTableOptions));
+                return new Converters_GoogleSheetsConverter(GoogleSheetsConnector_merge(this.options, mergedTableOptions));
             }, (converter, data) => {
                 converter.parse({ json: data });
             });
-            return connector.setModifierOptions(dataModifier);
+            return connector.setModifierOptions(dataModifier, dataTables);
         })
             .then(() => {
             connector.emit({
@@ -18482,7 +18777,7 @@ class HTMLTableConverter extends Converters_DataConverter {
     getTableHeaderHTML(topheaders = [], subheaders = [], options = this.options) {
         const { useMultiLevelHeaders, useRowspanHeaders } = options;
         let html = '<thead>', i = 0, len = subheaders && subheaders.length, next, cur, curColspan = 0, rowspan;
-        // Clean up multiple table headers. Chart.getDataRows() returns two
+        // Clean up multiple table headers. Exporting.getDataRows() returns two
         // levels of headers when using multilevel, not merged. We need to
         // merge identical headers, remove redundant headers, and keep it
         // all marked up nicely.
@@ -18987,7 +19282,7 @@ Converters_DataConverter.registerType('JSON', JSONConverter);
 
 
 
-const { merge: JSONConnector_merge } = Core_Utilities;
+const { merge: JSONConnector_merge, defined: JSONConnector_defined } = Core_Utilities;
 /* *
  *
  *  Class
@@ -19010,13 +19305,14 @@ class JSONConnector extends Connectors_DataConnector {
      * @param {JSONConnector.UserOptions} [options]
      * Options for the connector and converter.
      *
-     * @param {Array<DataTable>} [dataTables]
+     * @param {Array<DataTableOptions>} [dataTables]
      * Multiple connector data tables options.
      */
     constructor(options, dataTables) {
         const mergedOptions = JSONConnector_merge(JSONConnector.defaultOptions, options);
         super(mergedOptions, dataTables);
-        this.options = mergedOptions;
+        this.options = JSONConnector_defined(dataTables) ?
+            JSONConnector_merge(mergedOptions, { dataTables }) : mergedOptions;
         if (mergedOptions.enablePolling) {
             this.startPolling(Math.max(mergedOptions.dataRefreshRate || 0, 1) * 1000);
         }
@@ -19036,7 +19332,7 @@ class JSONConnector extends Connectors_DataConnector {
      * @emits JSONConnector#afterLoad
      */
     load(eventDetail) {
-        const connector = this, tables = connector.dataTables, { data, dataUrl, dataModifier } = connector.options;
+        const connector = this, tables = connector.dataTables, { data, dataUrl, dataModifier, dataTables } = connector.options;
         connector.emit({
             type: 'load',
             data,
@@ -19059,26 +19355,27 @@ class JSONConnector extends Connectors_DataConnector {
             data || [])
             .then((data) => {
             if (data) {
-                this.initConverters(data, (key, table) => {
+                this.initConverters(data, (key) => {
                     const options = this.options;
+                    const tableOptions = dataTables?.find((dataTable) => dataTable.key === key);
                     // Takes over the connector default options.
-                    const dataTableOptions = {
+                    const mergedTableOptions = {
                         dataTableKey: key,
-                        columnNames: table.columnNames ??
+                        columnNames: tableOptions?.columnNames ??
                             options.columnNames,
-                        firstRowAsNames: table.firstRowAsNames ??
+                        firstRowAsNames: tableOptions?.firstRowAsNames ??
                             options.firstRowAsNames,
-                        orientation: table.orientation ??
+                        orientation: tableOptions?.orientation ??
                             options.orientation,
-                        beforeParse: table.beforeParse ??
+                        beforeParse: tableOptions?.beforeParse ??
                             options.beforeParse
                     };
-                    return new Converters_JSONConverter(JSONConnector_merge(this.options, dataTableOptions));
+                    return new Converters_JSONConverter(JSONConnector_merge(this.options, mergedTableOptions));
                 }, (converter, data) => {
                     converter.parse({ data });
                 });
             }
-            return connector.setModifierOptions(dataModifier)
+            return connector.setModifierOptions(dataModifier, dataTables)
                 .then(() => data);
         })
             .then((data) => {

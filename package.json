@@ -2,7 +2,7 @@
   "name": "@highcharts/grid-lite",
   "description": "Highcharts Grid Lite framework",
   "homepage": "http://www.highcharts.com/grid",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "author": "Highsoft AS <support@highcharts.com> (http://www.highcharts.com/about)",
   "main": "grid-lite.js",
   "repository": {

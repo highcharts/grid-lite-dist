@@ -1,7 +1,8 @@
 import type DataTable from '../../../../Data/DataTable';
+import type Column from '../Column';
+import type TableRow from './TableRow';
 import Cell from '../Cell.js';
-import Column from '../Column';
-import TableRow from './TableRow';
+import CellContent from '../CellContent/CellContent.js';
 /**
  * Represents a cell in the data grid.
  */
@@ -9,8 +10,15 @@ declare class TableCell extends Cell {
     /**
      * The row of the cell.
      */
-    row: TableRow;
+    readonly row: TableRow;
+    /**
+     * The column of the cell.
+     */
     column: Column;
+    /**
+     * The cell's content.
+     */
+    content?: CellContent;
     /**
      * Constructs a cell in the data grid.
      *
@@ -69,18 +77,14 @@ declare class TableCell extends Cell {
      * Sets the value & updating content of the cell.
      *
      * @param value
-     * The raw value to set.
+     * The raw value to set. If not provided, it will use the value from the
+     * data table for the current row and column.
      *
      * @param updateTable
-     * Whether to update the table after setting the content.
+     * Whether to update the table after setting the content. Defaults to
+     * `false`, meaning the table will not be updated.
      */
-    setValue(value: DataTable.CellType, updateTable: boolean): Promise<void>;
-    /**
-     * Handle the formatting content of the cell.
-     *
-     * @internal
-     */
-    formatCell(): string;
+    setValue(value?: DataTable.CellType, updateTable?: boolean): Promise<void>;
     /**
      * Destroys the cell.
      */

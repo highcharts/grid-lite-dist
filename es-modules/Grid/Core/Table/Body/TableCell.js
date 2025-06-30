@@ -16,9 +16,7 @@
 'use strict';
 import Cell from '../Cell.js';
 import Utils from '../../../../Core/Utilities.js';
-import GridUtils from '../../GridUtils.js';
-const { setHTMLContent } = GridUtils;
-const { defined, fireEvent } = Utils;
+const { fireEvent } = Utils;
 /* *
  *
  *  Class
@@ -59,7 +57,7 @@ class TableCell extends Cell {
     render() {
         super.render();
         // It may happen that `await` will be needed here in the future.
-        void this.setValue(this.column.data?.[this.row.index], false);
+        void this.setValue();
     }
     initEvents() {
         this.cellEvents.push(['dblclick', (e) => (this.onDblClick(e))]);
@@ -160,21 +158,25 @@ class TableCell extends Cell {
      * Sets the value & updating content of the cell.
      *
      * @param value
-     * The raw value to set.
+     * The raw value to set. If not provided, it will use the value from the
+     * data table for the current row and column.
      *
      * @param updateTable
-     * Whether to update the table after setting the content.
+     * Whether to update the table after setting the content. Defaults to
+     * `false`, meaning the table will not be updated.
      */
-    async setValue(value, updateTable) {
+    async setValue(value = this.column.data?.[this.row.index], updateTable = false) {
         this.value = value;
         const vp = this.column.viewport;
-        // Render the table cell element content.
-        setHTMLContent(this.htmlElement, this.formatCell());
+        if (this.content) {
+            this.content.update();
+        }
+        else {
+            this.content = this.column.createCellContent(this);
+        }
         this.htmlElement.setAttribute('data-value', this.value + '');
         this.setCustomClassName(this.column.options.cells?.className);
-        fireEvent(this, 'afterSetValue', {
-            target: this
-        });
+        fireEvent(this, 'afterRender', { target: this });
         if (!updateTable) {
             return;
         }
@@ -210,38 +212,11 @@ class TableCell extends Cell {
         }
     }
     /**
-     * Handle the formatting content of the cell.
-     *
-     * @internal
-     */
-    formatCell() {
-        const cellsDefaults = this.row.viewport.grid.options?.columnDefaults?.cells || {};
-        const options = this.column.options.cells || {};
-        const { format, formatter } = options;
-        const isDefaultFormat = cellsDefaults.format === format;
-        const isDefaultFormatter = cellsDefaults.formatter === formatter;
-        let value = this.value;
-        if (!defined(value)) {
-            value = '';
-        }
-        let cellContent = '';
-        if (isDefaultFormat && isDefaultFormatter) {
-            cellContent = formatter ?
-                formatter.call(this).toString() :
-                (format ? this.format(format) : value + '');
-        }
-        else if (isDefaultFormat) {
-            cellContent = formatter?.call(this).toString() || value + '';
-        }
-        else if (isDefaultFormatter) {
-            cellContent = format ? this.format(format) : value + '';
-        }
-        return cellContent;
-    }
-    /**
      * Destroys the cell.
      */
     destroy() {
+        this.content?.destroy();
+        delete this.content;
         super.destroy();
     }
 }
