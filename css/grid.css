@@ -1,5 +1,5 @@
 /**
- * @license Highcharts Grid v1.2.0
+ * @license Highcharts Grid v1.3.0
  *
  * (c) 2009-2025 Highsoft AS
  *
@@ -346,6 +346,10 @@
 /* Table Header */
 .hcg-table.hcg-virtualization thead {
     display: block;
+}
+
+.hcg-table thead {
+    background-color: var(--ig-header-background);
 }
 
 .hcg-table thead th {
