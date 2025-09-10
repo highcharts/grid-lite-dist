@@ -1,5 +1,5 @@
 /**
- * @license Highcharts Grid v1.3.0 (2025-07-14)
+ * @license Highcharts Grid v1.4.0 (2025-09-10)
  * @module grid/grid-lite
  *
  * (c) 2009-2025 Highsoft AS
@@ -74,7 +74,7 @@ var Globals;
      *  Constants
      *
      * */
-    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '1.3.0', Globals.win = (typeof window !== 'undefined' ?
+    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '1.4.0', Globals.win = (typeof window !== 'undefined' ?
         window :
         {}), // eslint-disable-line node/no-unsupported-features/es-builtins
     Globals.doc = Globals.win.document, Globals.svg = !!Globals.doc?.createElementNS?.(Globals.SVG_NS, 'svg')?.createSVGRect, Globals.pageLang = Globals.doc?.documentElement?.closest('[lang]')?.lang, Globals.userAgent = Globals.win.navigator?.userAgent || '', Globals.isChrome = Globals.win.chrome, Globals.isFirefox = Globals.userAgent.indexOf('Firefox') !== -1, Globals.isMS = /(edge|msie|trident)/i.test(Globals.userAgent) && !Globals.win.opera, Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1, Globals.isTouchDevice = /(Mobile|Android|Windows Phone)/.test(Globals.userAgent), Globals.isWebKit = Globals.userAgent.indexOf('AppleWebKit') !== -1, Globals.deg2rad = Math.PI * 2 / 360, Globals.marginNames = [
@@ -2412,7 +2412,7 @@ class AST {
                 trustedTypesPolicy.createHTML(markup) :
                 markup, 'text/html');
         }
-        catch (e) {
+        catch {
             // There are two cases where this fails:
             // 1. IE9 and PhantomJS, where the DOMParser only supports parsing
             //    XML
@@ -5152,6 +5152,9 @@ const defaultOptions = {
      * setup uses `Highcharts.setOptions` to make the options apply to all
      * charts in the same page.
      *
+     * Some language options, like `months` and `weekdays`, are only used
+     * with non-locale-aware date formats.
+     *
      * ```js
      * Highcharts.setOptions({
      *     lang: {
@@ -5201,7 +5204,7 @@ const defaultOptions = {
          * An array containing the months names. Corresponds to the `%B` format
          * in `Highcharts.dateFormat()`. Defaults to 'undefined',
          * meaning the default month names are used according to the
-         * `lang.locale` setting.
+         * `lang.locale` or browser settings.
          *
          * @type    {Array<string>}
          */
@@ -5216,23 +5219,25 @@ const defaultOptions = {
          * An array containing the months names in abbreviated form. Corresponds
          * to the `%b` format in `Highcharts.dateFormat()`. Defaults to
          * 'undefined', meaning the default short month names are used according
-         * to the `lang.locale` setting.
+         * to the `lang.locale` or browser settings.
          *
          * @type    {Array<string>}
          */
         shortMonths: void 0,
         /**
-         * An array containing the weekday names. Defaults to 'undefined',
-         * meaning the default weekday names are used according to the
-         * `lang.locale` setting.
+         * An array containing the weekday names. Corresponds
+         * to the `%A` format in `Highcharts.dateFormat()`. Defaults to
+         * 'undefined', meaning the default weekday names are used according to
+         * the `lang.locale` or browser settings.
          *
          * @type    {Array<string>}
          */
         weekdays: void 0,
         /**
-         * Short week days, starting Sunday. Defaults to 'undefined', meaning
+         * Short week days, starting Sunday. Corresponds to the `%a` format in
+         * `Highcharts.dateFormat()`. Defaults to 'undefined', meaning
          * the default short weekday names are used according to the
-         * `lang.locale` setting.
+         * `lang.locale` or browser settings.
          *
          * @sample highcharts/lang/shortweekdays/
          *         Finnish two-letter abbreviations
@@ -8911,7 +8916,7 @@ var GridUtils;
             return new DOMParser().parseFromString(text, 'text/html')
                 .body.textContent || '';
         }
-        catch (error) {
+        catch {
             return '';
         }
     }
@@ -9411,7 +9416,7 @@ class DataModifier {
                     detail: eventDetail,
                     table
                 });
-                reject(e);
+                reject(e instanceof Error ? e : new Error('' + e));
             }
         });
     }
@@ -13473,18 +13478,13 @@ class Cell {
      * Handles the focus event on the cell.
      */
     onFocus() {
-        const vp = this.row.viewport;
-        const focusAnchor = vp.rowsVirtualizer.focusAnchorCell?.htmlElement;
-        focusAnchor?.setAttribute('tabindex', '-1');
+        this.row.viewport.setFocusAnchorCell(this);
     }
     /**
      * Handles the blur event on the cell.
      */
     onBlur() {
-        const vp = this.row.viewport;
-        const focusAnchor = vp.rowsVirtualizer.focusAnchorCell?.htmlElement;
-        focusAnchor?.setAttribute('tabindex', '0');
-        delete vp.focusCursor;
+        delete this.row.viewport.focusCursor;
     }
     /**
      * Handles user keydown on the cell.
@@ -13875,9 +13875,7 @@ class HeaderCell extends Table_Cell {
             this.initColumnSorting();
         }
         this.setCustomClassName(options.header?.className);
-        HeaderCell_fireEvent(this, 'afterRender', {
-            target: column
-        });
+        HeaderCell_fireEvent(this, 'afterRender', { column });
     }
     reflow() {
         const th = this.htmlElement;
@@ -13915,7 +13913,7 @@ class HeaderCell extends Table_Cell {
         }
         HeaderCell_fireEvent(this, 'click', {
             originalEvent: e,
-            target: this.column
+            column: this.column
         });
     }
     /**
@@ -14385,7 +14383,6 @@ class TableCell extends Table_Cell {
         }
         this.row.data[this.column.id] = this.value;
         originalDataTable.setCell(this.column.id, rowTableIndex, this.value);
-        vp.grid.querying.shouldBeUpdated = true;
         if (vp.grid.querying.getModifiers().length < 1) {
             return false;
         }
@@ -14924,11 +14921,10 @@ class RowsVirtualizer {
                 });
             }
         }
-        // Reset the focus anchor cell
-        this.focusAnchorCell?.htmlElement.setAttribute('tabindex', '-1');
-        const firstVisibleRow = rows[rowCursor - rows[0].index];
-        this.focusAnchorCell = firstVisibleRow?.cells[0];
-        this.focusAnchorCell?.htmlElement.setAttribute('tabindex', '0');
+        // Set the focus anchor cell
+        if (!vp.focusCursor || !vp.focusAnchorCell?.row.rendered) {
+            vp.setFocusAnchorCell(rows[rowCursor - rows[0].index].cells[0]);
+        }
     }
     /**
      * Adjusts the heights of the rows based on the current scroll position.
@@ -14943,6 +14939,9 @@ class RowsVirtualizer {
         const { rowCursor: cursor, defaultRowHeight: defaultH } = this;
         const { rows, tbodyElement } = this.viewport;
         const rowsLn = rows.length;
+        if (rowsLn < 1) {
+            return;
+        }
         let translateBuffer = rows[0].getDefaultTopOffset();
         for (let i = 0; i < rowsLn; ++i) {
             const row = rows[i];
@@ -15385,6 +15384,7 @@ class Table {
                 this.rows[i].update();
             }
             this.rowsVirtualizer.adjustRowHeights();
+            this.reflow();
         }
         if (focusedRowId !== void 0 && vp.focusCursor) {
             const newRowIndex = vp.dataTable.getLocalRowIndex(focusedRowId);
@@ -15521,6 +15521,17 @@ class Table {
             const row = this.rows[rowIndex - this.rows[0].index];
             row?.cells[columnIndex]?.htmlElement.focus();
         }
+    }
+    /**
+     * Sets the focus anchor cell.
+     *
+     * @param cell
+     * The cell to set as the focus anchor cell.
+     */
+    setFocusAnchorCell(cell) {
+        this.focusAnchorCell?.htmlElement.setAttribute('tabindex', '-1');
+        this.focusAnchorCell = cell;
+        this.focusAnchorCell.htmlElement.setAttribute('tabindex', '0');
     }
     /**
      * Returns the column with the provided ID.
@@ -16288,11 +16299,13 @@ class SortingController {
         if (!order || !columnId) {
             return;
         }
+        const grid = this.querying.grid;
         return new Modifiers_SortModifier({
             orderByColumn: columnId,
             direction: order,
-            compare: this.querying.grid.columnOptionsMap?.[columnId]
-                ?.options?.sorting?.compare
+            compare: grid.columnOptionsMap?.[columnId]?.options
+                ?.sorting?.compare ||
+                grid.options?.columnDefaults?.sorting?.compare
         });
     }
 }
@@ -16494,6 +16507,11 @@ class Grid {
          * @internal
          */
         this.initialContainerHeight = 0;
+        /**
+         * Functions that unregister events attached to the grid's data table,
+         * that need to be removed when the grid is destroyed.
+         */
+        this.dataTableEventDestructors = [];
         this.loadUserOptions(options);
         this.querying = new Querying_QueryingController(this);
         this.id = this.options?.id || Core_Utilities.uniqueKey();
@@ -16931,16 +16949,39 @@ class Grid {
         }
         return result;
     }
+    /**
+     * Loads the data table of the Grid. If the data table is passed as a
+     * reference, it should be used instead of creating a new one.
+     *
+     * @param tableOptions
+     * The data table to load. If not provided, a new data table will be
+     * created.
+     */
     loadDataTable(tableOptions) {
+        // Unregister all events attached to the previous data table.
+        this.dataTableEventDestructors.forEach((fn) => fn());
         // If the table is passed as a reference, it should be used instead of
         // creating a new one.
-        if (tableOptions?.id) {
+        if (tableOptions?.clone) {
             this.dataTable = tableOptions;
             this.presentationTable = this.dataTable.modified;
             return;
         }
-        this.dataTable = this.presentationTable =
+        const dt = this.dataTable = this.presentationTable =
             new Data_DataTable(tableOptions);
+        // If the data table is modified, mark the querying controller to be
+        // updated on the next proceed.
+        [
+            'afterDeleteColumns',
+            'afterDeleteRows',
+            'afterSetCell',
+            'afterSetColumns',
+            'afterSetRows'
+        ].forEach((eventName) => {
+            this.dataTableEventDestructors.push(dt.on(eventName, () => {
+                this.querying.shouldBeUpdated = true;
+            }));
+        });
     }
     /**
      * Extracts all references to columnIds on all levels below defined level
@@ -16973,6 +17014,7 @@ class Grid {
      */
     destroy() {
         const dgIndex = Grid.grids.findIndex((dg) => dg === this);
+        this.dataTableEventDestructors.forEach((fn) => fn());
         this.viewport?.destroy();
         if (this.container) {
             this.container.innerHTML = HTML_AST.emptyHTML;
@@ -17489,8 +17531,10 @@ class Credits {
         if (!this.textElement) {
             this.textElement = this.renderAnchor();
         }
-        if (text && href) {
+        if (text) {
             Credits_setHTMLContent(this.textElement, text);
+        }
+        if (href) {
             this.textElement.setAttribute('href', href || '');
         }
         if (grid.descriptionElement) {
@@ -17505,6 +17549,7 @@ class Credits {
             className: Grid_Core_Globals.getClassName('creditsText')
         }, this.containerElement);
         anchorElement.setAttribute('target', '_blank');
+        anchorElement.setAttribute('alt', 'Highcharts logo');
         return anchorElement;
     }
     /**
@@ -17532,11 +17577,7 @@ class Credits {
  */
 Credits.defaultOptions = {
     enabled: true,
-    // eslint-disable-next-line no-console
-    text: `<picture class="hcg-logo-wrapper">
-            <source srcset="https://assets.highcharts.com/grid/logo_darkx2.png 2x, https://assets.highcharts.com/grid/logo_dark.png 1x" media="(prefers-color-scheme: dark)">
-            <img src="https://assets.highcharts.com/grid/logo_light.png" srcset="https://assets.highcharts.com/grid/logo_lightx2.png 2x, https://assets.highcharts.com/grid/logo_light.png 1x" alt="Highcharts logo" style="height: 20px !important; width: auto !important; display: inline-block !important;">
-        </picture>`,
+    text: '',
     href: 'https://www.highcharts.com',
     position: 'bottom'
 };
@@ -17594,12 +17635,12 @@ var CreditsLiteComposition;
         const credits = new Core_Credits(this);
         const containerStyle = credits.containerElement.style;
         // Apply static styles
-        containerStyle.setProperty('display', 'inline-block', 'important');
+        containerStyle.setProperty('display', 'flex', 'important');
         containerStyle.setProperty('padding', '5px 5px 0px 5px', 'important');
-        containerStyle.setProperty('text-align', 'right', 'important');
+        containerStyle.setProperty('flex-direction', 'row-reverse', 'important');
         // Create an observer that check credits modifications
         creditsObserver = new MutationObserver(() => {
-            if (!credits.containerElement.querySelector('.hcg-logo-wrapper')) {
+            if (!credits.containerElement.querySelector('.hcg-credits')) {
                 credits.render();
             }
         });
@@ -18781,7 +18822,7 @@ class HTMLTableConverter extends Converters_DataConverter {
                     if (cur === subheaders[i]) {
                         if (useRowspanHeaders) {
                             rowspan = 2;
-                            delete subheaders[i];
+                            subheaders.splice(i, 1);
                         }
                         else {
                             rowspan = 1;
@@ -19230,7 +19271,6 @@ class JSONConverter extends Converters_DataConverter {
  */
 JSONConverter.defaultOptions = {
     ...Converters_DataConverter.defaultOptions,
-    data: [],
     orientation: 'rows'
 };
 Converters_DataConverter.registerType('JSON', JSONConverter);
@@ -19379,7 +19419,6 @@ class JSONConnector extends Connectors_DataConnector {
  *
  * */
 JSONConnector.defaultOptions = {
-    data: [],
     enablePolling: false,
     dataRefreshRate: 0,
     firstRowAsNames: true,
