@@ -140,7 +140,8 @@ class TableRow extends Row {
      * lifecycle.
      */
     updateRowAttributes() {
-        const a11y = this.viewport.grid.accessibility;
+        const vp = this.viewport;
+        const a11y = vp.grid.accessibility;
         const idx = this.index;
         const el = this.htmlElement;
         // Index of the row in the original data table (ID)
@@ -148,7 +149,7 @@ class TableRow extends Row {
             el.setAttribute('data-row-id', this.id);
         }
         // Calculate levels of header, 1 to avoid indexing from 0
-        a11y?.setRowIndex(el, idx + (this.viewport.header?.levels ?? 1) + 1);
+        a11y?.setRowIndex(el, idx + (vp.header?.rows.length ?? 0) + 1);
     }
     /**
      * Sets the vertical translation of the row. Used for virtual scrolling.

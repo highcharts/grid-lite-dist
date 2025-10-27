@@ -13,6 +13,8 @@
  *
  * */
 import AST from '../../Core/Renderer/HTML/AST.js';
+import U from '../../Core/Utilities.js';
+const { isObject } = U;
 AST.allowedAttributes.push('srcset', 'media');
 AST.allowedTags.push('picture', 'source');
 /* *
@@ -131,6 +133,44 @@ var GridUtils;
         }
     }
     GridUtils.setHTMLContent = setHTMLContent;
+    /**
+     * Creates a proxy that, when reading a property, first returns the value
+     * from the original options of a given entity; if it is not defined, it
+     * falls back to the value from the defaults (default options), recursively
+     * for nested objects. Setting values on the proxy will change the original
+     * options object (1st argument), not the defaults (2nd argument).
+     *
+     * @param options
+     * The specific options object.
+     *
+     * @param defaultOptions
+     * The default options to fall back to.
+     *
+     * @returns
+     * A proxy that provides merged access to options and defaults.
+     */
+    function createOptionsProxy(options, defaultOptions = {}) {
+        const handler = (defaults = {}) => ({
+            get(target, prop) {
+                const targetValue = target[prop];
+                const defaultValue = defaults[prop];
+                if (isObject(targetValue, true)) {
+                    return new Proxy(targetValue, handler(defaultValue ?? {}));
+                }
+                return targetValue ?? defaultValue;
+            },
+            set(target, prop, value) {
+                target[prop] = value;
+                return true;
+            },
+            deleteProperty(target, prop) {
+                delete target[prop];
+                return true;
+            }
+        });
+        return new Proxy(options, handler(defaultOptions));
+    }
+    GridUtils.createOptionsProxy = createOptionsProxy;
 })(GridUtils || (GridUtils = {}));
 /* *
  *

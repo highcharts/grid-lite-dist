@@ -14,6 +14,7 @@
  *
  * */
 'use strict';
+import Globals from '../../Globals.js';
 import Cell from '../Cell.js';
 import Utils from '../../../../Core/Utilities.js';
 const { fireEvent } = Utils;
@@ -82,6 +83,10 @@ class TableCell extends Cell {
         }
         this.htmlElement.setAttribute('data-value', this.value + '');
         this.setCustomClassName(this.column.options.cells?.className);
+        // Add alignment to number column
+        if (this.column.dataType === 'number') {
+            this.setCustomClassName(Globals.getClassName('rightAlign'));
+        }
         fireEvent(this, 'afterRender', { target: this });
     }
     /**
@@ -107,7 +112,8 @@ class TableCell extends Cell {
         }
         this.row.data[this.column.id] = this.value;
         originalDataTable.setCell(this.column.id, rowTableIndex, this.value);
-        if (vp.grid.querying.getModifiers().length < 1) {
+        // If no modifiers, don't update all rows
+        if (vp.grid.dataTable === vp.grid.presentationTable) {
             return false;
         }
         await vp.updateRows();

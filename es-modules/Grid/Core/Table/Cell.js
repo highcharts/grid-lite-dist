@@ -100,6 +100,17 @@ class Cell {
             return;
         }
         const vp = row.viewport;
+        const { header } = vp;
+        const getVerticalPos = () => {
+            if (row.index !== void 0) {
+                return row.index - vp.rows[0].index;
+            }
+            const level = row.level;
+            if (!header || level === void 0) {
+                return 0;
+            }
+            return Math.max(level, header.levels) - header.rows.length - 1;
+        };
         const changeFocusKeys = {
             ArrowDown: [1, 0],
             ArrowUp: [-1, 0],
@@ -110,10 +121,19 @@ class Cell {
         if (dir) {
             e.preventDefault();
             e.stopPropagation();
-            const localRowIndex = row.index === void 0 ? -1 : (row.index - vp.rows[0].index);
+            const { header } = vp;
+            const localRowIndex = getVerticalPos();
             const nextVerticalDir = localRowIndex + dir[0];
-            if (nextVerticalDir < 0 && vp.header) {
-                vp.columns[column.index + dir[1]]?.header?.htmlElement.focus();
+            if (nextVerticalDir < 0 && header) {
+                const extraRowIdx = header.rows.length + nextVerticalDir;
+                if (extraRowIdx + 1 > header.levels) {
+                    header.rows[extraRowIdx]
+                        .cells[column.index + dir[1]]?.htmlElement.focus();
+                }
+                else {
+                    vp.columns[column.index + dir[1]]
+                        ?.header?.htmlElement.focus();
+                }
                 return;
             }
             const nextRow = vp.rows[nextVerticalDir];

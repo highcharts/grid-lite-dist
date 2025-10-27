@@ -61,20 +61,6 @@ declare class TableCell extends Cell {
      */
     protected onFocus(): void;
     /**
-     * Handles the mouse down event on the cell.
-     *
-     * @param e
-     * The mouse event object.
-     *
-     * @internal
-     */
-    protected onMouseDown(e: MouseEvent): void;
-    /**
-     * Handles the mouse over event on the cell.
-     * @internal
-     */
-    protected onMouseOver(): void;
-    /**
      * Handles the mouse out event on the cell.
      */
     protected onMouseOut(): void;
@@ -86,15 +72,6 @@ declare class TableCell extends Cell {
      */
     protected onDblClick(e: MouseEvent): void;
     onClick(): void;
-    /**
-     * Handles the key down event on the cell.
-     *
-     * @param e
-     * Keyboard event object.
-     *
-     * @internal
-     */
-    onKeyDown(e: KeyboardEvent): void;
     /**
      * Destroys the cell.
      */

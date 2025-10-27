@@ -11,6 +11,13 @@ export interface GridEvent<T, E extends Event = Event> {
      */
     target: T;
 }
+/**
+ * The event listener for the grid.
+ */
+export interface GridEventListener {
+    eventName: keyof HTMLElementEventMap;
+    listener: EventListener;
+}
 declare namespace GridUtils {
     /**
      * Parameters for the makeHTMLElement utils function.
@@ -74,5 +81,22 @@ declare namespace GridUtils {
      * Content to render.
      */
     function setHTMLContent(element: HTMLElement, content: string): void;
+    /**
+     * Creates a proxy that, when reading a property, first returns the value
+     * from the original options of a given entity; if it is not defined, it
+     * falls back to the value from the defaults (default options), recursively
+     * for nested objects. Setting values on the proxy will change the original
+     * options object (1st argument), not the defaults (2nd argument).
+     *
+     * @param options
+     * The specific options object.
+     *
+     * @param defaultOptions
+     * The default options to fall back to.
+     *
+     * @returns
+     * A proxy that provides merged access to options and defaults.
+     */
+    function createOptionsProxy<T extends object>(options: T, defaultOptions?: Partial<T>): T;
 }
 export default GridUtils;

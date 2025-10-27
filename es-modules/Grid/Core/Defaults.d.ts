@@ -1,14 +1,13 @@
 import type Options from './Options';
-import type Globals from './Globals';
+import type { DeepPartial } from '../../Shared/Types';
 /**
  * Namespace for default options.
  */
 declare namespace Defaults {
     /**
      * Default options for the Grid.
-     * @internal
      */
-    const defaultOptions: Globals.DeepPartial<Options>;
+    const defaultOptions: DeepPartial<Options>;
     /**
      * Merge the default options with custom options. Commonly used for defining
      * reusable templates.
@@ -16,6 +15,6 @@ declare namespace Defaults {
      * @param options
      * The new custom chart options.
      */
-    function setOptions(options: Globals.DeepPartial<Options>): void;
+    function setOptions(options: DeepPartial<Options>): void;
 }
 export default Defaults;

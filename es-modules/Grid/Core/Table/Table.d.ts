@@ -1,11 +1,9 @@
 import type TableRow from './Body/TableRow';
 import DataTable from '../../../Data/DataTable.js';
-import ColumnDistributionStrategy from './ColumnDistribution/ColumnDistributionStrategy.js';
+import ColumnResizingMode from './ColumnResizing/ResizingMode.js';
 import Column from './Column.js';
 import TableHeader from './Header/TableHeader.js';
 import Grid from '../Grid.js';
-import RowsVirtualizer from './Actions/RowsVirtualizer.js';
-import ColumnsResizer from './Actions/ColumnsResizer.js';
 import Cell from './Cell.js';
 /**
  * Represents a table viewport of the data grid.
@@ -23,6 +21,10 @@ declare class Table {
      * instance that is stored in the `grid.dataTable` property.
      */
     dataTable: DataTable;
+    /**
+     * The HTML element of the table.
+     */
+    readonly tableElement: HTMLTableElement;
     /**
      * The HTML element of the table head.
      */
@@ -44,31 +46,9 @@ declare class Table {
      */
     rows: TableRow[];
     /**
-     * The resize observer for the table container.
-     * @internal
-     */
-    resizeObserver: ResizeObserver;
-    /**
-     * The rows virtualizer instance that handles the rows rendering &
-     * dimensioning logic.
-     * @internal
-     */
-    rowsVirtualizer: RowsVirtualizer;
-    /**
      * The column distribution.
      */
-    readonly columnDistribution: ColumnDistributionStrategy;
-    /**
-     * The columns resizer instance that handles the columns resizing logic.
-     * @internal
-     */
-    columnsResizer?: ColumnsResizer;
-    /**
-     * The width of each row in the table. Each of the rows has the same width.
-     * Only for the `fixed` column distribution.
-     * @internal
-     */
-    rowsWidth?: number;
+    readonly columnResizing: ColumnResizingMode;
     /**
      * The focus cursor position: [rowIndex, columnIndex] or `undefined` if the
      * table cell is not focused.
@@ -102,29 +82,20 @@ declare class Table {
      */
     private setTbodyMinHeight;
     /**
+     * Checks if rows virtualization should be enabled.
+     *
+     * @returns
+     * Whether rows virtualization should be enabled.
+     */
+    private shouldVirtualizeRows;
+    /**
      * Loads the columns of the table.
      */
     private loadColumns;
     /**
-     * Fires an empty update to properly load the virtualization, only if
-     * there's a row count compared to the threshold change detected (due to
-     * performance reasons).
-     */
-    private updateVirtualization;
-    /**
      * Updates the rows of the table.
      */
     updateRows(): Promise<void>;
-    /**
-     * Loads the modified data from the data table and renders the rows. Always
-     * removes all rows and re-renders them, so it's better to use `updateRows`
-     * instead, because it is more performant in some cases.
-     *
-     * @deprecated
-     * Use `updateRows` instead. This method is kept for backward compatibility
-     * reasons, but it will be removed in the next major version.
-     */
-    loadPresentationData(): void;
     /**
      * Reflows the table's content dimensions.
      */
@@ -153,30 +124,6 @@ declare class Table {
      * Try it: {@link https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/grid-lite/basic/scroll-to-row | Scroll to row}
      */
     scrollToRow(index: number): void;
-    /**
-     * Get the widthRatio value from the width in pixels. The widthRatio is
-     * calculated based on the width of the viewport.
-     *
-     * @param width
-     * The width in pixels.
-     *
-     * @return The width ratio.
-     *
-     * @internal
-     */
-    getRatioFromWidth(width: number): number;
-    /**
-     * Get the width in pixels from the widthRatio value. The width is
-     * calculated based on the width of the viewport.
-     *
-     * @param ratio
-     * The width ratio.
-     *
-     * @returns The width in pixels.
-     *
-     * @internal
-     */
-    getWidthFromRatio(ratio: number): number;
     /**
      * Destroys the grid table.
      */
@@ -227,7 +174,7 @@ declare namespace Table {
     interface ViewportStateMetadata {
         scrollTop: number;
         scrollLeft: number;
-        columnDistribution: ColumnDistributionStrategy;
+        columnResizing: ColumnResizingMode;
         focusCursor?: [number, number];
     }
 }

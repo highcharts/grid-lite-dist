@@ -14,29 +14,9 @@ declare class ColumnsResizer {
      */
     isResizing: boolean;
     /**
-     * The column being dragged.
-     * @internal
-     */
-    draggedColumn?: Column;
-    /**
      * The start X position of the drag.
      */
     private dragStartX?;
-    /**
-     * The element when dragging.
-     * @internal
-     */
-    draggedResizeHandle?: HTMLElement;
-    /**
-     * The width of the dragged column when dragging started.
-     * @internal
-     */
-    columnStartWidth?: number;
-    /**
-     * The width of the next column when dragging started.
-     * @internal
-     */
-    nextColumnStartWidth?: number;
     /**
      * The handles and their mouse down event listeners.
      */
@@ -52,15 +32,6 @@ declare class ColumnsResizer {
      * The reference to rendered cell, where hadles should be added
      */
     renderColumnDragHandles(column: Column, cell: Cell): void;
-    /**
-     * Handles the mouse move event on the document.
-     *
-     * @param e
-     * The mouse event.
-     *
-     * @internal
-     */
-    private onDocumentMouseMove;
     /**
      * Handles the mouse up event on the document.
      */

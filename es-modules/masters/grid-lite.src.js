@@ -9,7 +9,7 @@
 'use strict';
 import AST from '../Core/Renderer/HTML/AST.js';
 import Templating from '../Core/Templating.js';
-import ColumnDistribution from '../Grid/Core/Table/ColumnDistribution/ColumnDistribution.js';
+import ColumnResizing from '../Grid/Core/Table/ColumnResizing/ColumnResizing.js';
 import DataConnector from '../Data/Connectors/DataConnector.js';
 import DataConverter from '../Data/Converters/DataConverter.js';
 import DataCursor from '../Data/DataCursor.js';
@@ -23,6 +23,8 @@ import whcm from '../Accessibility/HighContrastMode.js';
 import Table from '../Grid/Core/Table/Table.js';
 import CreditsLiteComposition from '../Grid/Lite/Credits/CreditsLiteComposition.js';
 import Utilities from '../Core/Utilities.js';
+import SvgIcons from '../Grid/Core/UI/SvgIcons.js';
+import Pagination from '../Grid/Core/Pagination/Pagination.js';
 // Fill registries
 import '../Data/Connectors/CSVConnector.js';
 import '../Data/Connectors/GoogleSheetsConnector.js';
@@ -32,6 +34,7 @@ import '../Data/Modifiers/ChainModifier.js';
 import '../Data/Modifiers/InvertModifier.js';
 import '../Data/Modifiers/RangeModifier.js';
 import '../Data/Modifiers/SortModifier.js';
+import '../Data/Modifiers/FilterModifier.js';
 /* *
  *
  *  Namespace
@@ -45,7 +48,7 @@ G.DataConverter = DataConverter;
 G.Grid = _Grid;
 G.grid = _Grid.grid;
 G.grids = _Grid.grids;
-G.ColumnDistribution = ColumnDistribution;
+G.ColumnResizing = ColumnResizing;
 G.DataModifier = DataModifier;
 G.DataPool = DataPool;
 G.DataTable = DataTable;
@@ -55,7 +58,9 @@ G.Templating = Templating;
 G.product = 'Grid Lite';
 G.setOptions = Defaults.setOptions;
 G.merge = Utilities.merge;
+G.SvgIcons = SvgIcons;
 G.Table = G.Table || Table;
+G.Pagination = G.Pagination || Pagination;
 CreditsLiteComposition.compose(G.Grid, G.Table);
 /* *
  *

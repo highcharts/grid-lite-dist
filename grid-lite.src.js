@@ -1,5 +1,5 @@
 /**
- * @license Highcharts Grid v1.4.0 (2025-09-10)
+ * @license Highcharts Grid v2.0.0-rc.1 (2025-10-27)
  * @module grid/grid-lite
  *
  * (c) 2009-2025 Highsoft AS
@@ -10,9 +10,9 @@
 	if(typeof exports === 'object' && typeof module === 'object')
 		(root["_Grid"] = factory(),module.exports = root["_Grid"]);
 	else if(typeof define === 'function' && define.amd)
-		define("grid/grid", [], factory);
+		define("grid/grid-lite", [], factory);
 	else if(typeof exports === 'object')
-		(root["_Grid"] = factory(),exports["grid"] = root["_Grid"]);
+		(root["_Grid"] = factory(),exports["grid/grid-lite"] = root["_Grid"]);
 	else
 		((root["Grid"] && root["Grid"].error(16, true)), root["Grid"] = factory());
 })(typeof window === 'undefined' ? this : window, () => {
@@ -74,7 +74,7 @@ var Globals;
      *  Constants
      *
      * */
-    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '1.4.0', Globals.win = (typeof window !== 'undefined' ?
+    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '2.0.0-rc.1', Globals.win = (typeof window !== 'undefined' ?
         window :
         {}), // eslint-disable-line node/no-unsupported-features/es-builtins
     Globals.doc = Globals.win.document, Globals.svg = !!Globals.doc?.createElementNS?.(Globals.SVG_NS, 'svg')?.createSVGRect, Globals.pageLang = Globals.doc?.documentElement?.closest('[lang]')?.lang, Globals.userAgent = Globals.win.navigator?.userAgent || '', Globals.isChrome = Globals.win.chrome, Globals.isFirefox = Globals.userAgent.indexOf('Firefox') !== -1, Globals.isMS = /(edge|msie|trident)/i.test(Globals.userAgent) && !Globals.win.opera, Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1, Globals.isTouchDevice = /(Mobile|Android|Windows Phone)/.test(Globals.userAgent), Globals.isWebKit = Globals.userAgent.indexOf('AppleWebKit') !== -1, Globals.deg2rad = Math.PI * 2 / 360, Globals.marginNames = [
@@ -6270,6 +6270,16 @@ const defaultOptions = {
          * @apioption legend.margin
          */
         /**
+         * Maximum width for the legend. Can be a percentage of the chart width,
+         * or an integer representing how many pixels wide the legend can be.
+         *
+         * @sample {highcharts} highcharts/legend/maxwidth/
+         *         Max width set to 7%
+         *
+         * @type      {number|string}
+         * @apioption legend.maxWidth
+         */
+        /**
          * Maximum pixel height for the legend. When the maximum height is
          * extended, navigation will show.
          *
@@ -8161,7 +8171,7 @@ function dateFormat(format, timestamp, upperCaseFirst) {
  *        replaced by its value.
  *
  * @param {Highcharts.Chart} [owner]
- *        A `Chart` or `DataGrid` instance used to get numberFormatter and time.
+ *        A `Chart` or `Grid` instance used to get numberFormatter and time.
  *
  * @return {string}
  *         The formatted string.
@@ -8467,10 +8477,10 @@ const Templating = {
  */
 (''); // Keeps doclets above in file
 
-;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/ColumnDistributionStrategy.js
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnResizing/ResizingMode.js
 /* *
  *
- *  Column Distribution Strategy abstract class
+ *  Resizing Mode abstract class
  *
  *  (c) 2020-2025 Highsoft AS
  *
@@ -8484,7 +8494,7 @@ const Templating = {
  * */
 
 
-const { getStyle: ColumnDistributionStrategy_getStyle } = Core_Utilities;
+const { getStyle: ResizingMode_getStyle, defined: ResizingMode_defined } = Core_Utilities;
 /* *
  *
  *  Class
@@ -8493,7 +8503,7 @@ const { getStyle: ColumnDistributionStrategy_getStyle } = Core_Utilities;
 /**
  * Represents a column distribution strategy.
  */
-class ColumnDistributionStrategy {
+class ResizingMode {
     /* *
     *
     *  Constructor
@@ -8510,7 +8520,67 @@ class ColumnDistributionStrategy {
          * The current widths values of the columns.
          */
         this.columnWidths = {};
+        /**
+         * Array of units for each column width value. Codified as:
+         * - `0` - px
+         * - `1` - %
+         */
+        this.columnWidthUnits = {};
         this.viewport = viewport;
+    }
+    /**
+     * Returns the column's current width in pixels.
+     *
+     * @param column
+     * The column to get the width for.
+     *
+     * @returns
+     * The column's current width in pixels.
+     */
+    getColumnWidth(column) {
+        const vp = this.viewport;
+        const widthValue = this.columnWidths[column.id];
+        const minWidth = ResizingMode.getMinWidth(column);
+        if (!ResizingMode_defined(widthValue)) {
+            const tbody = vp.tbodyElement;
+            const freeWidth = tbody.getBoundingClientRect().width -
+                this.calculateOccupiedWidth() -
+                tbody.offsetWidth + tbody.clientWidth;
+            const freeColumns = (vp.grid.enabledColumns?.length || 0) -
+                Object.keys(this.columnWidths).length;
+            // If undefined width:
+            return Math.max(freeWidth / freeColumns, minWidth);
+        }
+        if (this.columnWidthUnits[column.id] === 0) {
+            // If px:
+            return widthValue;
+        }
+        // If %:
+        return Math.max(vp.getWidthFromRatio(widthValue / 100), minWidth);
+    }
+    /**
+     * Performs important calculations when the column is loaded.
+     *
+     * @param column
+     * The column that is loaded.
+     */
+    loadColumn(column) {
+        const rawWidth = column.options.width;
+        if (!rawWidth) {
+            return;
+        }
+        let value;
+        let unitCode = 0;
+        if (typeof rawWidth === 'number') {
+            value = rawWidth;
+            unitCode = 0;
+        }
+        else {
+            value = parseFloat(rawWidth);
+            unitCode = rawWidth.charAt(rawWidth.length - 1) === '%' ? 1 : 0;
+        }
+        this.columnWidthUnits[column.id] = unitCode;
+        this.columnWidths[column.id] = value;
     }
     /**
      * Loads the column to the distribution strategy. Should be called before
@@ -8526,9 +8596,6 @@ class ColumnDistributionStrategy {
      * Recaulculates the changing dimentions of the table.
      */
     reflow() {
-        if (this.type === 'full') {
-            return;
-        }
         const vp = this.viewport;
         let rowsWidth = 0;
         for (let i = 0, iEnd = vp.columns.length; i < iEnd; ++i) {
@@ -8553,11 +8620,11 @@ class ColumnDistributionStrategy {
     static getMinWidth(column) {
         const tableColumnEl = column.cells[0]?.htmlElement;
         const headerColumnEl = column.header?.htmlElement;
-        const getElPaddings = (el) => ((ColumnDistributionStrategy_getStyle(el, 'padding-left', true) || 0) +
-            (ColumnDistributionStrategy_getStyle(el, 'padding-right', true) || 0) +
-            (ColumnDistributionStrategy_getStyle(el, 'border-left', true) || 0) +
-            (ColumnDistributionStrategy_getStyle(el, 'border-right', true) || 0));
-        let result = ColumnDistributionStrategy.MIN_COLUMN_WIDTH;
+        const getElPaddings = (el) => ((ResizingMode_getStyle(el, 'padding-left', true) || 0) +
+            (ResizingMode_getStyle(el, 'padding-right', true) || 0) +
+            (ResizingMode_getStyle(el, 'border-left', true) || 0) +
+            (ResizingMode_getStyle(el, 'border-right', true) || 0));
+        let result = ResizingMode.MIN_COLUMN_WIDTH;
         if (tableColumnEl) {
             result = Math.max(result, getElPaddings(tableColumnEl));
         }
@@ -8566,127 +8633,9 @@ class ColumnDistributionStrategy {
         }
         return result;
     }
-}
-/* *
-*
-*  Static Properties
-*
-* */
-/**
- * The minimum width of a column.
- * @internal
- */
-ColumnDistributionStrategy.MIN_COLUMN_WIDTH = 20;
-/* *
- *
- *  Default Export
- *
- * */
-/* harmony default export */ const ColumnDistribution_ColumnDistributionStrategy = (ColumnDistributionStrategy);
-
-;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/MixedDistributionStrategy.js
-/* *
- *
- *  Mixed Distribution Strategy class
- *
- *  (c) 2020-2025 Highsoft AS
- *
- *  License: www.highcharts.com/license
- *
- *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
- *
- *  Authors:
- *  - Dawid Dragula
- *
- * */
-
-
-
-const { defined: MixedDistributionStrategy_defined } = Core_Utilities;
-/* *
- *
- *  Class
- *
- * */
-class MixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStrategy {
-    constructor() {
-        /* *
-         *
-         *  Properties
-         *
-         * */
-        super(...arguments);
-        this.type = 'mixed';
-        /**
-         * Array of units for each column width value. Codified as:
-         * - `0` - px
-         * - `1` - %
-         */
-        this.columnWidthUnits = {};
-    }
-    /* *
-     *
-     *  Methods
-     *
-     * */
-    loadColumn(column) {
-        const rawWidth = column.options.width;
-        if (!rawWidth) {
-            return;
-        }
-        let value;
-        let unitCode = 0;
-        if (typeof rawWidth === 'number') {
-            value = rawWidth;
-            unitCode = 0;
-        }
-        else {
-            value = parseFloat(rawWidth);
-            unitCode = rawWidth.charAt(rawWidth.length - 1) === '%' ? 1 : 0;
-        }
-        this.columnWidthUnits[column.id] = unitCode;
-        this.columnWidths[column.id] = value;
-    }
-    getColumnWidth(column) {
-        const vp = this.viewport;
-        const widthValue = this.columnWidths[column.id];
-        const minWidth = ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column);
-        if (!MixedDistributionStrategy_defined(widthValue)) {
-            const freeWidth = vp.tbodyElement.clientWidth - this.calculateOccupiedWidth();
-            const freeColumns = (vp.grid.enabledColumns?.length || 0) -
-                Object.keys(this.columnWidths).length;
-            // If undefined width:
-            return Math.max(freeWidth / freeColumns, minWidth);
-        }
-        if (this.columnWidthUnits[column.id] === 0) {
-            // If px:
-            return widthValue;
-        }
-        // If %:
-        return Math.max(vp.getWidthFromRatio(widthValue / 100), minWidth);
-    }
-    resize(resizer, diff) {
-        const vp = this.viewport;
-        const column = resizer.draggedColumn;
-        if (!column) {
-            return;
-        }
-        const colW = resizer.columnStartWidth ?? 0;
-        const minWidth = ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column);
-        const nextCol = vp.columns[column.index + 1];
-        const newW = Math.round(Math.max(colW + diff, minWidth) * 10) / 10;
-        this.columnWidths[column.id] = newW;
-        this.columnWidthUnits[column.id] = 0; // Always save in px
-        column.update({ width: newW }, false);
-        if (nextCol) {
-            const newNextW = this.columnWidths[nextCol.id] = Math.round(Math.max((resizer.nextColumnStartWidth ?? 0) + colW - newW, minWidth) * 10) / 10;
-            this.columnWidthUnits[nextCol.id] = 0; // Always save in px
-            nextCol.update({ width: newNextW }, false);
-        }
-    }
     /**
-     * Calculates defined (px and %) widths of all defined columns in the grid.
-     * Total in px.
+     * Calculates defined (px and %) widths of all columns with non-undefined
+     * widths in the grid. Total in px.
      */
     calculateOccupiedWidth() {
         const vp = this.viewport;
@@ -8708,252 +8657,26 @@ class MixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStr
     }
 }
 /* *
- *
- *  Default Export
- *
- * */
-/* harmony default export */ const ColumnDistribution_MixedDistributionStrategy = (MixedDistributionStrategy);
-
-;// ./code/grid/es-modules/Grid/Core/Globals.js
-/* *
- *
- *  (c) 2009-2025 Highsoft AS
- *
- *  License: www.highcharts.com/license
- *
- *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
- *
- *  Authors:
- *  - Dawid Dragula
- *  - Sebastian Bochan
- *
- * */
-
-/* *
- *
- *  Class
- *
- * */
+*
+*  Static Properties
+*
+* */
 /**
- * Globals Grid namespace.
+ * The minimum width of a column.
+ * @internal
  */
-var Globals_Globals;
-(function (Globals) {
-    /* *
-     *
-     *  Declarations
-     *
-     * */
-    /* *
-     *
-     *  Constants
-     *
-     * */
-    Globals.classNamePrefix = 'hcg-';
-    Globals.rawClassNames = {
-        container: 'container',
-        tableElement: 'table',
-        captionElement: 'caption',
-        descriptionElement: 'description',
-        theadElement: 'thead',
-        tbodyElement: 'tbody',
-        rowElement: 'row',
-        rowEven: 'row-even',
-        rowOdd: 'row-odd',
-        hoveredRow: 'hovered-row',
-        columnElement: 'column',
-        hoveredCell: 'hovered-cell',
-        hoveredColumn: 'hovered-column',
-        syncedRow: 'synced-row',
-        syncedCell: 'synced-cell',
-        syncedColumn: 'synced-column',
-        editedCell: 'edited-cell',
-        mockedRow: 'mocked-row',
-        rowsContentNowrap: 'rows-content-nowrap',
-        virtualization: 'virtualization',
-        scrollableContent: 'scrollable-content',
-        headerCell: 'header-cell',
-        headerCellContent: 'header-cell-content',
-        headerRow: 'head-row-content',
-        noData: 'no-data',
-        noPadding: 'no-padding',
-        columnFirst: 'column-first',
-        columnSortable: 'column-sortable',
-        columnSortableIcon: 'column-sortable-icon',
-        columnSortedAsc: 'column-sorted-asc',
-        columnSortedDesc: 'column-sorted-desc',
-        resizableContent: 'resizable-content',
-        resizerHandles: 'column-resizer',
-        resizedColumn: 'column-resized',
-        creditsContainer: 'credits-container',
-        creditsText: 'credits',
-        creditsPro: 'credits-pro',
-        visuallyHidden: 'visually-hidden',
-        lastHeaderCellInRow: 'last-header-cell-in-row',
-        loadingWrapper: 'loading-wrapper',
-        loadingSpinner: 'spinner',
-        loadingMessage: 'loading-message'
-    };
-    Globals.win = window;
-    Globals.composed = [];
-    Globals.userAgent = (Globals.win.navigator && Globals.win.navigator.userAgent) || '';
-    Globals.isChrome = Globals.userAgent.indexOf('Chrome') !== -1;
-    Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1;
-    Globals.getClassName = (classNameKey) => Globals.classNamePrefix + Globals.rawClassNames[classNameKey];
-})(Globals_Globals || (Globals_Globals = {}));
+ResizingMode.MIN_COLUMN_WIDTH = 20;
 /* *
  *
  *  Default Export
  *
  * */
-/* harmony default export */ const Grid_Core_Globals = (Globals_Globals);
+/* harmony default export */ const ColumnResizing_ResizingMode = (ResizingMode);
 
-;// ./code/grid/es-modules/Grid/Core/GridUtils.js
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnResizing/AdjacentResizingMode.js
 /* *
  *
- *  Grid utilities
- *
- *  (c) 2009-2025 Highsoft AS
- *
- *  License: www.highcharts.com/license
- *
- *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
- *
- *  Authors:
- *  - Dawid Dragula
- *
- * */
-
-HTML_AST.allowedAttributes.push('srcset', 'media');
-HTML_AST.allowedTags.push('picture', 'source');
-/* *
- *
- *  Namespace
- *
- * */
-var GridUtils;
-(function (GridUtils) {
-    /* *
-     *
-     *  Declarations
-     *
-     * */
-    /* *
-     *
-     *  Functions
-     *
-     * */
-    /**
-     * Creates a HTML element with the provided options.
-     *
-     * @param tagName
-     * The tag name of the element.
-     *
-     * @param params
-     * The parameters of the element.
-     *
-     * @param parent
-     * The parent element.
-     */
-    function makeHTMLElement(tagName, params, parent) {
-        const element = document.createElement(tagName);
-        if (params) {
-            const paramsKeys = Object.keys(params);
-            for (let i = 0; i < paramsKeys.length; i++) {
-                const key = paramsKeys[i];
-                const value = params[key];
-                if (value !== void 0) {
-                    if (key === 'style') {
-                        Object.assign(element.style, value);
-                    }
-                    else {
-                        element[key] = value;
-                    }
-                }
-            }
-        }
-        if (parent) {
-            parent.appendChild(element);
-        }
-        return element;
-    }
-    GridUtils.makeHTMLElement = makeHTMLElement;
-    /**
-     * Creates a div element with the provided class name and id.
-     *
-     * @param className
-     * The class name of the div.
-     *
-     * @param id
-     * The id of the element.
-     */
-    function makeDiv(className, id) {
-        return makeHTMLElement('div', { className, id });
-    }
-    GridUtils.makeDiv = makeDiv;
-    /**
-     * Check if there's a possibility that the given string is an HTML
-     * (contains '<').
-     *
-     * @param str
-     * Text to verify.
-     */
-    function isHTML(str) {
-        return str.indexOf('<') !== -1;
-    }
-    GridUtils.isHTML = isHTML;
-    /**
-     * Returns a string containing plain text format by removing HTML tags
-     *
-     * @param text
-     * String to be sanitized
-     *
-     * @returns
-     * Sanitized plain text string
-     */
-    function sanitizeText(text) {
-        try {
-            return new DOMParser().parseFromString(text, 'text/html')
-                .body.textContent || '';
-        }
-        catch {
-            return '';
-        }
-    }
-    GridUtils.sanitizeText = sanitizeText;
-    /**
-     * Sets an element's content, checking whether it is HTML or plain text.
-     * Should be used instead of element.innerText when the content can be HTML.
-     *
-     * @param element
-     * Parent element where the content should be.
-     *
-     * @param content
-     * Content to render.
-     */
-    function setHTMLContent(element, content) {
-        if (isHTML(content)) {
-            element.innerHTML = HTML_AST.emptyHTML;
-            const formattedNodes = new HTML_AST(content);
-            formattedNodes.addToDOM(element);
-        }
-        else {
-            element.innerText = content;
-        }
-    }
-    GridUtils.setHTMLContent = setHTMLContent;
-})(GridUtils || (GridUtils = {}));
-/* *
- *
- *  Default Export
- *
- * */
-/* harmony default export */ const Core_GridUtils = (GridUtils);
-
-;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/FixedDistributionStrategy.js
-/* *
- *
- *  Fixed Distribution Strategy class
+ *  Adjacent Resizing Mode class
  *
  *  (c) 2020-2025 Highsoft AS
  *
@@ -8967,15 +8690,12 @@ var GridUtils;
  * */
 
 
-
-
-const { makeHTMLElement } = Core_GridUtils;
 /* *
  *
  *  Class
  *
  * */
-class FixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStrategy {
+class AdjacentResizingMode extends ColumnResizing_ResizingMode {
     constructor() {
         /* *
          *
@@ -8983,82 +8703,31 @@ class FixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStr
          *
          * */
         super(...arguments);
-        this.type = 'fixed';
-        /**
-         * Array of units for each column width value. Codified as:
-         * - `0` - px
-         * - `1` - %
-         */
-        this.columnWidthUnits = {};
+        this.type = 'adjacent';
     }
     /* *
      *
      *  Methods
      *
      * */
-    loadColumn(column) {
-        const rawWidth = column.options.width;
-        if (!rawWidth) {
-            this.columnWidths[column.id] = this.getInitialColumnWidth(column);
-            this.columnWidthUnits[column.id] = 0;
-            return;
-        }
-        let value;
-        let unitCode = 0;
-        if (typeof rawWidth === 'number') {
-            value = rawWidth;
-            unitCode = 0;
-        }
-        else {
-            value = parseFloat(rawWidth);
-            unitCode = rawWidth.charAt(rawWidth.length - 1) === '%' ? 1 : 0;
-        }
-        this.columnWidthUnits[column.id] = unitCode;
-        this.columnWidths[column.id] = value;
-    }
-    getColumnWidth(column) {
-        const vp = this.viewport;
-        const widthValue = this.columnWidths[column.id];
-        const minWidth = ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column);
-        if (this.columnWidthUnits[column.id] === 1) {
-            // If %:
-            return Math.max(vp.getWidthFromRatio(widthValue / 100), minWidth);
-        }
-        // If px:
-        return widthValue || 100; // Default to 100px if not defined
-    }
     resize(resizer, diff) {
+        const vp = this.viewport;
         const column = resizer.draggedColumn;
         if (!column) {
             return;
         }
-        const width = this.columnWidths[column.id] = Math.round(Math.max((resizer.columnStartWidth || 0) + diff, ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column)) * 10) / 10;
+        const colW = resizer.columnStartWidth ?? 0;
+        const minWidth = ColumnResizing_ResizingMode.getMinWidth(column);
+        const nextCol = vp.columns[column.index + 1];
+        const newW = Math.round(Math.max(colW + diff, minWidth) * 10) / 10;
+        this.columnWidths[column.id] = newW;
         this.columnWidthUnits[column.id] = 0; // Always save in px
-        column.update({ width }, false);
-    }
-    /**
-     * Creates a mock element to measure the width of the column from the CSS.
-     * The element is appended to the viewport container and then removed.
-     * It should be called only once for each column.
-     *
-     * @param column
-     * The column for which the initial width is being calculated.
-     *
-     * @returns The initial width of the column.
-     */
-    getInitialColumnWidth(column) {
-        const { viewport } = this;
-        // Set the initial width of the column.
-        const mock = makeHTMLElement('div', {
-            className: Grid_Core_Globals.getClassName('columnElement')
-        }, viewport.grid.container);
-        mock.setAttribute('data-column-id', column.id);
-        if (column.options.className) {
-            mock.classList.add(...column.options.className.split(/\s+/g));
+        column.update({ width: newW }, false);
+        if (nextCol) {
+            const newNextW = this.columnWidths[nextCol.id] = Math.round(Math.max((resizer.nextColumnStartWidth ?? 0) + colW - newW, minWidth) * 10) / 10;
+            this.columnWidthUnits[nextCol.id] = 0; // Always save in px
+            nextCol.update({ width: newNextW }, false);
         }
-        const result = mock.offsetWidth || 100;
-        mock.remove();
-        return result;
     }
 }
 /* *
@@ -9066,12 +8735,12 @@ class FixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStr
  *  Default Export
  *
  * */
-/* harmony default export */ const ColumnDistribution_FixedDistributionStrategy = (FixedDistributionStrategy);
+/* harmony default export */ const ColumnResizing_AdjacentResizingMode = (AdjacentResizingMode);
 
-;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/FullDistributionStrategy.js
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnResizing/IndependentResizingMode.js
 /* *
  *
- *  Full Distribution Strategy class
+ *  Independent Resizing Mode class
  *
  *  (c) 2020-2025 Highsoft AS
  *
@@ -9085,121 +8754,45 @@ class FixedDistributionStrategy extends ColumnDistribution_ColumnDistributionStr
  * */
 
 
-
-
-const { makeHTMLElement: FullDistributionStrategy_makeHTMLElement } = Core_GridUtils;
 /* *
  *
  *  Class
  *
  * */
-/**
- * @deprecated
- * This strategy is deprecated and will be removed in the future.
- */
-class FullDistributionStrategy extends ColumnDistribution_ColumnDistributionStrategy {
+class IndependentResizingMode extends ColumnResizing_ResizingMode {
     constructor() {
         /* *
-        *
-        *  Properties
-        *
-        * */
+         *
+         *  Properties
+         *
+         * */
         super(...arguments);
-        this.type = 'full';
-        this.allPreviousWidths = 0;
+        this.type = 'independent';
     }
     /* *
-    *
-    *  Methods
-    *
-    * */
-    loadColumn(column) {
-        const width = this.getInitialColumnWidth(column);
-        this.allPreviousWidths += width;
-        this.columnWidths[column.id] = width;
-    }
-    getColumnWidth(column) {
-        return this.viewport.getWidthFromRatio(this.columnWidths[column.id] || 0);
-    }
+     *
+     *  Methods
+     *
+     * */
     resize(resizer, diff) {
-        const vp = this.viewport;
         const column = resizer.draggedColumn;
         if (!column) {
             return;
         }
-        const nextColumn = vp.columns[column.index + 1];
-        if (!nextColumn) {
-            return;
+        // Set the width of the resized column.
+        const width = this.columnWidths[column.id] = Math.round(Math.max((resizer.columnStartWidth || 0) + diff, ColumnResizing_ResizingMode.getMinWidth(column)) * 10) / 10;
+        this.columnWidthUnits[column.id] = 0; // Set to px
+        // Change width units of all columns on the right to px.
+        const vp = this.viewport;
+        const colIndex = column.index;
+        for (let i = colIndex; i < vp.columns.length; ++i) {
+            const rightCol = vp.columns[i];
+            const rcWidth = this.columnWidths[rightCol.id] =
+                rightCol.getWidth();
+            this.columnWidthUnits[rightCol.id] = 0; // Set to px
+            rightCol.update({ width: rcWidth }, false);
         }
-        const leftColW = resizer.columnStartWidth ?? 0;
-        const rightColW = resizer.nextColumnStartWidth ?? 0;
-        const minWidth = ColumnDistribution_ColumnDistributionStrategy.getMinWidth(column);
-        let newLeftW = leftColW + diff;
-        let newRightW = rightColW - diff;
-        if (newLeftW < minWidth) {
-            newLeftW = minWidth;
-            newRightW = leftColW + rightColW - minWidth;
-        }
-        if (newRightW < minWidth) {
-            newRightW = minWidth;
-            newLeftW = leftColW + rightColW - minWidth;
-        }
-        const leftW = this.columnWidths[column.id] =
-            vp.getRatioFromWidth(newLeftW);
-        const rightW = this.columnWidths[nextColumn.id] =
-            vp.getRatioFromWidth(newRightW);
-        column.update({ width: (leftW * 100).toFixed(4) + '%' }, false);
-        nextColumn.update({ width: (rightW * 100).toFixed(4) + '%' }, false);
-    }
-    /**
-     * The initial width of the column in the full distribution mode. The last
-     * column in the viewport will have to fill the remaining space.
-     *
-     * @param column
-     * The column to measure the width.
-     *
-     * @param mock
-     * The mock element to measure the width.
-     */
-    getInitialFullDistWidth(column, mock) {
-        const vp = column.viewport;
-        const columnsCount = vp.grid.enabledColumns?.length ?? 0;
-        if (column.index < columnsCount - 1) {
-            return vp.getRatioFromWidth(mock.offsetWidth) || 1 / columnsCount;
-        }
-        const result = 1 - this.allPreviousWidths;
-        if (result < 0) {
-            // eslint-disable-next-line no-console
-            console.warn('The sum of the columns\' widths exceeds the ' +
-                'viewport width. It may cause unexpected behavior in the ' +
-                'full distribution mode. Check the CSS styles of the ' +
-                'columns. Corrections may be needed.');
-        }
-        return result;
-    }
-    /**
-     * Creates a mock element to measure the width of the column from the CSS.
-     * The element is appended to the viewport container and then removed.
-     * It should be called only once for each column.
-     *
-     * @param column
-     * The column to measure the width.
-     *
-     * @returns The initial width of the column.
-     */
-    getInitialColumnWidth(column) {
-        const { viewport } = column;
-        // Set the initial width of the column.
-        const mock = FullDistributionStrategy_makeHTMLElement('div', {
-            className: Grid_Core_Globals.getClassName('columnElement')
-        }, viewport.grid.container);
-        mock.setAttribute('data-column-id', column.id);
-        if (column.options.className) {
-            mock.classList.add(...column.options.className.split(/\s+/g));
-        }
-        const result = this.getInitialFullDistWidth(column, mock);
-        mock.remove();
-        return result;
+        column.update({ width }, false);
     }
 }
 /* *
@@ -9207,12 +8800,67 @@ class FullDistributionStrategy extends ColumnDistribution_ColumnDistributionStra
  *  Default Export
  *
  * */
-/* harmony default export */ const ColumnDistribution_FullDistributionStrategy = (FullDistributionStrategy);
+/* harmony default export */ const ColumnResizing_IndependentResizingMode = (IndependentResizingMode);
 
-;// ./code/grid/es-modules/Grid/Core/Table/ColumnDistribution/ColumnDistribution.js
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnResizing/DistributedResizingMode.js
 /* *
  *
- *  Column Distribution namespace
+ *  Distributed Resizing Mode class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+/* *
+ *
+ *  Class
+ *
+ * */
+class DistributedResizingMode extends ColumnResizing_ResizingMode {
+    constructor() {
+        /* *
+         *
+         *  Properties
+         *
+         * */
+        super(...arguments);
+        this.type = 'distributed';
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    resize(resizer, diff) {
+        const column = resizer.draggedColumn;
+        if (!column) {
+            return;
+        }
+        // Set the width of the resized column.
+        const width = this.columnWidths[column.id] = Math.round(Math.max((resizer.columnStartWidth || 0) + diff, ColumnResizing_ResizingMode.getMinWidth(column)) * 10) / 10;
+        this.columnWidthUnits[column.id] = 0; // Set to px
+        column.update({ width }, false);
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnResizing_DistributedResizingMode = (DistributedResizingMode);
+
+;// ./code/grid/es-modules/Grid/Core/Table/ColumnResizing/ColumnResizing.js
+/* *
+ *
+ *  Column Resizing namespace
  *
  *  (c) 2020-2025 Highsoft AS
  *
@@ -9229,70 +8877,55 @@ class FullDistributionStrategy extends ColumnDistribution_ColumnDistributionStra
 
 
 
-
-const { defined: ColumnDistribution_defined } = Core_Utilities;
 /* *
  *
  *  Namespace
  *
  * */
-var ColumnDistribution;
-(function (ColumnDistribution) {
+var ColumnResizing;
+(function (ColumnResizing) {
     /**
-     * Abstract class representing a column distribution strategy.
+     * Abstract class representing a column resizing mode.
      */
-    ColumnDistribution.AbstractStrategy = ColumnDistribution_ColumnDistributionStrategy;
+    ColumnResizing.AbstractStrategy = ColumnResizing_ResizingMode;
     /**
-     * Registry of column distribution strategies.
+     * Registry of column resizing modes.
      */
-    ColumnDistribution.types = {
-        mixed: ColumnDistribution_MixedDistributionStrategy,
-        fixed: ColumnDistribution_FixedDistributionStrategy,
-        full: ColumnDistribution_FullDistributionStrategy
+    ColumnResizing.types = {
+        adjacent: ColumnResizing_AdjacentResizingMode,
+        distributed: ColumnResizing_DistributedResizingMode,
+        independent: ColumnResizing_IndependentResizingMode
     };
     /**
-     * Returns the column distribution of the table according to the options:
-     * 1. If `columns.resizing.mode` defined, use it. If not:
-     * 2. If any column has a width defined, use `mixed`. If not:
-     * 3. Use `full`.
-     *
-     * @param viewport
-     * The table that the column distribution strategy is applied to.
-     */
-    function assumeDistributionType(viewport) {
-        const { options } = viewport.grid;
-        const colRendering = options?.rendering?.columns;
-        const result = colRendering?.resizing?.mode ||
-            colRendering?.distribution;
-        if (result) {
-            return result;
-        }
-        if (options?.columns?.some((column) => ColumnDistribution_defined(column.width)) || ColumnDistribution_defined(options?.columnDefaults?.width)) {
-            return 'mixed';
-        }
-        return 'full';
-    }
-    /**
-     * Creates a new column distribution strategy instance based on the
+     * Creates a new column resizing mode instance based on the
      * viewport's options.
      *
      * @param viewport
-     * The table that the column distribution strategy is applied to.
+     * The table that the column resizing mode is applied to.
      *
      * @returns
-     * The proper column distribution strategy.
+     * The proper column resizing mode.
      */
-    function initStrategy(viewport) {
-        return new ColumnDistribution.types[assumeDistributionType(viewport)](viewport);
+    function initMode(viewport) {
+        const modeName = viewport.grid.options?.rendering?.columns?.resizing?.mode ||
+            'adjacent';
+        let ModeConstructor = ColumnResizing.types[modeName];
+        if (!ModeConstructor) {
+            // eslint-disable-next-line no-console
+            console.warn(`Unknown column resizing mode: '${modeName}'. Applied ` +
+                'default \'adjacent\' mode.');
+            ModeConstructor = ColumnResizing.types.adjacent;
+        }
+        return new ModeConstructor(viewport);
     }
-    ColumnDistribution.initStrategy = initStrategy;
-})(ColumnDistribution || (ColumnDistribution = {}));
+    ColumnResizing.initMode = initMode;
+})(ColumnResizing || (ColumnResizing = {}));
 /* *
  *
  *  Default Export
  *
  * */
-/* harmony default export */ const ColumnDistribution_ColumnDistribution = (ColumnDistribution);
+/* harmony default export */ const ColumnResizing_ColumnResizing = (ColumnResizing);
 
 ;// ./code/grid/es-modules/Data/Modifiers/DataModifier.js
 /* *
@@ -9306,6 +8939,7 @@ var ColumnDistribution;
  *  Authors:
  *  - Sophie Bremer
  *  - Gøran Slettemark
+ *  - Dawid Dragula
  *
  * */
 
@@ -9318,7 +8952,6 @@ const { addEvent: DataModifier_addEvent, fireEvent: DataModifier_fireEvent, merg
  * */
 /**
  * Abstract class to provide an interface for modifying a table.
- *
  */
 class DataModifier {
     /* *
@@ -9390,7 +9023,9 @@ class DataModifier {
         DataModifier_fireEvent(this, e.type, e);
     }
     /**
-     * Returns a modified copy of the given table.
+     * Modifies the given table and sets its `modified` property as a reference
+     * to the modified table. If `modified` property does not exist on the
+     * original table, it's always created.
      *
      * @param {Highcharts.DataTable} table
      * Table to modify.
@@ -9404,7 +9039,7 @@ class DataModifier {
     modify(table, eventDetail) {
         const modifier = this;
         return new Promise((resolve, reject) => {
-            if (table.modified === table) {
+            if (!table.modified) {
                 table.modified = table.clone(false, eventDetail);
             }
             try {
@@ -9419,87 +9054,6 @@ class DataModifier {
                 reject(e instanceof Error ? e : new Error('' + e));
             }
         });
-    }
-    /**
-     * Applies partial modifications of a cell change to the property `modified`
-     * of the given modified table.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {string} columnName
-     * Column name of changed cell.
-     *
-     * @param {number|undefined} rowIndex
-     * Row index of changed cell.
-     *
-     * @param {Highcharts.DataTableCellType} cellValue
-     * Changed cell value.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyCell(table, 
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    columnName, rowIndex, cellValue, eventDetail
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-    ) {
-        return this.modifyTable(table);
-    }
-    /**
-     * Applies partial modifications of column changes to the property
-     * `modified` of the given table.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {Highcharts.DataTableColumnCollection} columns
-     * Changed columns as a collection, where the keys are the column names.
-     *
-     * @param {number} [rowIndex=0]
-     * Index of the first changed row.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyColumns(table, 
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    columns, rowIndex, eventDetail
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-    ) {
-        return this.modifyTable(table);
-    }
-    /**
-     * Applies partial modifications of row changes to the property `modified`
-     * of the given table.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {Array<(Highcharts.DataTableRow|Highcharts.DataTableRowObject)>} rows
-     * Changed rows.
-     *
-     * @param {number} [rowIndex]
-     * Index of the first changed row.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyRows(table, 
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    rows, rowIndex, eventDetail
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-    ) {
-        return this.modifyTable(table);
     }
     /**
      * Registers a callback for a specific modifier event.
@@ -9618,7 +9172,7 @@ var ColumnUtils;
      * @param {boolean} asSubarray
      * If column is a typed array, return a subarray instead of a new array. It
      * is faster `O(1)`, but the entire buffer will be kept in memory until all
-     * views to it are destroyed. Default is `false`.
+     * views of it are destroyed. Default is `false`.
      *
      * @return {DataTable.Column}
      * Modified column.
@@ -9684,6 +9238,33 @@ var ColumnUtils;
         };
     }
     ColumnUtils.splice = splice;
+    /**
+     * Converts a cell value to a number.
+     *
+     * @param {DataTable.CellType} value
+     * Cell value to convert to a number.
+     *
+     * @param {boolean} useNaN
+     * If `true`, returns `NaN` for non-numeric values; if `false`,
+     * returns `null` instead.
+     *
+     * @return {number | null}
+     * Number or `null` if the value is not a number.
+     *
+     * @private
+     */
+    function convertToNumber(value, useNaN) {
+        switch (typeof value) {
+            case 'boolean':
+                return (value ? 1 : 0);
+            case 'number':
+                return (isNaN(value) && !useNaN ? null : value);
+            default:
+                value = parseFloat(`${value ?? ''}`);
+                return (isNaN(value) && !useNaN ? null : value);
+        }
+    }
+    ColumnUtils.convertToNumber = convertToNumber;
 })(ColumnUtils || (ColumnUtils = {}));
 /* *
  *
@@ -9761,12 +9342,11 @@ class DataTableCore {
          * @type {string}
          */
         this.id = (options.id || DataTableCore_uniqueKey());
-        this.modified = this;
         this.rowCount = 0;
         this.versionTag = DataTableCore_uniqueKey();
         let rowCount = 0;
-        DataTableCore_objectEach(options.columns || {}, (column, columnName) => {
-            this.columns[columnName] = column.slice();
+        DataTableCore_objectEach(options.columns || {}, (column, columnId) => {
+            this.columns[columnId] = column.slice();
             rowCount = Math.max(rowCount, column.length);
         });
         this.applyRowCount(rowCount);
@@ -9785,9 +9365,9 @@ class DataTableCore {
      */
     applyRowCount(rowCount) {
         this.rowCount = rowCount;
-        DataTableCore_objectEach(this.columns, (column, columnName) => {
+        DataTableCore_objectEach(this.columns, (column, columnId) => {
             if (column.length !== rowCount) {
-                this.columns[columnName] = setLength(column, rowCount);
+                this.columns[columnId] = setLength(column, rowCount);
             }
         });
     }
@@ -9808,8 +9388,8 @@ class DataTableCore {
     deleteRows(rowIndex, rowCount = 1) {
         if (rowCount > 0 && rowIndex < this.rowCount) {
             let length = 0;
-            DataTableCore_objectEach(this.columns, (column, columnName) => {
-                this.columns[columnName] =
+            DataTableCore_objectEach(this.columns, (column, columnId) => {
+                this.columns[columnId] =
                     splice(column, rowIndex, rowCount).array;
                 length = column.length;
             });
@@ -9822,33 +9402,33 @@ class DataTableCore {
      * Fetches the given column by the canonical column name. Simplified version
      * of the full `DataTable.getRow` method, always returning by reference.
      *
-     * @param {string} columnName
+     * @param {string} columnId
      * Name of the column to get.
      *
      * @return {Highcharts.DataTableColumn|undefined}
      * A copy of the column, or `undefined` if not found.
      */
-    getColumn(columnName, 
+    getColumn(columnId, 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     asReference) {
-        return this.columns[columnName];
+        return this.columns[columnId];
     }
     /**
      * Retrieves all or the given columns. Simplified version of the full
      * `DataTable.getColumns` method, always returning by reference.
      *
-     * @param {Array<string>} [columnNames]
-     * Column names to retrieve.
+     * @param {Array<string>} [columnIds]
+     * Column ids to retrieve.
      *
      * @return {Highcharts.DataTableColumnCollection}
      * Collection of columns. If a requested column was not found, it is
      * `undefined`.
      */
-    getColumns(columnNames, 
+    getColumns(columnIds, 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     asReference) {
-        return (columnNames || Object.keys(this.columns)).reduce((columns, columnName) => {
-            columns[columnName] = this.columns[columnName];
+        return (columnIds || Object.keys(this.columns)).reduce((columns, columnId) => {
+            columns[columnId] = this.columns[columnId];
             return columns;
         }, {});
     }
@@ -9858,19 +9438,19 @@ class DataTableCore {
      * @param {number} rowIndex
      * Row index to retrieve. First row has index 0.
      *
-     * @param {Array<string>} [columnNames]
+     * @param {Array<string>} [columnIds]
      * Column names to retrieve.
      *
      * @return {Record<string, number|string|undefined>|undefined}
      * Returns the row values, or `undefined` if not found.
      */
-    getRow(rowIndex, columnNames) {
-        return (columnNames || Object.keys(this.columns)).map((key) => this.columns[key]?.[rowIndex]);
+    getRow(rowIndex, columnIds) {
+        return (columnIds || Object.keys(this.columns)).map((key) => this.columns[key]?.[rowIndex]);
     }
     /**
      * Sets cell values for a column. Will insert a new column, if not found.
      *
-     * @param {string} columnName
+     * @param {string} columnId
      * Column name to set.
      *
      * @param {Highcharts.DataTableColumn} [column]
@@ -9885,8 +9465,8 @@ class DataTableCore {
      * @emits #setColumns
      * @emits #afterSetColumns
      */
-    setColumn(columnName, column = [], rowIndex = 0, eventDetail) {
-        this.setColumns({ [columnName]: column }, rowIndex, eventDetail);
+    setColumn(columnId, column = [], rowIndex = 0, eventDetail) {
+        this.setColumns({ [columnId]: column }, rowIndex, eventDetail);
     }
     /**
      * Sets cell values for multiple columns. Will insert new columns, if not
@@ -9908,8 +9488,8 @@ class DataTableCore {
      */
     setColumns(columns, rowIndex, eventDetail) {
         let rowCount = this.rowCount;
-        DataTableCore_objectEach(columns, (column, columnName) => {
-            this.columns[columnName] = column.slice();
+        DataTableCore_objectEach(columns, (column, columnId) => {
+            this.columns[columnId] = column.slice();
             rowCount = column.length;
         });
         this.applyRowCount(rowCount);
@@ -9939,8 +9519,8 @@ class DataTableCore {
      */
     setRow(row, rowIndex = this.rowCount, insert, eventDetail) {
         const { columns } = this, indexRowCount = insert ? this.rowCount + 1 : rowIndex + 1;
-        DataTableCore_objectEach(row, (cellValue, columnName) => {
-            let column = columns[columnName] ||
+        DataTableCore_objectEach(row, (cellValue, columnId) => {
+            let column = columns[columnId] ||
                 eventDetail?.addColumns !== false && new Array(indexRowCount);
             if (column) {
                 if (insert) {
@@ -9949,7 +9529,7 @@ class DataTableCore {
                 else {
                     column[rowIndex] = cellValue;
                 }
-                columns[columnName] = column;
+                columns[columnId] = column;
             }
         });
         if (indexRowCount > this.rowCount) {
@@ -9959,6 +9539,16 @@ class DataTableCore {
             DataTableCore_fireEvent(this, 'afterSetRows');
             this.versionTag = DataTableCore_uniqueKey();
         }
+    }
+    /**
+     * Returns the medified (clone) or the original data table if the modified
+     * one does not exist.
+     *
+     * @return {Highcharts.DataTableCore}
+     * The medified (clone) or the original data table.
+     */
+    getModified() {
+        return this.modified || this;
     }
 }
 /* *
@@ -10020,6 +9610,7 @@ class DataTableCore {
 
 
 
+const { splice: DataTable_splice, setLength: DataTable_setLength } = Data_ColumnUtils;
 
 const { addEvent: DataTable_addEvent, defined: DataTable_defined, extend: DataTable_extend, fireEvent: DataTable_fireEvent, isNumber: DataTable_isNumber, uniqueKey: DataTable_uniqueKey } = Core_Utilities;
 /* *
@@ -10041,63 +9632,12 @@ const { addEvent: DataTable_addEvent, defined: DataTable_defined, extend: DataTa
 class DataTable extends Data_DataTableCore {
     /* *
      *
-     *  Static Functions
-     *
-     * */
-    /**
-     * Tests whether a row contains only `null` values or is equal to
-     * DataTable.NULL. If all columns have `null` values, the function returns
-     * `true`. Otherwise, it returns `false` to indicate that the row contains
-     * at least one non-null value.
-     *
-     * @function Highcharts.DataTable.isNull
-     *
-     * @param {Highcharts.DataTableRow|Highcharts.DataTableRowObject} row
-     * Row to test.
-     *
-     * @return {boolean}
-     * Returns `true`, if the row contains only null, otherwise `false`.
-     *
-     * @example
-     * if (DataTable.isNull(row)) {
-     *   // handle null row
-     * }
-     */
-    static isNull(row) {
-        if (row === DataTable.NULL) {
-            return true;
-        }
-        if (row instanceof Array) {
-            if (!row.length) {
-                return false;
-            }
-            for (let i = 0, iEnd = row.length; i < iEnd; ++i) {
-                if (row[i] !== null) {
-                    return false;
-                }
-            }
-        }
-        else {
-            const columnNames = Object.keys(row);
-            if (!columnNames.length) {
-                return false;
-            }
-            for (let i = 0, iEnd = columnNames.length; i < iEnd; ++i) {
-                if (row[columnNames[i]] !== null) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    /* *
-     *
      *  Constructor
      *
      * */
     constructor(options = {}) {
         super(options);
-        this.modified = this;
+        this.metadata = options.metadata;
     }
     /* *
      *
@@ -10150,7 +9690,7 @@ class DataTable extends Data_DataTableCore {
      *
      * @function Highcharts.DataTable#deleteColumns
      *
-     * @param {Array<string>} [columnNames]
+     * @param {Array<string>} [columnIds]
      * Names of columns to delete. If no array is provided, all
      * columns will be deleted.
      *
@@ -10163,35 +9703,35 @@ class DataTable extends Data_DataTableCore {
      * @emits #deleteColumns
      * @emits #afterDeleteColumns
      */
-    deleteColumns(columnNames, eventDetail) {
+    deleteColumns(columnIds, eventDetail) {
         const table = this, columns = table.columns, deletedColumns = {}, modifiedColumns = {}, modifier = table.modifier, rowCount = table.rowCount;
-        columnNames = (columnNames || Object.keys(columns));
-        if (columnNames.length) {
+        columnIds = (columnIds || Object.keys(columns));
+        if (columnIds.length) {
             table.emit({
                 type: 'deleteColumns',
-                columnNames,
+                columnIds,
                 detail: eventDetail
             });
-            for (let i = 0, iEnd = columnNames.length, column, columnName; i < iEnd; ++i) {
-                columnName = columnNames[i];
-                column = columns[columnName];
+            for (let i = 0, iEnd = columnIds.length, column, columnId; i < iEnd; ++i) {
+                columnId = columnIds[i];
+                column = columns[columnId];
                 if (column) {
-                    deletedColumns[columnName] = column;
-                    modifiedColumns[columnName] = new Array(rowCount);
+                    deletedColumns[columnId] = column;
+                    modifiedColumns[columnId] = new Array(rowCount);
                 }
-                delete columns[columnName];
+                delete columns[columnId];
             }
             if (!Object.keys(columns).length) {
                 table.rowCount = 0;
                 this.deleteRowIndexReferences();
             }
             if (modifier) {
-                modifier.modifyColumns(table, modifiedColumns, 0, eventDetail);
+                modifier.modifyTable(table);
             }
             table.emit({
                 type: 'afterDeleteColumns',
                 columns: deletedColumns,
-                columnNames,
+                columnIds,
                 detail: eventDetail
             });
             return deletedColumns;
@@ -10200,14 +9740,12 @@ class DataTable extends Data_DataTableCore {
     /**
      * Deletes the row index references. This is useful when the original table
      * is deleted, and the references are no longer needed. This table is
-     * then considered an original table or a table that has the same row's
+     * then considered an original table or a table that has the same rows
      * order as the original table.
      */
     deleteRowIndexReferences() {
         delete this.originalRowIndexes;
         delete this.localRowIndexes;
-        // Here, in case of future need, can be implemented updating of the
-        // modified tables' row indexes references.
     }
     /**
      * Deletes rows in this table.
@@ -10243,13 +9781,13 @@ class DataTable extends Data_DataTableCore {
             rowCount = table.rowCount;
         }
         if (rowCount > 0 && rowIndex < table.rowCount) {
-            const columns = table.columns, columnNames = Object.keys(columns);
-            for (let i = 0, iEnd = columnNames.length, column, deletedCells, columnName; i < iEnd; ++i) {
-                columnName = columnNames[i];
-                column = columns[columnName];
-                const result = Data_ColumnUtils.splice(column, rowIndex, rowCount);
+            const columns = table.columns, columnIds = Object.keys(columns);
+            for (let i = 0, iEnd = columnIds.length, column, deletedCells, columnId; i < iEnd; ++i) {
+                columnId = columnIds[i];
+                column = columns[columnId];
+                const result = DataTable_splice(column, rowIndex, rowCount);
                 deletedCells = result.removed;
-                columns[columnName] = column = result.array;
+                columns[columnId] = column = result.array;
                 if (!i) {
                     table.rowCount = column.length;
                 }
@@ -10261,7 +9799,7 @@ class DataTable extends Data_DataTableCore {
             }
         }
         if (modifier) {
-            modifier.modifyRows(table, modifiedRows, (rowIndex || 0), eventDetail);
+            modifier.modifyTable(table);
         }
         table.emit({
             type: 'afterDeleteRows',
@@ -10297,7 +9835,7 @@ class DataTable extends Data_DataTableCore {
      *
      * @function Highcharts.DataTable#getCell
      *
-     * @param {string} columnName
+     * @param {string} columnId
      * Column name of the cell to retrieve.
      *
      * @param {number} rowIndex
@@ -10306,81 +9844,12 @@ class DataTable extends Data_DataTableCore {
      * @return {Highcharts.DataTableCellType|undefined}
      * Returns the cell value or `undefined`.
      */
-    getCell(columnName, rowIndex) {
+    getCell(columnId, rowIndex) {
         const table = this;
-        const column = table.columns[columnName];
+        const column = table.columns[columnId];
         if (column) {
             return column[rowIndex];
         }
-    }
-    /**
-     * Fetches a cell value for the given row as a boolean.
-     *
-     * @function Highcharts.DataTable#getCellAsBoolean
-     *
-     * @param {string} columnName
-     * Column name to fetch.
-     *
-     * @param {number} rowIndex
-     * Row index to fetch.
-     *
-     * @return {boolean}
-     * Returns the cell value of the row as a boolean.
-     */
-    getCellAsBoolean(columnName, rowIndex) {
-        const table = this;
-        const column = table.columns[columnName];
-        return !!(column && column[rowIndex]);
-    }
-    /**
-     * Fetches a cell value for the given row as a number.
-     *
-     * @function Highcharts.DataTable#getCellAsNumber
-     *
-     * @param {string} columnName
-     * Column name or to fetch.
-     *
-     * @param {number} rowIndex
-     * Row index to fetch.
-     *
-     * @param {boolean} [useNaN]
-     * Whether to return NaN instead of `null` and `undefined`.
-     *
-     * @return {number|null}
-     * Returns the cell value of the row as a number.
-     */
-    getCellAsNumber(columnName, rowIndex, useNaN) {
-        const table = this;
-        const column = table.columns[columnName];
-        let cellValue = (column && column[rowIndex]);
-        switch (typeof cellValue) {
-            case 'boolean':
-                return (cellValue ? 1 : 0);
-            case 'number':
-                return (isNaN(cellValue) && !useNaN ? null : cellValue);
-        }
-        cellValue = parseFloat(`${cellValue ?? ''}`);
-        return (isNaN(cellValue) && !useNaN ? null : cellValue);
-    }
-    /**
-     * Fetches a cell value for the given row as a string.
-     *
-     * @function Highcharts.DataTable#getCellAsString
-     *
-     * @param {string} columnName
-     * Column name to fetch.
-     *
-     * @param {number} rowIndex
-     * Row index to fetch.
-     *
-     * @return {string}
-     * Returns the cell value of the row as a string.
-     */
-    getCellAsString(columnName, rowIndex) {
-        const table = this;
-        const column = table.columns[columnName];
-        // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-        return `${(column && column[rowIndex])}`;
     }
     /**
      * Fetches the given column by the canonical column name.
@@ -10388,7 +9857,7 @@ class DataTable extends Data_DataTableCore {
      *
      * @function Highcharts.DataTable#getColumn
      *
-     * @param {string} columnName
+     * @param {string} columnId
      * Name of the column to get.
      *
      * @param {boolean} [asReference]
@@ -10397,67 +9866,18 @@ class DataTable extends Data_DataTableCore {
      * @return {Highcharts.DataTableColumn|undefined}
      * A copy of the column, or `undefined` if not found.
      */
-    getColumn(columnName, asReference) {
-        return this.getColumns([columnName], asReference)[columnName];
+    getColumn(columnId, asReference) {
+        return this.getColumns([columnId], asReference)[columnId];
     }
     /**
-     * Fetches the given column by the canonical column name, and
-     * validates the type of the first few cells. If the first defined cell is
-     * of type number, it assumes for performance reasons, that all cells are of
-     * type number or `null`. Otherwise it will convert all cells to number
-     * type, except `null`.
+     * Fetches all column IDs.
      *
-     * @deprecated
-     *
-     * @function Highcharts.DataTable#getColumnAsNumbers
-     *
-     * @param {string} columnName
-     * Name of the column to get.
-     *
-     * @param {boolean} [useNaN]
-     * Whether to use NaN instead of `null` and `undefined`.
-     *
-     * @return {Array<(number|null)>}
-     * A copy of the column, or an empty array if not found.
-     */
-    getColumnAsNumbers(columnName, useNaN) {
-        const table = this, columns = table.columns;
-        const column = columns[columnName], columnAsNumber = [];
-        if (column) {
-            const columnLength = column.length;
-            if (useNaN) {
-                for (let i = 0; i < columnLength; ++i) {
-                    columnAsNumber.push(table.getCellAsNumber(columnName, i, true));
-                }
-            }
-            else {
-                for (let i = 0, cellValue; i < columnLength; ++i) {
-                    cellValue = column[i];
-                    if (typeof cellValue === 'number') {
-                        // Assume unmixed data for performance reasons
-                        return column.slice();
-                    }
-                    if (cellValue !== null &&
-                        typeof cellValue !== 'undefined') {
-                        break;
-                    }
-                }
-                for (let i = 0; i < columnLength; ++i) {
-                    columnAsNumber.push(table.getCellAsNumber(columnName, i));
-                }
-            }
-        }
-        return columnAsNumber;
-    }
-    /**
-     * Fetches all column names.
-     *
-     * @function Highcharts.DataTable#getColumnNames
+     * @function Highcharts.DataTable#getColumnIds
      *
      * @return {Array<string>}
-     * Returns all column names.
+     * Returns all column IDs.
      */
-    getColumnNames() {
+    getColumnIds() {
         return Object.keys(this.columns);
     }
     /**
@@ -10465,7 +9885,7 @@ class DataTable extends Data_DataTableCore {
      *
      * @function Highcharts.DataTable#getColumns
      *
-     * @param {Array<string>} [columnNames]
+     * @param {Array<string>} [columnIds]
      * Column names to retrieve.
      *
      * @param {boolean} [asReference]
@@ -10478,21 +9898,21 @@ class DataTable extends Data_DataTableCore {
      * Collection of columns. If a requested column was not found, it is
      * `undefined`.
      */
-    getColumns(columnNames, asReference, asBasicColumns) {
+    getColumns(columnIds, asReference, asBasicColumns) {
         const table = this, tableColumns = table.columns, columns = {};
-        columnNames = (columnNames || Object.keys(tableColumns));
-        for (let i = 0, iEnd = columnNames.length, column, columnName; i < iEnd; ++i) {
-            columnName = columnNames[i];
-            column = tableColumns[columnName];
+        columnIds = (columnIds || Object.keys(tableColumns));
+        for (let i = 0, iEnd = columnIds.length, column, columnId; i < iEnd; ++i) {
+            columnId = columnIds[i];
+            column = tableColumns[columnId];
             if (column) {
                 if (asReference) {
-                    columns[columnName] = column;
+                    columns[columnId] = column;
                 }
                 else if (asBasicColumns && !Array.isArray(column)) {
-                    columns[columnName] = Array.from(column);
+                    columns[columnId] = Array.from(column);
                 }
                 else {
-                    columns[columnName] = column.slice();
+                    columns[columnId] = column.slice();
                 }
             }
         }
@@ -10516,11 +9936,12 @@ class DataTable extends Data_DataTableCore {
         return originalRowIndex;
     }
     /**
-     * Retrieves the modifier for the table.
-     * @private
+     * Returns the modifier associated with this table, if any.
      *
      * @return {Highcharts.DataModifier|undefined}
      * Returns the modifier or `undefined`.
+     *
+     * @private
      */
     getModifier() {
         return this.modifier;
@@ -10551,14 +9972,14 @@ class DataTable extends Data_DataTableCore {
      * @param {number} rowIndex
      * Row index to retrieve. First row has index 0.
      *
-     * @param {Array<string>} [columnNames]
+     * @param {Array<string>} [columnIds]
      * Column names in order to retrieve.
      *
      * @return {Highcharts.DataTableRow}
      * Returns the row values, or `undefined` if not found.
      */
-    getRow(rowIndex, columnNames) {
-        return this.getRows(rowIndex, 1, columnNames)[0];
+    getRow(rowIndex, columnIds) {
+        return this.getRows(rowIndex, 1, columnIds)[0];
     }
     /**
      * Returns the number of rows in this table.
@@ -10577,7 +9998,7 @@ class DataTable extends Data_DataTableCore {
      *
      * @function Highcharts.DataTable#getRowIndexBy
      *
-     * @param {string} columnName
+     * @param {string} columnId
      * Column to search in.
      *
      * @param {Highcharts.DataTableCellType} cellValue
@@ -10589,9 +10010,9 @@ class DataTable extends Data_DataTableCore {
      * @return {number|undefined}
      * Index of the first row matching the cell value.
      */
-    getRowIndexBy(columnName, cellValue, rowIndexOffset) {
+    getRowIndexBy(columnId, cellValue, rowIndexOffset) {
         const table = this;
-        const column = table.columns[columnName];
+        const column = table.columns[columnId];
         if (column) {
             let rowIndex = -1;
             if (Array.isArray(column)) {
@@ -10616,17 +10037,17 @@ class DataTable extends Data_DataTableCore {
      * @param {number} rowIndex
      * Row index.
      *
-     * @param {Array<string>} [columnNames]
+     * @param {Array<string>} [columnIds]
      * Column names and their order to retrieve.
      *
      * @return {Highcharts.DataTableRowObject}
      * Returns the row values, or `undefined` if not found.
      */
-    getRowObject(rowIndex, columnNames) {
-        return this.getRowObjects(rowIndex, 1, columnNames)[0];
+    getRowObject(rowIndex, columnIds) {
+        return this.getRowObjects(rowIndex, 1, columnIds)[0];
     }
     /**
-     * Fetches all or a number of rows.
+     * Fetches all or a number of rows as an object.
      *
      * @function Highcharts.DataTable#getRowObjects
      *
@@ -10636,26 +10057,26 @@ class DataTable extends Data_DataTableCore {
      * @param {number} [rowCount]
      * Number of rows to fetch. Defaults to maximal number of rows.
      *
-     * @param {Array<string>} [columnNames]
+     * @param {Array<string>} [columnIds]
      * Column names and their order to retrieve.
      *
      * @return {Highcharts.DataTableRowObject}
      * Returns retrieved rows.
      */
-    getRowObjects(rowIndex = 0, rowCount = (this.rowCount - rowIndex), columnNames) {
+    getRowObjects(rowIndex = 0, rowCount = (this.rowCount - rowIndex), columnIds) {
         const table = this, columns = table.columns, rows = new Array(rowCount);
-        columnNames = (columnNames || Object.keys(columns));
+        columnIds = (columnIds || Object.keys(columns));
         for (let i = rowIndex, i2 = 0, iEnd = Math.min(table.rowCount, (rowIndex + rowCount)), column, row; i < iEnd; ++i, ++i2) {
             row = rows[i2] = {};
-            for (const columnName of columnNames) {
-                column = columns[columnName];
-                row[columnName] = (column ? column[i] : void 0);
+            for (const columnId of columnIds) {
+                column = columns[columnId];
+                row[columnId] = (column ? column[i] : void 0);
             }
         }
         return rows;
     }
     /**
-     * Fetches all or a number of rows.
+     * Fetches all or a number of rows as an array.
      *
      * @function Highcharts.DataTable#getRows
      *
@@ -10665,19 +10086,19 @@ class DataTable extends Data_DataTableCore {
      * @param {number} [rowCount]
      * Number of rows to fetch. Defaults to maximal number of rows.
      *
-     * @param {Array<string>} [columnNames]
+     * @param {Array<string>} [columnIds]
      * Column names and their order to retrieve.
      *
      * @return {Highcharts.DataTableRow}
      * Returns retrieved rows.
      */
-    getRows(rowIndex = 0, rowCount = (this.rowCount - rowIndex), columnNames) {
+    getRows(rowIndex = 0, rowCount = (this.rowCount - rowIndex), columnIds) {
         const table = this, columns = table.columns, rows = new Array(rowCount);
-        columnNames = (columnNames || Object.keys(columns));
+        columnIds = (columnIds || Object.keys(columns));
         for (let i = rowIndex, i2 = 0, iEnd = Math.min(table.rowCount, (rowIndex + rowCount)), column, row; i < iEnd; ++i, ++i2) {
             row = rows[i2] = [];
-            for (const columnName of columnNames) {
-                column = columns[columnName];
+            for (const columnId of columnIds) {
+                column = columns[columnId];
                 row.push(column ? column[i] : void 0);
             }
         }
@@ -10695,32 +10116,32 @@ class DataTable extends Data_DataTableCore {
         return this.versionTag;
     }
     /**
-     * Checks for given column names.
+     * Determines whether all specified column names exist in the table.
      *
      * @function Highcharts.DataTable#hasColumns
      *
-     * @param {Array<string>} columnNames
+     * @param {Array<string>} columnIds
      * Column names to check.
      *
      * @return {boolean}
      * Returns `true` if all columns have been found, otherwise `false`.
      */
-    hasColumns(columnNames) {
+    hasColumns(columnIds) {
         const table = this, columns = table.columns;
-        for (let i = 0, iEnd = columnNames.length, columnName; i < iEnd; ++i) {
-            columnName = columnNames[i];
-            if (!columns[columnName]) {
+        for (let i = 0, iEnd = columnIds.length, columnId; i < iEnd; ++i) {
+            columnId = columnIds[i];
+            if (!columns[columnId]) {
                 return false;
             }
         }
         return true;
     }
     /**
-     * Searches for a specific cell value.
+     * Checks if any row in the specified column contains the given cell value.
      *
      * @function Highcharts.DataTable#hasRowWith
      *
-     * @param {string} columnName
+     * @param {string} columnId
      * Column to search in.
      *
      * @param {Highcharts.DataTableCellType} cellValue
@@ -10729,9 +10150,9 @@ class DataTable extends Data_DataTableCore {
      * @return {boolean}
      * True, if a row has been found, otherwise false.
      */
-    hasRowWith(columnName, cellValue) {
+    hasRowWith(columnId, cellValue) {
         const table = this;
-        const column = table.columns[columnName];
+        const column = table.columns[columnId];
         // Normal array
         if (Array.isArray(column)) {
             return (column.indexOf(cellValue) !== -1);
@@ -10743,7 +10164,9 @@ class DataTable extends Data_DataTableCore {
         return false;
     }
     /**
-     * Registers a callback for a specific event.
+     * Registers a callback function to be executed when a specific event is
+     * emitted. To stop listening to the event, call the function returned by
+     * this method.
      *
      * @function Highcharts.DataTable#on
      *
@@ -10760,38 +10183,40 @@ class DataTable extends Data_DataTableCore {
         return DataTable_addEvent(this, type, callback);
     }
     /**
-     * Renames a column of cell values.
+     * Changes the ID of an existing column to a new ID, effectively renaming
+     * the column.
      *
-     * @function Highcharts.DataTable#renameColumn
+     * @function Highcharts.DataTable#changeColumnId
      *
-     * @param {string} columnName
-     * Name of the column to be renamed.
+     * @param {string} columnId
+     * Id of the column to be changed.
      *
-     * @param {string} newColumnName
-     * New name of the column. An existing column with the same name will be
-     * replaced.
+     * @param {string} newColumnId
+     * New id of the column.
      *
      * @return {boolean}
      * Returns `true` if successful, `false` if the column was not found.
      */
-    renameColumn(columnName, newColumnName) {
+    changeColumnId(columnId, newColumnId) {
         const table = this, columns = table.columns;
-        if (columns[columnName]) {
-            if (columnName !== newColumnName) {
-                columns[newColumnName] = columns[columnName];
-                delete columns[columnName];
+        if (columns[columnId]) {
+            if (columnId !== newColumnId) {
+                columns[newColumnId] = columns[columnId];
+                delete columns[columnId];
             }
             return true;
         }
         return false;
     }
     /**
-     * Sets a cell value based on the row index and column.  Will
-     * insert a new column, if not found.
+     * Sets the value of a specific cell identified by column ID and row index.
+     * If the column does not exist, it will be created. If the row index is
+     * beyond the current row count, the table will be expanded to accommodate
+     * the new cell.
      *
      * @function Highcharts.DataTable#setCell
      *
-     * @param {string} columnName
+     * @param {string} columnId
      * Column name to set.
      *
      * @param {number|undefined} rowIndex
@@ -10806,40 +10231,40 @@ class DataTable extends Data_DataTableCore {
      * @emits #setCell
      * @emits #afterSetCell
      */
-    setCell(columnName, rowIndex, cellValue, eventDetail) {
+    setCell(columnId, rowIndex, cellValue, eventDetail) {
         const table = this, columns = table.columns, modifier = table.modifier;
-        let column = columns[columnName];
+        let column = columns[columnId];
         if (column && column[rowIndex] === cellValue) {
             return;
         }
         table.emit({
             type: 'setCell',
             cellValue,
-            columnName: columnName,
+            columnId: columnId,
             detail: eventDetail,
             rowIndex
         });
         if (!column) {
-            column = columns[columnName] = new Array(table.rowCount);
+            column = columns[columnId] = new Array(table.rowCount);
         }
         if (rowIndex >= table.rowCount) {
             table.rowCount = (rowIndex + 1);
         }
         column[rowIndex] = cellValue;
         if (modifier) {
-            modifier.modifyCell(table, columnName, rowIndex, cellValue);
+            modifier.modifyTable(table);
         }
         table.emit({
             type: 'afterSetCell',
             cellValue,
-            columnName: columnName,
+            columnId: columnId,
             detail: eventDetail,
             rowIndex
         });
     }
     /**
-     * Sets cell values for multiple columns. Will insert new columns, if not
-     * found.
+     * Replaces or updates multiple columns in the table with new data. If a
+     * column does not exist, it will be created and added to the table.
      *
      * @function Highcharts.DataTable#setColumns
      *
@@ -10862,12 +10287,12 @@ class DataTable extends Data_DataTableCore {
      * @emits #afterSetColumns
      */
     setColumns(columns, rowIndex, eventDetail, typeAsOriginal) {
-        const table = this, tableColumns = table.columns, tableModifier = table.modifier, columnNames = Object.keys(columns);
+        const table = this, tableColumns = table.columns, tableModifier = table.modifier, columnIds = Object.keys(columns);
         let rowCount = table.rowCount;
         table.emit({
             type: 'setColumns',
             columns,
-            columnNames,
+            columnIds,
             detail: eventDetail,
             rowIndex
         });
@@ -10875,10 +10300,10 @@ class DataTable extends Data_DataTableCore {
             super.setColumns(columns, rowIndex, DataTable_extend(eventDetail, { silent: true }));
         }
         else {
-            for (let i = 0, iEnd = columnNames.length, column, tableColumn, columnName, ArrayConstructor; i < iEnd; ++i) {
-                columnName = columnNames[i];
-                column = columns[columnName];
-                tableColumn = tableColumns[columnName];
+            for (let i = 0, iEnd = columnIds.length, column, tableColumn, columnId, ArrayConstructor; i < iEnd; ++i) {
+                columnId = columnIds[i];
+                column = columns[columnId];
+                tableColumn = tableColumns[columnId];
                 ArrayConstructor = Object.getPrototypeOf((tableColumn && typeAsOriginal) ? tableColumn : column).constructor;
                 if (!tableColumn) {
                     tableColumn = new ArrayConstructor(rowCount);
@@ -10891,9 +10316,9 @@ class DataTable extends Data_DataTableCore {
                 else if (tableColumn.length < rowCount) {
                     tableColumn =
                         new ArrayConstructor(rowCount);
-                    tableColumn.set(tableColumns[columnName]);
+                    tableColumn.set(tableColumns[columnId]);
                 }
-                tableColumns[columnName] = tableColumn;
+                tableColumns[columnId] = tableColumn;
                 for (let i = (rowIndex || 0), iEnd = column.length; i < iEnd; ++i) {
                     tableColumn[i] = column[i];
                 }
@@ -10902,18 +10327,22 @@ class DataTable extends Data_DataTableCore {
             this.applyRowCount(rowCount);
         }
         if (tableModifier) {
-            tableModifier.modifyColumns(table, columns, rowIndex || 0);
+            tableModifier.modifyTable(table);
         }
         table.emit({
             type: 'afterSetColumns',
             columns,
-            columnNames,
+            columnIds,
             detail: eventDetail,
             rowIndex
         });
     }
     /**
-     * Sets or unsets the modifier for the table.
+     * Assigns a new data modifier to the table.
+     *
+     * This method does not modify the table directly. Instead, it sets the
+     * `.modified` property of the table with a modified copy of this table,
+     * as produced by the modifier.
      *
      * @param {Highcharts.DataModifier} [modifier]
      * Modifier to set, or `undefined` to unset.
@@ -10934,9 +10363,8 @@ class DataTable extends Data_DataTableCore {
             type: 'setModifier',
             detail: eventDetail,
             modifier,
-            modified: table.modified
+            modified: table.getModified()
         });
-        table.modified = table;
         table.modifier = modifier;
         if (modifier) {
             promise = modifier.modify(table);
@@ -10950,7 +10378,7 @@ class DataTable extends Data_DataTableCore {
                 type: 'afterSetModifier',
                 detail: eventDetail,
                 modifier,
-                modified: table.modified
+                modified: table.getModified()
             });
             return table;
         })['catch']((error) => {
@@ -10958,7 +10386,7 @@ class DataTable extends Data_DataTableCore {
                 type: 'setModifierError',
                 error,
                 modifier,
-                modified: table.modified
+                modified: table.getModified()
             });
             throw error;
         });
@@ -11036,7 +10464,7 @@ class DataTable extends Data_DataTableCore {
      * @emits #afterSetRows
      */
     setRows(rows, rowIndex = this.rowCount, insert, eventDetail) {
-        const table = this, columns = table.columns, columnNames = Object.keys(columns), modifier = table.modifier, rowCount = rows.length;
+        const table = this, columns = table.columns, columnIds = Object.keys(columns), modifier = table.modifier, rowCount = rows.length;
         table.emit({
             type: 'setRows',
             detail: eventDetail,
@@ -11046,20 +10474,20 @@ class DataTable extends Data_DataTableCore {
         });
         for (let i = 0, i2 = rowIndex, row; i < rowCount; ++i, ++i2) {
             row = rows[i];
-            if (row === DataTable.NULL) {
-                for (let j = 0, jEnd = columnNames.length; j < jEnd; ++j) {
-                    const column = columns[columnNames[j]];
+            if (Object.keys(row).length === 0) { // Is empty Object
+                for (let j = 0, jEnd = columnIds.length; j < jEnd; ++j) {
+                    const column = columns[columnIds[j]];
                     if (insert) {
-                        columns[columnNames[j]] = Data_ColumnUtils.splice(column, i2, 0, true, [null]).array;
+                        columns[columnIds[j]] = DataTable_splice(column, i2, 0, true, [null]).array;
                     }
                     else {
                         column[i2] = null;
                     }
                 }
             }
-            else if (row instanceof Array) {
-                for (let j = 0, jEnd = columnNames.length; j < jEnd; ++j) {
-                    columns[columnNames[j]][i2] = row[j];
+            else if (Array.isArray(row)) {
+                for (let j = 0, jEnd = columnIds.length; j < jEnd; ++j) {
+                    columns[columnIds[j]][i2] = row[j];
                 }
             }
             else {
@@ -11071,13 +10499,13 @@ class DataTable extends Data_DataTableCore {
             rowIndex + rowCount;
         if (indexRowCount > table.rowCount) {
             table.rowCount = indexRowCount;
-            for (let i = 0, iEnd = columnNames.length; i < iEnd; ++i) {
-                const columnName = columnNames[i];
-                columns[columnName] = Data_ColumnUtils.setLength(columns[columnName], indexRowCount);
+            for (let i = 0, iEnd = columnIds.length; i < iEnd; ++i) {
+                const columnId = columnIds[i];
+                columns[columnId] = DataTable_setLength(columns[columnId], indexRowCount);
             }
         }
         if (modifier) {
-            modifier.modifyRows(table, rows, rowIndex);
+            modifier.modifyTable(table);
         }
         table.emit({
             type: 'afterSetRows',
@@ -11088,30 +10516,6 @@ class DataTable extends Data_DataTableCore {
         });
     }
 }
-/* *
- *
- *  Static Properties
- *
- * */
-/**
- * Null state for a row record. In some cases, a row in a table may not
- * contain any data or may be invalid. In these cases, a null state can be
- * used to indicate that the row record is empty or invalid.
- *
- * @name Highcharts.DataTable.NULL
- * @type {Highcharts.DataTableRowObject}
- *
- * @see {@link Highcharts.DataTable.isNull} for a null test.
- *
- * @example
- * table.setRows([DataTable.NULL, DataTable.NULL], 10);
- */
-DataTable.NULL = {};
-/**
- * Semantic version string of the DataTable class.
- * @internal
- */
-DataTable.version = '1.0.0';
 /* *
  *
  *  Default Export
@@ -11132,6 +10536,8 @@ DataTable.version = '1.0.0';
  *  - Sophie Bremer
  *  - Wojciech Chmiel
  *  - Gøran Slettemark
+ *  - Dawid Dragula
+ *  - Kamil Kubik
  *
  * */
 
@@ -11146,10 +10552,14 @@ const { addEvent: DataConnector_addEvent, fireEvent: DataConnector_fireEvent, me
  * */
 /**
  * Abstract class providing an interface for managing a DataConnector.
- *
- * @private
  */
 class DataConnector {
+    /**
+     * Whether the connector is currently polling for new data.
+     */
+    get polling() {
+        return !!this._polling;
+    }
     /* *
      *
      *  Constructor
@@ -11158,13 +10568,10 @@ class DataConnector {
     /**
      * Constructor for the connector class.
      *
-     * @param {DataConnector.UserOptions} [options]
+     * @param {DataConnectorOptions} [options]
      * Options to use in the connector.
-     *
-     * @param {Array<DataTableOptions>} [dataTables]
-     * Multiple connector data tables options.
      */
-    constructor(options = {}, dataTables = []) {
+    constructor(options) {
         /**
          * Tables managed by this DataConnector instance.
          */
@@ -11175,9 +10582,15 @@ class DataConnector {
          */
         this.loaded = false;
         this.metadata = options.metadata || { columns: {} };
+        this.options = options;
         // Create a data table for each defined in the dataTables user options.
+        const dataTables = options?.dataTables;
         let dataTableIndex = 0;
-        if (dataTables?.length > 0) {
+        if (options.options) {
+            // eslint-disable-next-line no-console
+            console.error('The `DataConnectorOptions.options` property was removed in Dashboards v4.0.0. Check how to upgrade your connector to use the new options structure here: https://api.highcharts.com/dashboards/#interfaces/Data_DataTableOptions.DataTableOptions-1');
+        }
+        if (dataTables && dataTables?.length > 0) {
             for (let i = 0, iEnd = dataTables.length; i < iEnd; ++i) {
                 const dataTable = dataTables[i];
                 const key = dataTable?.key;
@@ -11190,82 +10603,16 @@ class DataConnector {
             // If user options dataTables is not defined, generate a default table.
         }
         else {
-            this.dataTables[0] = new Data_DataTable(options.dataTable);
+            this.dataTables[0] = new Data_DataTable({
+                id: options.id // Required by DataTableCore
+            });
         }
-    }
-    /**
-     * Poll timer ID, if active.
-     */
-    get polling() {
-        return !!this._polling;
-    }
-    /**
-     * Gets the first data table.
-     *
-     * @return {DataTable}
-     * The data table instance.
-     */
-    get table() {
-        return this.getTable();
     }
     /* *
      *
-     *  Functions
+     *  Methods
      *
      * */
-    /**
-     * Method for adding metadata for a single column.
-     *
-     * @param {string} name
-     * The name of the column to be described.
-     *
-     * @param {DataConnector.MetaColumn} columnMeta
-     * The metadata to apply to the column.
-     */
-    describeColumn(name, columnMeta) {
-        const connector = this, columns = connector.metadata.columns;
-        columns[name] = DataConnector_merge(columns[name] || {}, columnMeta);
-    }
-    /**
-     * Method for applying columns meta information to the whole DataConnector.
-     *
-     * @param {Highcharts.Dictionary<DataConnector.MetaColumn>} columns
-     * Pairs of column names and MetaColumn objects.
-     */
-    describeColumns(columns) {
-        const connector = this, columnNames = Object.keys(columns);
-        let columnName;
-        while (typeof (columnName = columnNames.pop()) === 'string') {
-            connector.describeColumn(columnName, columns[columnName]);
-        }
-    }
-    /**
-     * Emits an event on the connector to all registered callbacks of this
-     * event.
-     *
-     * @param {DataConnector.Event} [e]
-     * Event object containing additional event information.
-     */
-    emit(e) {
-        DataConnector_fireEvent(this, e.type, e);
-    }
-    /**
-     * Returns the order of columns.
-     *
-     * @param {boolean} [usePresentationState]
-     * Whether to use the column order of the presentation state of the table.
-     *
-     * @return {Array<string>|undefined}
-     * Order of columns.
-     */
-    getColumnOrder(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    usePresentationState) {
-        const connector = this, columns = connector.metadata.columns, names = Object.keys(columns || {});
-        if (names.length) {
-            return names.sort((a, b) => (DataConnector_pick(columns[a].index, 0) - DataConnector_pick(columns[b].index, 0)));
-        }
-    }
     /**
      * Returns a single data table instance based on the provided key.
      * Otherwise, returns the first data table.
@@ -11283,17 +10630,66 @@ class DataConnector {
         return Object.values(this.dataTables)[0];
     }
     /**
+     * Method for adding metadata for a single column.
+     *
+     * @param {string} name
+     * The name of the column to be described.
+     *
+     * @param {DataConnector.MetaColumn} columnMeta
+     * The metadata to apply to the column.
+     */
+    describeColumn(name, columnMeta) {
+        const connector = this;
+        const columns = connector.metadata.columns;
+        columns[name] = DataConnector_merge(columns[name] || {}, columnMeta);
+    }
+    /**
+     * Method for applying columns meta information to the whole DataConnector.
+     *
+     * @param {Highcharts.Dictionary<DataConnector.MetaColumn>} columns
+     * Pairs of column names and MetaColumn objects.
+     */
+    describeColumns(columns) {
+        const connector = this;
+        const columnIds = Object.keys(columns);
+        let columnId;
+        while (typeof (columnId = columnIds.pop()) === 'string') {
+            connector.describeColumn(columnId, columns[columnId]);
+        }
+    }
+    /**
+     * Returns the order of columns.
+     *
+     * @return {string[] | undefined}
+     * Order of columns.
+     */
+    getColumnOrder() {
+        const connector = this, columns = connector.metadata.columns, names = Object.keys(columns || {});
+        if (names.length) {
+            return names.sort((a, b) => (DataConnector_pick(columns[a].index, 0) - DataConnector_pick(columns[b].index, 0)));
+        }
+    }
+    /**
      * Retrieves the columns of the dataTable,
      * applies column order from meta.
      *
-     * @param {boolean} [usePresentationOrder]
-     * Whether to use the column order of the presentation state of the table.
-     *
      * @return {Highcharts.DataTableColumnCollection}
-     * An object with the properties `columnNames` and `columnValues`
+     * An object with the properties `columnIds` and `columnValues`
      */
-    getSortedColumns(usePresentationOrder) {
-        return this.table.getColumns(this.getColumnOrder(usePresentationOrder));
+    getSortedColumns() {
+        return this.getTable().getColumns(this.getColumnOrder());
+    }
+    /**
+     * Sets the index and order of columns.
+     *
+     * @param {Array<string>} columnIds
+     * Order of columns.
+     */
+    setColumnOrder(columnIds) {
+        const connector = this;
+        for (let i = 0, iEnd = columnIds.length; i < iEnd; ++i) {
+            connector.describeColumn(columnIds[i], { index: i });
+        }
     }
     /**
      * The default load method, which fires the `afterLoad` event
@@ -11304,57 +10700,24 @@ class DataConnector {
      * @emits DataConnector#afterLoad
      */
     load() {
-        DataConnector_fireEvent(this, 'afterLoad', { table: this.table });
+        this.emit({ type: 'afterLoad' });
         return Promise.resolve(this);
     }
     /**
-     * Registers a callback for a specific connector event.
-     *
-     * @param {string} type
-     * Event type as a string.
-     *
-     * @param {DataEventEmitter.Callback} callback
-     * Function to register for the connector callback.
-     *
-     * @return {Function}
-     * Function to unregister callback from the connector event.
+     * Applies the data modifiers to the data tables according to the
+     * connector data tables options.
      */
-    on(type, callback) {
-        return DataConnector_addEvent(this, type, callback);
-    }
-    /**
-     * The default save method, which fires the `afterSave` event.
-     *
-     * @return {Promise<DataConnector>}
-     * The saved connector.
-     *
-     * @emits DataConnector#afterSave
-     * @emits DataConnector#saveError
-     */
-    save() {
-        DataConnector_fireEvent(this, 'saveError', { table: this.table });
-        return Promise.reject(new Error('Not implemented'));
-    }
-    /**
-     * Sets the index and order of columns.
-     *
-     * @param {Array<string>} columnNames
-     * Order of columns.
-     */
-    setColumnOrder(columnNames) {
-        const connector = this;
-        for (let i = 0, iEnd = columnNames.length; i < iEnd; ++i) {
-            connector.describeColumn(columnNames[i], { index: i });
-        }
-    }
-    async setModifierOptions(modifierOptions, tablesOptions) {
+    async applyTableModifiers() {
+        const tableOptionsArray = this.options?.dataTables;
         for (const [key, table] of Object.entries(this.dataTables)) {
-            const tableOptions = tablesOptions?.find((dataTable) => dataTable.key === key);
-            const mergedModifierOptions = DataConnector_merge(tableOptions?.dataModifier, modifierOptions);
-            const ModifierClass = (mergedModifierOptions &&
-                Modifiers_DataModifier.types[mergedModifierOptions.type]);
+            // Take data modifier options from the corresponsing data table
+            // options, otherwise take the data modifier options from the
+            // connector options.
+            const dataModifierOptions = tableOptionsArray?.find((dataTable) => dataTable.key === key)?.dataModifier ?? this.options?.dataModifier;
+            const ModifierClass = (dataModifierOptions &&
+                Modifiers_DataModifier.types[dataModifierOptions.type]);
             await table.setModifier(ModifierClass ?
-                new ModifierClass(mergedModifierOptions) :
+                new ModifierClass(dataModifierOptions) :
                 void 0);
         }
         return this;
@@ -11367,7 +10730,6 @@ class DataConnector {
      */
     startPolling(refreshTime = 1000) {
         const connector = this;
-        const tables = connector.dataTables;
         // Assign a new abort controller.
         this.pollingController = new AbortController();
         // Clear the polling timeout.
@@ -11375,8 +10737,7 @@ class DataConnector {
         connector._polling = window.setTimeout(() => connector
             .load()['catch']((error) => connector.emit({
             type: 'loadError',
-            error,
-            tables
+            error
         }))
             .then(() => {
             if (connector._polling) {
@@ -11399,16 +10760,29 @@ class DataConnector {
         delete connector._polling;
     }
     /**
-     * Retrieves metadata from a single column.
+     * Emits an event on the connector to all registered callbacks of this
+     * event.
      *
-     * @param {string} name
-     * The identifier for the column that should be described
-     *
-     * @return {DataConnector.MetaColumn|undefined}
-     * Returns a MetaColumn object if found.
+     * @param {DataConnector.Event} e
+     * Event object containing additional event information.
      */
-    whatIs(name) {
-        return this.metadata.columns[name];
+    emit(e) {
+        DataConnector_fireEvent(this, e.type, e);
+    }
+    /**
+     * Registers a callback for a specific connector event.
+     *
+     * @param type
+     * Event type.
+     *
+     * @param callback
+     * Function to register for the connector callback.
+     *
+     * @return {Function}
+     * Function to unregister callback from the connector event.
+     */
+    on(type, callback) {
+        return DataConnector_addEvent(this, type, callback);
     }
     /**
      * Iterates over the dataTables and initiates the corresponding converters.
@@ -11427,11 +10801,11 @@ class DataConnector {
         let index = 0;
         for (const [key, table] of Object.entries(this.dataTables)) {
             // Create a proper converter and parse its data.
-            const converter = createConverter(key, table);
-            parseData(converter, data);
+            const converter = createConverter(key);
+            const columns = parseData(converter, data);
             // Update the dataTable.
             table.deleteColumns();
-            table.setColumns(converter.getTable().getColumns());
+            table.setColumns(columns);
             // Assign the first converter.
             if (index === 0) {
                 this.converter = converter;
@@ -11496,6 +10870,224 @@ class DataConnector {
  * */
 /* harmony default export */ const Connectors_DataConnector = (DataConnector);
 
+;// ./code/grid/es-modules/Data/Converters/DataConverterUtils.js
+/* *
+ *
+ *  (c) 2009-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Kamil Kubik
+ *
+ * */
+
+const { isNumber: DataConverterUtils_isNumber } = Core_Utilities;
+/* *
+ *
+ *  Namespace
+ *
+ * */
+var DataConverterUtils;
+(function (DataConverterUtils) {
+    /* *
+    *
+    *  Properties
+    *
+    * */
+    /* *
+    *
+    * Functions
+    *
+    * */
+    /**
+     * Converts a value to a Date.
+     *
+     * @param {DataConverter.Type} value
+     * Value to convert.
+     *
+     * @return {globalThis.Date}
+     * Converted value as a Date.
+     */
+    function asDate(value, converter) {
+        let timestamp;
+        if (typeof value === 'string') {
+            timestamp = converter.parseDate(value);
+        }
+        else if (typeof value === 'number') {
+            timestamp = value;
+        }
+        else if (value instanceof Date) {
+            return value;
+        }
+        else {
+            timestamp = converter.parseDate(asString(value));
+        }
+        return new Date(timestamp);
+    }
+    DataConverterUtils.asDate = asDate;
+    /**
+     * Converts a value to a number.
+     *
+     * @param {DataConverter.Type} value
+     * Value to convert.
+     *
+     * @return {number}
+     * Converted value as a number.
+     */
+    function asNumber(value, decimalRegExp) {
+        if (typeof value === 'number') {
+            return value;
+        }
+        if (typeof value === 'boolean') {
+            return value ? 1 : 0;
+        }
+        if (typeof value === 'string') {
+            const decimalRegex = decimalRegExp;
+            if (value.indexOf(' ') > -1) {
+                value = value.replace(/\s+/g, '');
+            }
+            if (decimalRegex) {
+                if (!decimalRegex.test(value)) {
+                    return NaN;
+                }
+                value = value.replace(decimalRegex, '$1.$2');
+            }
+            return parseFloat(value);
+        }
+        if (value instanceof Date) {
+            return value.getDate();
+        }
+        if (value) {
+            return value.getRowCount();
+        }
+        return NaN;
+    }
+    DataConverterUtils.asNumber = asNumber;
+    /**
+     * Converts a value to a string.
+     *
+     * @param {DataConverter.Type} value
+     * Value to convert.
+     *
+     * @return {string}
+     * Converted value as a string.
+     */
+    function asString(value) {
+        return '' + value;
+    }
+    DataConverterUtils.asString = asString;
+    /**
+     * Converts a value to a boolean.
+     *
+     * @param {DataConverter.Type} value
+     * Value to convert.
+     *
+     * @return {boolean}
+     * Converted value as a boolean.
+     */
+    function asBoolean(value) {
+        if (typeof value === 'boolean') {
+            return value;
+        }
+        if (typeof value === 'string') {
+            return value !== '' && value !== '0' && value !== 'false';
+        }
+        return !!asNumber(value);
+    }
+    DataConverterUtils.asBoolean = asBoolean;
+    /**
+     * Guesses the potential type of a string value for parsing CSV etc.
+     *
+     * @param {*} value
+     * The value to examine.
+     *
+     * @return {'number' | 'string' | 'Date'}
+     * Type string, either `string`, `Date`, or `number`.
+     */
+    function guessType(value, converter) {
+        let result = 'string';
+        if (typeof value === 'string') {
+            const trimedValue = DataConverterUtils.trim(`${value}`), decimalRegExp = converter.decimalRegExp;
+            let innerTrimedValue = DataConverterUtils.trim(trimedValue, true);
+            if (decimalRegExp) {
+                innerTrimedValue = (decimalRegExp.test(innerTrimedValue) ?
+                    innerTrimedValue.replace(decimalRegExp, '$1.$2') :
+                    '');
+            }
+            const floatValue = parseFloat(innerTrimedValue);
+            if (+innerTrimedValue === floatValue) {
+                // String is numeric
+                value = floatValue;
+            }
+            else {
+                // Determine if a date string
+                const dateValue = converter.parseDate(value);
+                result = DataConverterUtils_isNumber(dateValue) ? 'Date' : 'string';
+            }
+        }
+        if (typeof value === 'number') {
+            // Greater than milliseconds in a year assumed timestamp
+            result = value > 365 * 24 * 3600 * 1000 ? 'Date' : 'number';
+        }
+        return result;
+    }
+    DataConverterUtils.guessType = guessType;
+    /**
+     * Trim a string from whitespaces.
+     *
+     * @param {string} str
+     * String to trim.
+     *
+     * @param {boolean} [inside=false]
+     * Remove all spaces between numbers.
+     *
+     * @return {string}
+     * Trimed string
+     */
+    function trim(str, inside) {
+        if (typeof str === 'string') {
+            str = str.replace(/^\s+|\s+$/g, '');
+            // Clear white space insdie the string, like thousands separators
+            if (inside && /^[\d\s]+$/.test(str)) {
+                str = str.replace(/\s/g, '');
+            }
+        }
+        return str;
+    }
+    DataConverterUtils.trim = trim;
+    /**
+     * Parses an array of columns to a column collection. If more headers are
+     * provided, the corresponding, empty columns are added.
+     *
+     * @param {DataTable.Column[]} [columnsArray]
+     * Array of columns.
+     *
+     * @param {string[]} [headers]
+     * Column ids to use.
+     *
+     * @return {DataTable.ColumnCollection}
+     * Parsed columns.
+     */
+    function getColumnsCollection(columnsArray = [], headers) {
+        const columns = {};
+        for (let i = 0, iEnd = Math.max(headers.length, columnsArray.length); i < iEnd; ++i) {
+            const columnId = headers[i] || `${i}`;
+            columns[columnId] = columnsArray[i] ? columnsArray[i].slice() : [];
+        }
+        return columns;
+    }
+    DataConverterUtils.getColumnsCollection = getColumnsCollection;
+})(DataConverterUtils || (DataConverterUtils = {}));
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Converters_DataConverterUtils = (DataConverterUtils);
+
 ;// ./code/grid/es-modules/Data/Converters/DataConverter.js
 /* *
  *
@@ -11512,12 +11104,13 @@ class DataConnector {
  *  - Torstein Hønsi
  *  - Wojciech Chmiel
  *  - Jomar Hønsi
+ *  - Kamil Kubik
  *
  * */
 
 
 
-const { addEvent: DataConverter_addEvent, fireEvent: DataConverter_fireEvent, isNumber: DataConverter_isNumber, merge: DataConverter_merge } = Core_Utilities;
+const { addEvent: DataConverter_addEvent, fireEvent: DataConverter_fireEvent, merge: DataConverter_merge } = Core_Utilities;
 /* *
  *
  *  Class
@@ -11554,16 +11147,14 @@ class DataConverter {
                 regex: /^(\d{4})([\-\.\/])(\d{1,2})\2(\d{1,2})$/,
                 parser: function (match) {
                     return (match ?
-                        Date.UTC(+match[1], match[3] - 1, +match[4]) :
-                        NaN);
+                        Date.UTC(+match[1], +match[3] - 1, +match[4]) : NaN);
                 }
             },
             'dd/mm/YYYY': {
                 regex: /^(\d{1,2})([\-\.\/])(\d{1,2})\2(\d{4})$/,
                 parser: function (match) {
                     return (match ?
-                        Date.UTC(+match[4], match[3] - 1, +match[1]) :
-                        NaN);
+                        Date.UTC(+match[4], +match[3] - 1, +match[1]) : NaN);
                 },
                 alternative: 'mm/dd/YYYY' // Different format with the same regex
             },
@@ -11571,8 +11162,7 @@ class DataConverter {
                 regex: /^(\d{1,2})([\-\.\/])(\d{1,2})\2(\d{4})$/,
                 parser: function (match) {
                     return (match ?
-                        Date.UTC(+match[4], match[1] - 1, +match[3]) :
-                        NaN);
+                        Date.UTC(+match[4], +match[1] - 1, +match[3]) : NaN);
                 }
             },
             'dd/mm/YY': {
@@ -11589,7 +11179,7 @@ class DataConverter {
                     else {
                         year += 2000;
                     }
-                    return Date.UTC(year, match[3] - 1, +match[1]);
+                    return Date.UTC(year, +match[3] - 1, +match[1]);
                 },
                 alternative: 'mm/dd/YY' // Different format with the same regex
             },
@@ -11597,7 +11187,7 @@ class DataConverter {
                 regex: /^(\d{1,2})([\-\.\/])(\d{1,2})\2(\d{2})$/,
                 parser: function (match) {
                     return (match ?
-                        Date.UTC(+match[4] + 2000, match[1] - 1, +match[3]) :
+                        Date.UTC(+match[4] + 2000, +match[1] - 1, +match[3]) :
                         NaN);
                 }
             }
@@ -11617,113 +11207,22 @@ class DataConverter {
      *
      * */
     /**
-     * Converts a value to a boolean.
-     *
-     * @param {DataConverter.Type} value
-     * Value to convert.
-     *
-     * @return {boolean}
-     * Converted value as a boolean.
-     */
-    asBoolean(value) {
-        if (typeof value === 'boolean') {
-            return value;
-        }
-        if (typeof value === 'string') {
-            return value !== '' && value !== '0' && value !== 'false';
-        }
-        return !!this.asNumber(value);
-    }
-    /**
-     * Converts a value to a Date.
-     *
-     * @param {DataConverter.Type} value
-     * Value to convert.
-     *
-     * @return {globalThis.Date}
-     * Converted value as a Date.
-     */
-    asDate(value) {
-        let timestamp;
-        if (typeof value === 'string') {
-            timestamp = this.parseDate(value);
-        }
-        else if (typeof value === 'number') {
-            timestamp = value;
-        }
-        else if (value instanceof Date) {
-            return value;
-        }
-        else {
-            timestamp = this.parseDate(this.asString(value));
-        }
-        return new Date(timestamp);
-    }
-    /**
-     * Casts a string value to it's guessed type
+     * Converts a string value based on its guessed type.
      *
      * @param {*} value
      * The value to examine.
      *
-     * @return {number|string|Date}
+     * @return {number | string | Date}
      * The converted value.
      */
-    asGuessedType(value) {
+    convertByType(value) {
         const converter = this, typeMap = {
-            'number': converter.asNumber,
-            'Date': converter.asDate,
-            'string': converter.asString
+            'number': (value) => Converters_DataConverterUtils.asNumber(value, converter.decimalRegExp),
+            'Date': (value) => Converters_DataConverterUtils.asDate(value, converter),
+            'string': Converters_DataConverterUtils.asString
         };
-        return typeMap[converter.guessType(value)].call(converter, value);
-    }
-    /**
-     * Converts a value to a number.
-     *
-     * @param {DataConverter.Type} value
-     * Value to convert.
-     *
-     * @return {number}
-     * Converted value as a number.
-     */
-    asNumber(value) {
-        if (typeof value === 'number') {
-            return value;
-        }
-        if (typeof value === 'boolean') {
-            return value ? 1 : 0;
-        }
-        if (typeof value === 'string') {
-            const decimalRegex = this.decimalRegExp;
-            if (value.indexOf(' ') > -1) {
-                value = value.replace(/\s+/g, '');
-            }
-            if (decimalRegex) {
-                if (!decimalRegex.test(value)) {
-                    return NaN;
-                }
-                value = value.replace(decimalRegex, '$1.$2');
-            }
-            return parseFloat(value);
-        }
-        if (value instanceof Date) {
-            return value.getDate();
-        }
-        if (value) {
-            return value.getRowCount();
-        }
-        return NaN;
-    }
-    /**
-     * Converts a value to a string.
-     *
-     * @param {DataConverter.Type} value
-     * Value to convert.
-     *
-     * @return {string}
-     * Converted value as a string.
-     */
-    asString(value) {
-        return '' + value;
+        return typeMap[Converters_DataConverterUtils.guessType(value, converter)]
+            .call(converter, value);
     }
     /**
      * Tries to guess the date format
@@ -11734,7 +11233,7 @@ class DataConverter {
      * data is the data to deduce a format based on
      * @private
      *
-     * @param {Array<string>} data
+     * @param {string[]} data
      * Data to check the format.
      *
      * @param {number} limit
@@ -11745,9 +11244,7 @@ class DataConverter {
      */
     deduceDateFormat(data, limit, save) {
         const parser = this, stable = [], max = [];
-        let format = 'YYYY/mm/dd', thing, guessedFormat = [], i = 0, madeDeduction = false, 
-        /// candidates = {},
-        elem, j;
+        let format = 'YYYY/mm/dd', thing, guessedFormat = [], i = 0, madeDeduction = false, elem, j;
         if (!limit || limit > data.length) {
             limit = data.length;
         }
@@ -11783,7 +11280,6 @@ class DataConverter {
                                 else {
                                     guessedFormat[j] = 'YYYY';
                                 }
-                                /// madeDeduction = true;
                             }
                             else if (elem > 12 &&
                                 elem <= 31) {
@@ -11839,73 +11335,6 @@ class DataConverter {
         DataConverter_fireEvent(this, e.type, e);
     }
     /**
-     * Initiates the data exporting. Should emit `exportError` on failure.
-     *
-     * @param {DataConnector} connector
-     * Connector to export from.
-     *
-     * @param {DataConverter.Options} [options]
-     * Options for the export.
-     */
-    export(
-    /* eslint-disable @typescript-eslint/no-unused-vars */
-    connector, options
-    /* eslint-enable @typescript-eslint/no-unused-vars */
-    ) {
-        this.emit({
-            type: 'exportError',
-            columns: [],
-            headers: []
-        });
-        throw new Error('Not implemented');
-    }
-    /**
-     * Getter for the data table.
-     *
-     * @return {DataTable}
-     * Table of parsed data.
-     */
-    getTable() {
-        throw new Error('Not implemented');
-    }
-    /**
-     * Guesses the potential type of a string value for parsing CSV etc.
-     *
-     * @param {*} value
-     * The value to examine.
-     *
-     * @return {'number'|'string'|'Date'}
-     * Type string, either `string`, `Date`, or `number`.
-     */
-    guessType(value) {
-        const converter = this;
-        let result = 'string';
-        if (typeof value === 'string') {
-            const trimedValue = converter.trim(`${value}`), decimalRegExp = converter.decimalRegExp;
-            let innerTrimedValue = converter.trim(trimedValue, true);
-            if (decimalRegExp) {
-                innerTrimedValue = (decimalRegExp.test(innerTrimedValue) ?
-                    innerTrimedValue.replace(decimalRegExp, '$1.$2') :
-                    '');
-            }
-            const floatValue = parseFloat(innerTrimedValue);
-            if (+innerTrimedValue === floatValue) {
-                // String is numeric
-                value = floatValue;
-            }
-            else {
-                // Determine if a date string
-                const dateValue = converter.parseDate(value);
-                result = DataConverter_isNumber(dateValue) ? 'Date' : 'string';
-            }
-        }
-        if (typeof value === 'number') {
-            // Greater than milliseconds in a year assumed timestamp
-            result = value > 365 * 24 * 3600 * 1000 ? 'Date' : 'number';
-        }
-        return result;
-    }
-    /**
      * Registers a callback for a specific event.
      *
      * @param {string} type
@@ -11921,22 +11350,6 @@ class DataConverter {
         return DataConverter_addEvent(this, type, callback);
     }
     /**
-     * Initiates the data parsing. Should emit `parseError` on failure.
-     *
-     * @param {DataConverter.UserOptions} options
-     * Options of the DataConverter.
-     */
-    parse(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    options) {
-        this.emit({
-            type: 'parseError',
-            columns: [],
-            headers: []
-        });
-        throw new Error('Not implemented');
-    }
-    /**
      * Parse a date and return it as a number.
      *
      * @param {string} value
@@ -11948,21 +11361,19 @@ class DataConverter {
      */
     parseDate(value, dateFormatProp) {
         const converter = this, options = converter.options;
-        let dateFormat = dateFormatProp || options.dateFormat, result = NaN, key, format, match;
+        let dateFormat = dateFormatProp || options.dateFormat, result = NaN, key, match = null;
         if (options.parseDate) {
             result = options.parseDate(value);
         }
         else {
+            const dateFormats = converter.dateFormats;
             // Auto-detect the date format the first time
             if (!dateFormat) {
-                for (key in converter.dateFormats) { // eslint-disable-line guard-for-in
-                    format = converter.dateFormats[key];
+                for (key in dateFormats) { // eslint-disable-line guard-for-in
+                    const format = dateFormats[key];
                     match = value.match(format.regex);
                     if (match) {
-                        // `converter.options.dateFormat` = dateFormat = key;
                         dateFormat = key;
-                        // `converter.options.alternativeFormat` =
-                        // format.alternative || '';
                         result = format.parser(match);
                         break;
                     }
@@ -11970,10 +11381,10 @@ class DataConverter {
                 // Next time, use the one previously found
             }
             else {
-                format = converter.dateFormats[dateFormat];
+                let format = dateFormats[dateFormat];
                 if (!format) {
                     // The selected format is invalid
-                    format = converter.dateFormats['YYYY/mm/dd'];
+                    format = dateFormats['YYYY/mm/dd'];
                 }
                 match = value.match(format.regex);
                 if (match) {
@@ -11982,50 +11393,19 @@ class DataConverter {
             }
             // Fall back to Date.parse
             if (!match) {
-                match = Date.parse(value);
-                // External tools like Date.js and MooTools extend Date object
-                // and returns a date.
-                if (typeof match === 'object' &&
-                    match !== null &&
-                    match.getTime) {
-                    result = (match.getTime() -
-                        match.getTimezoneOffset() *
-                            60000);
-                    // Timestamp
-                }
-                else if (DataConverter_isNumber(match)) {
-                    result = match - (new Date(match)).getTimezoneOffset() * 60000;
-                    if ( // Reset dates without year in Chrome
-                    value.indexOf('2001') === -1 &&
-                        (new Date(result)).getFullYear() === 2001) {
+                const parsed = Date.parse(value);
+                if (!isNaN(parsed)) {
+                    result =
+                        parsed - new Date(parsed).getTimezoneOffset() * 60000;
+                    // Reset dates without year in Chrome
+                    if (!value.includes('2001') &&
+                        new Date(result).getFullYear() === 2001) {
                         result = NaN;
                     }
                 }
             }
         }
         return result;
-    }
-    /**
-     * Trim a string from whitespaces.
-     *
-     * @param {string} str
-     * String to trim.
-     *
-     * @param {boolean} [inside=false]
-     * Remove all spaces between numbers.
-     *
-     * @return {string}
-     * Trimed string
-     */
-    trim(str, inside) {
-        if (typeof str === 'string') {
-            str = str.replace(/^\s+|\s+$/g, '');
-            // Clear white space insdie the string, like thousands separators
-            if (inside && /^[\d\s]+$/.test(str)) {
-                str = str.replace(/\s/g, '');
-            }
-        }
-        return str;
     }
 }
 /* *
@@ -12038,13 +11418,7 @@ class DataConverter {
  */
 DataConverter.defaultOptions = {
     dateFormat: '',
-    alternativeFormat: '',
-    startColumn: 0,
-    endColumn: Number.MAX_VALUE,
-    startRow: 0,
-    endRow: Number.MAX_VALUE,
-    firstRowAsNames: true,
-    switchRowsAndColumns: false
+    firstRowAsNames: true
 };
 /* *
  *
@@ -12095,27 +11469,6 @@ DataConverter.defaultOptions = {
             !!(DataConverter.types[key] = DataConverterClass));
     }
     DataConverter.registerType = registerType;
-    /**
-     * Converts an array of columns to a table instance. Second dimension of the
-     * array are the row cells.
-     *
-     * @param {Array<DataTable.Column>} [columns]
-     * Array to convert.
-     *
-     * @param {Array<string>} [headers]
-     * Column names to use.
-     *
-     * @return {DataTable}
-     * Table instance from the arrays.
-     */
-    function getTableFromColumns(columns = [], headers = []) {
-        const table = new Data_DataTable();
-        for (let i = 0, iEnd = Math.max(headers.length, columns.length); i < iEnd; ++i) {
-            table.setColumn(headers[i] || `${i}`, columns[i]);
-        }
-        return table;
-    }
-    DataConverter.getTableFromColumns = getTableFromColumns;
 })(DataConverter || (DataConverter = {}));
 /* *
  *
@@ -12152,6 +11505,11 @@ DataConverter.defaultOptions = {
  * @name Data.DataCursor
  */
 class DataCursor {
+    /* *
+     *
+     *  Static Properties
+     *
+     * */
     /* *
      *
      *  Constructor
@@ -12348,16 +11706,6 @@ class DataCursor {
         return this;
     }
 }
-/* *
- *
- *  Static Properties
- *
- * */
-/**
- * Semantic version string of the DataCursor class.
- * @internal
- */
-DataCursor.version = '1.0.0';
 /* *
  *
  *  Class Namespace
@@ -12612,6 +11960,323 @@ const whcm = {
 };
 /* harmony default export */ const HighContrastMode = (whcm);
 
+;// ./code/grid/es-modules/Grid/Core/Globals.js
+/* *
+ *
+ *  (c) 2009-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *  - Sebastian Bochan
+ *
+ * */
+
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Globals Grid namespace.
+ */
+var Globals_Globals;
+(function (Globals) {
+    /* *
+     *
+     *  Declarations
+     *
+     * */
+    /* *
+     *
+     *  Constants
+     *
+     * */
+    Globals.classNamePrefix = 'hcg-';
+    Globals.rawClassNames = {
+        container: 'container',
+        tableElement: 'table',
+        captionElement: 'caption',
+        descriptionElement: 'description',
+        theadElement: 'thead',
+        tbodyElement: 'tbody',
+        rowElement: 'row',
+        rowEven: 'row-even',
+        rowOdd: 'row-odd',
+        hoveredRow: 'hovered-row',
+        columnElement: 'column',
+        hoveredCell: 'hovered-cell',
+        hoveredColumn: 'hovered-column',
+        syncedRow: 'synced-row',
+        syncedCell: 'synced-cell',
+        syncedColumn: 'synced-column',
+        editedCell: 'edited-cell',
+        mockedRow: 'mocked-row',
+        rowsContentNowrap: 'rows-content-nowrap',
+        virtualization: 'virtualization',
+        scrollableContent: 'scrollable-content',
+        headerCell: 'header-cell',
+        headerCellContainer: 'header-cell-container',
+        headerCellContent: 'header-cell-content',
+        headerCellFilterIcon: 'header-cell-filter-icon',
+        headerCellIcons: 'header-cell-icons',
+        headerCellSortIcon: 'header-cell-sort-icon',
+        headerCellMenuIcon: 'header-cell-menu-icon',
+        headerRow: 'head-row-content',
+        noData: 'no-data',
+        noPadding: 'no-padding',
+        columnFirst: 'column-first',
+        columnSortable: 'column-sortable',
+        columnSortableIcon: 'column-sortable-icon',
+        columnSortedAsc: 'column-sorted-asc',
+        columnSortedDesc: 'column-sorted-desc',
+        resizableContent: 'resizable-content',
+        resizerHandles: 'column-resizer',
+        resizedColumn: 'column-resized',
+        creditsContainer: 'credits-container',
+        creditsText: 'credits',
+        creditsPro: 'credits-pro',
+        visuallyHidden: 'visually-hidden',
+        lastHeaderCellInRow: 'last-header-cell-in-row',
+        loadingWrapper: 'loading-wrapper',
+        loadingSpinner: 'spinner',
+        loadingMessage: 'loading-message',
+        popup: 'popup',
+        button: 'button',
+        icon: 'icon',
+        popupContent: 'popup-content',
+        columnFilterWrapper: 'column-filter-wrapper',
+        toolbarButtonActiveIndicator: 'active-indicator',
+        menuContainer: 'menu-container',
+        menuItem: 'menu-item',
+        menuHeader: 'menu-header',
+        menuHeaderCategory: 'menu-header-category',
+        menuHeaderName: 'menu-header-name',
+        menuItemIcon: 'menu-item-icon',
+        menuItemLabel: 'menu-item-label',
+        menuDivider: 'menu-divider',
+        clearFilterButton: 'clear-filter-button',
+        paginationWrapper: 'pagination-wrapper',
+        paginationContainer: 'pagination-container',
+        paginationPageInfo: 'pagination-info',
+        paginationControls: 'pagination-controls',
+        paginationButton: 'pagination-btn',
+        paginationButtonDisabled: 'pagination-btn-disabled',
+        paginationFirstButton: 'pagination-first',
+        paginationPrevButton: 'pagination-prev',
+        paginationNextButton: 'pagination-next',
+        paginationLastButton: 'pagination-last',
+        paginationPageButton: 'pagination-page',
+        paginationPageButtonActive: 'pagination-page-active',
+        paginationEllipsis: 'pagination-ellipsis',
+        paginationMobileSelector: 'pagination-mobile-selector',
+        paginationMobilePageSizeSelector: 'pagination-mobile-page-size-selector',
+        paginationPageSizeContainer: 'pagination-page-size-container',
+        paginationPageSizeSelect: 'pagination-page-size-select',
+        noWidth: 'no-width',
+        rightAlign: 'right',
+        centerAlign: 'center',
+        leftAlign: 'left'
+    };
+    Globals.win = window;
+    Globals.composed = [];
+    Globals.userAgent = (Globals.win.navigator && Globals.win.navigator.userAgent) || '';
+    Globals.isChrome = Globals.userAgent.indexOf('Chrome') !== -1;
+    Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1;
+    Globals.getClassName = (classNameKey) => Globals.classNamePrefix + Globals.rawClassNames[classNameKey];
+})(Globals_Globals || (Globals_Globals = {}));
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Grid_Core_Globals = (Globals_Globals);
+
+;// ./code/grid/es-modules/Grid/Core/GridUtils.js
+/* *
+ *
+ *  Grid utilities
+ *
+ *  (c) 2009-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+const { isObject: GridUtils_isObject } = Core_Utilities;
+HTML_AST.allowedAttributes.push('srcset', 'media');
+HTML_AST.allowedTags.push('picture', 'source');
+/* *
+ *
+ *  Namespace
+ *
+ * */
+var GridUtils;
+(function (GridUtils) {
+    /* *
+     *
+     *  Declarations
+     *
+     * */
+    /* *
+     *
+     *  Functions
+     *
+     * */
+    /**
+     * Creates a HTML element with the provided options.
+     *
+     * @param tagName
+     * The tag name of the element.
+     *
+     * @param params
+     * The parameters of the element.
+     *
+     * @param parent
+     * The parent element.
+     */
+    function makeHTMLElement(tagName, params, parent) {
+        const element = document.createElement(tagName);
+        if (params) {
+            const paramsKeys = Object.keys(params);
+            for (let i = 0; i < paramsKeys.length; i++) {
+                const key = paramsKeys[i];
+                const value = params[key];
+                if (value !== void 0) {
+                    if (key === 'style') {
+                        Object.assign(element.style, value);
+                    }
+                    else {
+                        element[key] = value;
+                    }
+                }
+            }
+        }
+        if (parent) {
+            parent.appendChild(element);
+        }
+        return element;
+    }
+    GridUtils.makeHTMLElement = makeHTMLElement;
+    /**
+     * Creates a div element with the provided class name and id.
+     *
+     * @param className
+     * The class name of the div.
+     *
+     * @param id
+     * The id of the element.
+     */
+    function makeDiv(className, id) {
+        return makeHTMLElement('div', { className, id });
+    }
+    GridUtils.makeDiv = makeDiv;
+    /**
+     * Check if there's a possibility that the given string is an HTML
+     * (contains '<').
+     *
+     * @param str
+     * Text to verify.
+     */
+    function isHTML(str) {
+        return str.indexOf('<') !== -1;
+    }
+    GridUtils.isHTML = isHTML;
+    /**
+     * Returns a string containing plain text format by removing HTML tags
+     *
+     * @param text
+     * String to be sanitized
+     *
+     * @returns
+     * Sanitized plain text string
+     */
+    function sanitizeText(text) {
+        try {
+            return new DOMParser().parseFromString(text, 'text/html')
+                .body.textContent || '';
+        }
+        catch {
+            return '';
+        }
+    }
+    GridUtils.sanitizeText = sanitizeText;
+    /**
+     * Sets an element's content, checking whether it is HTML or plain text.
+     * Should be used instead of element.innerText when the content can be HTML.
+     *
+     * @param element
+     * Parent element where the content should be.
+     *
+     * @param content
+     * Content to render.
+     */
+    function setHTMLContent(element, content) {
+        if (isHTML(content)) {
+            element.innerHTML = HTML_AST.emptyHTML;
+            const formattedNodes = new HTML_AST(content);
+            formattedNodes.addToDOM(element);
+        }
+        else {
+            element.innerText = content;
+        }
+    }
+    GridUtils.setHTMLContent = setHTMLContent;
+    /**
+     * Creates a proxy that, when reading a property, first returns the value
+     * from the original options of a given entity; if it is not defined, it
+     * falls back to the value from the defaults (default options), recursively
+     * for nested objects. Setting values on the proxy will change the original
+     * options object (1st argument), not the defaults (2nd argument).
+     *
+     * @param options
+     * The specific options object.
+     *
+     * @param defaultOptions
+     * The default options to fall back to.
+     *
+     * @returns
+     * A proxy that provides merged access to options and defaults.
+     */
+    function createOptionsProxy(options, defaultOptions = {}) {
+        const handler = (defaults = {}) => ({
+            get(target, prop) {
+                const targetValue = target[prop];
+                const defaultValue = defaults[prop];
+                if (GridUtils_isObject(targetValue, true)) {
+                    return new Proxy(targetValue, handler(defaultValue ?? {}));
+                }
+                return targetValue ?? defaultValue;
+            },
+            set(target, prop, value) {
+                target[prop] = value;
+                return true;
+            },
+            deleteProperty(target, prop) {
+                delete target[prop];
+                return true;
+            }
+        });
+        return new Proxy(options, handler(defaultOptions));
+    }
+    GridUtils.createOptionsProxy = createOptionsProxy;
+})(GridUtils || (GridUtils = {}));
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Core_GridUtils = (GridUtils);
+
 ;// ./code/grid/es-modules/Grid/Core/Accessibility/Accessibility.js
 /* *
  *
@@ -12632,7 +12297,7 @@ const whcm = {
 
 
 
-const { makeHTMLElement: Accessibility_makeHTMLElement } = Core_GridUtils;
+const { makeHTMLElement } = Core_GridUtils;
 /**
  *  Representing the accessibility functionalities for the Data Grid.
  */
@@ -12673,7 +12338,7 @@ class Accessibility {
         if (!sortableLang) {
             return;
         }
-        Accessibility_makeHTMLElement('span', {
+        makeHTMLElement('span', {
             className: Grid_Core_Globals.getClassName('visuallyHidden'),
             innerText: ', ' + sortableLang
         }, element);
@@ -12837,7 +12502,6 @@ var Defaults_Defaults;
 (function (Defaults) {
     /**
      * Default options for the Grid.
-     * @internal
      */
     Defaults.defaultOptions = {
         accessibility: {
@@ -12856,10 +12520,51 @@ var Defaults_Defaults;
                         descending: 'Sorted descending.',
                         none: 'Not sorted.'
                     }
+                },
+                pagination: {
+                    announcements: {
+                        pageSizeChange: 'Page size changed to',
+                        pageChange: 'Page changed to'
+                    }
                 }
             },
             loading: 'Loading...',
-            noData: 'No data to display'
+            noData: 'No data to display',
+            filter: 'Filter',
+            sortAscending: 'Sort ascending',
+            sortDescending: 'Sort descending',
+            column: 'Column',
+            setFilter: 'Set filter',
+            pagination: {
+                pageInfo: 'Showing {start} - {end} of {total} ' +
+                    '(page {currentPage} of {totalPages})',
+                pageSizeLabel: 'rows per page',
+                firstPage: 'First page',
+                previousPage: 'Previous page',
+                nextPage: 'Next page',
+                lastPage: 'Last page',
+                pageNumber: 'Page {page}',
+                ellipsis: 'More pages'
+            },
+            columnFilteringConditions: {
+                contains: 'Contains',
+                doesNotContain: 'Does not contain',
+                equals: 'Equals',
+                doesNotEqual: 'Does not equal',
+                beginsWith: 'Begins with',
+                endsWith: 'Ends with',
+                empty: 'Empty',
+                notEmpty: 'Not empty',
+                greaterThan: 'Greater than',
+                greaterThanOrEqualTo: 'Greater than or equal to',
+                lessThan: 'Less than',
+                lessThanOrEqualTo: 'Less than or equal to',
+                before: 'Before',
+                after: 'After',
+                all: 'All',
+                'true': 'True',
+                'false': 'False'
+            }
         },
         time: {
             timezone: 'UTC'
@@ -12876,7 +12581,8 @@ var Defaults_Defaults;
             },
             columns: {
                 resizing: {
-                    enabled: true
+                    enabled: true,
+                    mode: 'adjacent'
                 }
             },
             theme: 'hcg-theme-default'
@@ -12884,6 +12590,9 @@ var Defaults_Defaults;
         columnDefaults: {
             sorting: {
                 sortable: true
+            },
+            filtering: {
+                inline: false
             }
         }
     };
@@ -12905,6 +12614,431 @@ var Defaults_Defaults;
  *
  * */
 /* harmony default export */ const Core_Defaults = (Defaults_Defaults);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Actions/ColumnFiltering/FilteringTypes.js
+/* *
+ *
+ *  Grid Filtering Types and Constants
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *  - Sebastian Bochan
+ *  - Kamil Kubik
+ *
+ * */
+
+/**
+ * String conditions values for the condition select options.
+ */
+const stringConditions = [
+    'contains',
+    'doesNotContain',
+    'equals',
+    'doesNotEqual',
+    'beginsWith',
+    'endsWith',
+    'empty',
+    'notEmpty'
+];
+/**
+ * Number conditions values for the condition select options.
+ */
+const numberConditions = [
+    'equals',
+    'doesNotEqual',
+    'greaterThan',
+    'greaterThanOrEqualTo',
+    'lessThan',
+    'lessThanOrEqualTo',
+    'empty',
+    'notEmpty'
+];
+/**
+ * DateTime conditions values for the condition select options.
+ */
+const dateTimeConditions = [
+    'equals',
+    'doesNotEqual',
+    'before',
+    'after',
+    'empty',
+    'notEmpty'
+];
+/**
+ * Boolean conditions values for the condition select options.
+ */
+const booleanConditions = [
+    'all',
+    'true',
+    'false',
+    'empty'
+];
+/**
+ * Corresponding values for the boolean select options.
+ */
+const booleanValueMap = {
+    'all': 'all',
+    'true': true,
+    'false': false,
+    'empty': null
+};
+/**
+ * Conditions map for the condition select options.
+ */
+const conditionsMap = {
+    string: stringConditions,
+    number: numberConditions,
+    datetime: dateTimeConditions,
+    'boolean': booleanConditions
+};
+
+;// ./code/grid/es-modules/Grid/Core/Table/Actions/ColumnFiltering/ColumnFiltering.js
+/* *
+ *
+ *  Grid ColumnFiltering class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *  - Sebastian Bochan
+ *  - Kamil Kubik
+ *
+ * */
+
+
+
+
+
+const { defined: ColumnFiltering_defined, fireEvent: ColumnFiltering_fireEvent } = Core_Utilities;
+const { makeHTMLElement: ColumnFiltering_makeHTMLElement } = Core_GridUtils;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Class that manages filtering for a dedicated column.
+ */
+class ColumnFiltering {
+    /* *
+     *
+     *  Static Methods
+     *
+     * */
+    /**
+     * Parses a camel case string to a readable string and capitalizes the first
+     * letter.
+     *
+     * @param value
+     * The camel case string to parse.
+     *
+     * @returns
+     * The readable string with the first letter capitalized.
+     */
+    static parseCamelCaseToReadable(value) {
+        const readable = value
+            .replace(/([A-Z])/g, ' $1')
+            .trim()
+            .toLowerCase()
+            .split(/\s+/).join(' ');
+        return readable.charAt(0).toUpperCase() + readable.slice(1);
+    }
+    /* *
+    *
+    *  Constructor
+    *
+    * */
+    /**
+     * Constructs filtering controller for a dedicated column.
+     *
+     * @param column
+     * The filtered column.
+     */
+    constructor(column) {
+        /**
+         * Handles the keydown event for the filtering content. Used externally,
+         * not in the class itself.
+         *
+         * @param e
+         * The keyboard event.
+         */
+        this.onKeyDown = (e) => {
+            const contentOrder = [];
+            if (this.filterSelect && !this.filterSelect.disabled) {
+                contentOrder.push(this.filterSelect);
+            }
+            if (this.filterInput && !this.filterInput.disabled) {
+                contentOrder.push(this.filterInput);
+            }
+            if (this.clearButton && !this.clearButton.disabled) {
+                contentOrder.push(this.clearButton);
+            }
+            const direction = {
+                'ArrowDown': 1,
+                'ArrowUp': -1
+            }[e.key];
+            if (direction) {
+                e.preventDefault();
+                const currentIndex = contentOrder.indexOf(e.target);
+                const n = contentOrder.length;
+                contentOrder[(currentIndex + direction + n) % n].focus();
+                return;
+            }
+            if (e.key === 'Enter') {
+                if (e.target === this.clearButton) {
+                    e.preventDefault();
+                    void this.set();
+                    contentOrder[0]?.focus();
+                    return;
+                }
+            }
+        };
+        this.column = column;
+    }
+    /* *
+    *
+    *  Methods
+    *
+    * */
+    /**
+     * Sets the value and condition for the filtering.
+     *
+     * @param value
+     * The value to set.
+     *
+     * @param condition
+     * The condition to set.
+     */
+    async set(value, condition) {
+        if (this.filterInput) {
+            this.filterInput.value = value ?? '';
+        }
+        if (this.filterSelect) {
+            this.filterSelect.value =
+                condition ?? conditionsMap[this.column.dataType][0];
+        }
+        await this.applyFilter({ value, condition });
+    }
+    /**
+     * Render the filtering content in the container.
+     *
+     * @param container
+     * The container element.
+     */
+    renderFilteringContent(container) {
+        const column = this.column;
+        const columnType = column.dataType;
+        if (!column.options.filtering?.enabled) {
+            return;
+        }
+        // Render the input wrapper.
+        const inputWrapper = ColumnFiltering_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('columnFilterWrapper')
+        }, container);
+        this.renderConditionSelect(inputWrapper);
+        if (columnType !== 'boolean') {
+            this.renderFilteringInput(inputWrapper, columnType);
+        }
+        this.renderClearButton(inputWrapper);
+    }
+    /**
+     * Takes the filtering value and condition from the inputs and applies it
+     * to the column.
+     */
+    applyFilterFromForm() {
+        const result = {
+            condition: this.filterSelect?.value
+        };
+        if (this.filterInput) {
+            result.value = this.filterInput.value;
+        }
+        if (result.condition &&
+            conditionsMap[this.column.dataType].includes(result.condition)) {
+            void this.applyFilter(result);
+        }
+    }
+    /**
+     * Applies the filtering to the column.
+     *
+     * @param condition
+     * The filtering condition.
+     */
+    async applyFilter(condition) {
+        const viewport = this.column.viewport;
+        const querying = viewport.grid.querying;
+        const filteringController = querying.filtering;
+        const { value } = condition;
+        ColumnFiltering_fireEvent(this.column, 'beforeFilter', {
+            target: this.column
+        });
+        const filteringApplied = this.isFilteringApplied();
+        const clearButton = this.clearButton;
+        if (clearButton && filteringApplied === clearButton.disabled) {
+            clearButton.disabled = !filteringApplied;
+        }
+        if (ColumnFiltering_defined(value) && value !== '' && typeof value !== 'number') {
+            switch (this.column.dataType) {
+                case 'number':
+                    condition.value = Number(value);
+                    break;
+                case 'datetime':
+                    condition.value = new Date(`${value}Z`).getTime();
+                    break;
+            }
+        }
+        // Update the userOptions.
+        void this.column.update({ filtering: condition }, false);
+        filteringController.addColumnFilterCondition(this.column.id, condition);
+        this.disableInputIfNeeded();
+        await querying.proceed();
+        await viewport.updateRows();
+        ColumnFiltering_fireEvent(this.column, 'afterFilter', {
+            target: this.column
+        });
+    }
+    /**
+     * Render the filtering input element, based on the column type.
+     *
+     * @param inputWrapper
+     * Reference to the input wrapper.
+     *
+     * @param columnType
+     * Reference to the column type.
+     */
+    renderFilteringInput(inputWrapper, columnType) {
+        // Render the input element.
+        this.filterInput = ColumnFiltering_makeHTMLElement('input', {}, inputWrapper);
+        this.filterInput.setAttribute('tabindex', '-1');
+        const column = this.column;
+        this.filterInput.setAttribute('id', 'filter-input-' + column.viewport.grid.id + '-' + column.id);
+        this.filterInput.placeholder = 'value...';
+        if (columnType === 'number') {
+            this.filterInput.type = 'number';
+        }
+        else if (columnType === 'datetime') {
+            this.filterInput.type = 'date';
+        }
+        // Assign the default input value.
+        const { value } = this.column.options.filtering ?? {};
+        if (value || value === 0) {
+            this.filterInput.value = columnType === 'datetime' ?
+                column.viewport.grid.time.dateFormat('%Y-%m-%d', Number(value)) :
+                value.toString();
+        }
+        if (this.filterSelect) {
+            this.disableInputIfNeeded();
+        }
+        const eventTypes = {
+            string: ['keyup'],
+            number: ['keyup', 'change'],
+            datetime: ['change']
+        };
+        for (const eventType of eventTypes[columnType]) {
+            this.filterInput.addEventListener(eventType, () => {
+                this.applyFilterFromForm();
+            });
+        }
+    }
+    /**
+     * Render the condition select element.
+     *
+     * @param inputWrapper
+     * Reference to the input wrapper.
+     */
+    renderConditionSelect(inputWrapper) {
+        // Render the select element.
+        this.filterSelect = ColumnFiltering_makeHTMLElement('select', {}, inputWrapper);
+        this.filterSelect.setAttribute('tabindex', '-1');
+        const column = this.column;
+        this.filterSelect.setAttribute('id', 'filter-select-' + column.viewport.grid.id + '-' + column.id);
+        const conditions = conditionsMap[column.dataType];
+        const langConditions = this.column.viewport.grid.options
+            ?.lang?.columnFilteringConditions ?? {};
+        // Render the options.
+        for (const condition of conditions) {
+            const optionElement = document.createElement('option');
+            optionElement.value = condition;
+            optionElement.textContent = langConditions[condition] ??
+                ColumnFiltering.parseCamelCaseToReadable(condition);
+            this.filterSelect.appendChild(optionElement);
+        }
+        // Use condition from options or first available condition as default.
+        const filteringCondition = this.column.options.filtering?.condition;
+        if (filteringCondition && conditions.includes(filteringCondition)) {
+            this.filterSelect.value = filteringCondition;
+        }
+        else {
+            this.filterSelect.value = conditions[0];
+        }
+        this.disableInputIfNeeded();
+        // Attach event listener.
+        this.filterSelect.addEventListener('change', () => {
+            this.applyFilterFromForm();
+        });
+    }
+    renderClearButton(inputWrapper) {
+        this.clearButton = ColumnFiltering_makeHTMLElement('button', {
+            className: Grid_Core_Globals.getClassName('clearFilterButton'),
+            innerText: 'Clear filter' // TODO: Lang
+        }, inputWrapper);
+        this.clearButton.setAttribute('tabindex', '-1');
+        this.clearButton.disabled = !this.isFilteringApplied();
+        this.clearButton.addEventListener('click', () => {
+            void this.set();
+        });
+    }
+    /**
+     * Checks if filtering is applied to the column.
+     *
+     * @returns
+     * `true` if filtering is applied to the column, `false` otherwise.
+     */
+    isFilteringApplied() {
+        const { filterSelect: select, filterInput: input } = this;
+        const { dataType } = this.column;
+        const condition = select?.value;
+        if (dataType === 'boolean') {
+            return condition !== 'all';
+        }
+        if (condition === 'empty' || condition === 'notEmpty') {
+            return true;
+        }
+        return input?.value !== '';
+    }
+    /**
+     * Disables the input element if the condition is `empty` or `notEmpty`.
+     */
+    disableInputIfNeeded() {
+        const { filterSelect: select, filterInput: input } = this;
+        const condition = select?.value;
+        if (!input || !select) {
+            return;
+        }
+        if (condition === 'empty' || condition === 'notEmpty') {
+            input.disabled = true;
+        }
+        else if (input?.disabled) {
+            input.disabled = false;
+        }
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnFiltering_ColumnFiltering = (ColumnFiltering);
 
 ;// ./code/grid/es-modules/Grid/Core/Table/CellContent/CellContent.js
 /* *
@@ -13069,7 +13203,10 @@ class TextContent extends CellContent_CellContent {
 
 
 
-const { defined: Column_defined, merge: Column_merge, fireEvent: Column_fireEvent } = Core_Utilities;
+
+
+const { defined: Column_defined, fireEvent: Column_fireEvent } = Core_Utilities;
+const { createOptionsProxy } = Core_GridUtils;
 /* *
  *
  *  Class
@@ -13097,6 +13234,7 @@ class Column {
      * The index of the column.
      */
     constructor(viewport, id, index) {
+        var _a;
         /**
          * The cells of the column.
          */
@@ -13107,7 +13245,20 @@ class Column {
         this.viewport = viewport;
         this.loadData();
         this.dataType = this.assumeDataType();
-        this.options = Column_merge(grid.options?.columnDefaults ?? {}, grid.columnOptionsMap?.[id]?.options ?? {});
+        // Populate column options map if not exists, to prepare option
+        // references for each column.
+        if (grid.options && !grid.columnOptionsMap?.[id]) {
+            const columnOptions = { id };
+            ((_a = grid.options).columns ?? (_a.columns = [])).push(columnOptions);
+            grid.columnOptionsMap[id] = {
+                index: grid.options.columns.length - 1,
+                options: columnOptions
+            };
+        }
+        this.options = createOptionsProxy(grid.columnOptionsMap?.[id]?.options ?? {}, grid.options?.columnDefaults);
+        if (this.options.filtering?.enabled) {
+            this.filtering = new ColumnFiltering_ColumnFiltering(this);
+        }
         Column_fireEvent(this, 'afterInit');
     }
     /* *
@@ -13202,7 +13353,7 @@ class Column {
      * Returns the width of the column in pixels.
      */
     getWidth() {
-        return this.viewport.columnDistribution.getColumnWidth(this);
+        return this.viewport.columnResizing.getColumnWidth(this);
     }
     /**
      * Adds or removes the hovered CSS class to the column element
@@ -13326,7 +13477,7 @@ class Row {
             cell.render();
         }
         this.rendered = true;
-        if (this.viewport.grid.options?.rendering?.rows?.virtualization) {
+        if (this.viewport.virtualRows) {
             this.reflow();
         }
     }
@@ -13498,6 +13649,17 @@ class Cell {
             return;
         }
         const vp = row.viewport;
+        const { header } = vp;
+        const getVerticalPos = () => {
+            if (row.index !== void 0) {
+                return row.index - vp.rows[0].index;
+            }
+            const level = row.level;
+            if (!header || level === void 0) {
+                return 0;
+            }
+            return Math.max(level, header.levels) - header.rows.length - 1;
+        };
         const changeFocusKeys = {
             ArrowDown: [1, 0],
             ArrowUp: [-1, 0],
@@ -13508,10 +13670,19 @@ class Cell {
         if (dir) {
             e.preventDefault();
             e.stopPropagation();
-            const localRowIndex = row.index === void 0 ? -1 : (row.index - vp.rows[0].index);
+            const { header } = vp;
+            const localRowIndex = getVerticalPos();
             const nextVerticalDir = localRowIndex + dir[0];
-            if (nextVerticalDir < 0 && vp.header) {
-                vp.columns[column.index + dir[1]]?.header?.htmlElement.focus();
+            if (nextVerticalDir < 0 && header) {
+                const extraRowIdx = header.rows.length + nextVerticalDir;
+                if (extraRowIdx + 1 > header.levels) {
+                    header.rows[extraRowIdx]
+                        .cells[column.index + dir[1]]?.htmlElement.focus();
+                }
+                else {
+                    vp.columns[column.index + dir[1]]
+                        ?.header?.htmlElement.focus();
+                }
                 return;
             }
             const nextRow = vp.rows[nextVerticalDir];
@@ -13611,8 +13782,6 @@ class Cell {
 
 
 
-
-const { makeHTMLElement: ColumnSorting_makeHTMLElement } = Core_GridUtils;
 const { fireEvent: ColumnSorting_fireEvent } = Core_Utilities;
 /* *
  *
@@ -13645,10 +13814,6 @@ class ColumnSorting {
             const viewport = this.column.viewport;
             const querying = viewport.grid.querying;
             const sortingController = querying.sorting;
-            // Do not call sorting when cell is currently edited and validated.
-            if (viewport.validator?.errorCell) {
-                return;
-            }
             const currentOrder = (sortingController.currentSorting?.columnId === this.column.id ?
                 sortingController.currentSorting.order : null) || 'none';
             const consequents = {
@@ -13662,10 +13827,6 @@ class ColumnSorting {
         this.headerCellElement = headerCellElement;
         this.addHeaderElementAttributes();
         if (column.options.sorting?.sortable) {
-            ColumnSorting_makeHTMLElement('span', {
-                className: Grid_Core_Globals.getClassName('columnSortableIcon'),
-                innerText: '▲'
-            }, headerCellElement).setAttribute('aria-hidden', true);
             headerCellElement.classList.add(Grid_Core_Globals.getClassName('columnSortable'));
         }
     }
@@ -13707,6 +13868,29 @@ class ColumnSorting {
         }
     }
     /**
+     * Updates the column options with the new sorting state.
+     *
+     * @param col
+     * The column to update.
+     */
+    updateColumnOptions(col) {
+        const order = col.viewport.grid.querying.sorting.currentSorting?.order;
+        if (col.id === this.column.id && order) {
+            col.update({
+                sorting: {
+                    order
+                }
+            }, false);
+        }
+        else {
+            delete col.options.sorting?.order;
+            if (col.options.sorting &&
+                Object.keys(col.options.sorting).length < 1) {
+                delete col.options.sorting;
+            }
+        }
+    }
+    /**
      * Set sorting order for the column. It will modify the presentation data
      * and rerender the rows.
      *
@@ -13716,17 +13900,31 @@ class ColumnSorting {
      */
     async setOrder(order) {
         const viewport = this.column.viewport;
+        // Do not call sorting when cell is currently edited and validated.
+        if (viewport.validator?.errorCell) {
+            return;
+        }
         const querying = viewport.grid.querying;
         const sortingController = querying.sorting;
         const a11y = viewport.grid.accessibility;
+        [this.column, viewport.grid].forEach((source) => {
+            ColumnSorting_fireEvent(source, 'beforeSort', {
+                target: this.column,
+                order
+            });
+        });
         sortingController.setSorting(order, this.column.id);
         await viewport.updateRows();
         for (const col of viewport.columns) {
+            this.updateColumnOptions(col);
             col.sorting?.addHeaderElementAttributes();
         }
         a11y?.userSortedColumn(order);
-        ColumnSorting_fireEvent(this.column, 'afterSorting', {
-            target: this.column
+        [this.column, viewport.grid].forEach((source) => {
+            ColumnSorting_fireEvent(source, 'afterSort', {
+                target: this.column,
+                order
+            });
         });
     }
 }
@@ -13736,6 +13934,1731 @@ class ColumnSorting {
  *
  * */
 /* harmony default export */ const Actions_ColumnSorting = (ColumnSorting);
+
+;// ./code/grid/es-modules/Grid/Core/UI/SvgIcons.js
+/* *
+ *
+ *  Grid Svg Icons Registry
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Mikkel Espolin Birkeland
+ *  - Dawid Dragula
+ *
+ * */
+
+/* eslint-disable max-len */
+/* *
+ *
+ *  Imports
+ *
+ * */
+
+/* *
+ *
+ *  Constants
+ *
+ * */
+/**
+ * Registry of all Grid Svg icons with their SVG path data.
+ * Icons are designed for a 24x24 viewBox and use stroke-based rendering.
+ */
+var SvgIcons;
+(function (SvgIcons) {
+    /**
+     * The registry of all Grid Svg icons with their SVG path data.
+     */
+    SvgIcons.icons = {
+        filter: {
+            width: 16,
+            height: 14,
+            children: [{
+                    d: 'M2.2571 2.77791C1.75287 2.21437 1.50076 1.93259 1.49125 1.69312C1.48299 1.48509 1.57238 1.28515 1.73292 1.15259C1.91773 1 2.29583 1 3.05202 1H12.9473C13.7035 1 14.0816 1 14.2664 1.15259C14.427 1.28515 14.5163 1.48509 14.5081 1.69312C14.4986 1.93259 14.2465 2.21437 13.7422 2.77791L9.93808 7.02962C9.83756 7.14196 9.78731 7.19813 9.75147 7.26205C9.71969 7.31875 9.69637 7.37978 9.68225 7.44323C9.66633 7.51476 9.66633 7.59013 9.66633 7.74087V11.3056C9.66633 11.436 9.66633 11.5011 9.64531 11.5575C9.62673 11.6073 9.59651 11.6519 9.55717 11.6877C9.51265 11.7281 9.45213 11.7524 9.33108 11.8008L7.06441 12.7074C6.81938 12.8054 6.69687 12.8545 6.59852 12.834C6.51251 12.8161 6.43704 12.765 6.3885 12.6918C6.333 12.6081 6.333 12.4762 6.333 12.2122V7.74087C6.333 7.59013 6.333 7.51476 6.31708 7.44323C6.30296 7.37978 6.27964 7.31875 6.24786 7.26205C6.21203 7.19813 6.16177 7.14196 6.06126 7.02962L2.2571 2.77791Z'
+                }]
+        },
+        menu: {
+            width: 4,
+            height: 12,
+            children: [{
+                    d: 'M2.00016 6.66675C2.36835 6.66675 2.66683 6.36827 2.66683 6.00008C2.66683 5.63189 2.36835 5.33341 2.00016 5.33341C1.63197 5.33341 1.3335 5.63189 1.3335 6.00008C1.3335 6.36827 1.63197 6.66675 2.00016 6.66675Z'
+                }, {
+                    d: 'M2.00016 2.00008C2.36835 2.00008 2.66683 1.7016 2.66683 1.33341C2.66683 0.965225 2.36835 0.666748 2.00016 0.666748C1.63197 0.666748 1.3335 0.965225 1.3335 1.33341C1.3335 1.7016 1.63197 2.00008 2.00016 2.00008Z'
+                }, {
+                    d: 'M2.00016 11.3334C2.36835 11.3334 2.66683 11.0349 2.66683 10.6667C2.66683 10.2986 2.36835 10.0001 2.00016 10.0001C1.63197 10.0001 1.3335 10.2986 1.3335 10.6667C1.3335 11.0349 1.63197 11.3334 2.00016 11.3334Z'
+                }]
+        },
+        chevronRight: {
+            width: 6,
+            height: 10,
+            children: [{
+                    d: 'M1 9L5 5L1 1',
+                    'stroke-width': 1.34
+                }]
+        },
+        checkmark: {
+            width: 12,
+            height: 9,
+            children: [{
+                    d: 'M11.3332 1L3.99984 8.33333L0.666504 5'
+                }]
+        },
+        upDownArrows: {
+            width: 14,
+            height: 12,
+            children: [{
+                    d: 'M3.66667 0.666748V11.3334M3.66667 11.3334L1 8.66675M3.66667 11.3334L6.33333 8.66675M10.3333 11.3334V0.666748M10.3333 0.666748L7.66667 3.33341M10.3333 0.666748L13 3.33341'
+                }]
+        },
+        sortAsc: {
+            width: 14,
+            height: 12,
+            children: [{
+                    d: 'M3.66667 0.666748V11.3334M3.66667 11.3334L1 8.66675M3.66667 11.3334L6.33333 8.66675',
+                    opacity: 0.2
+                }, {
+                    d: 'M 10.3333 11.3334 V 0.6667 M 10.3333 0.6667 L 7.6667 3.3334 M 10.3333 0.6667 L 13 3.3334'
+                }]
+        },
+        sortDesc: {
+            width: 14,
+            height: 12,
+            children: [{
+                    d: 'M3.66667 0.666748V11.3334M3.66667 11.3334L1 8.66675M3.66667 11.3334L6.33333 8.66675'
+                }, {
+                    d: 'M 10.3333 11.3334 V 0.6667 M 10.3333 0.6667 L 7.6667 3.3334 M 10.3333 0.6667 L 13 3.3334',
+                    opacity: 0.2
+                }]
+        }
+    };
+    /**
+     * The default path definitions for the Grid Svg icons.
+     */
+    SvgIcons.pathDefaults = {
+        stroke: 'currentColor',
+        'stroke-width': 1.33,
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round'
+    };
+    /* *
+    *
+    *  Functions
+    *
+    * */
+    /**
+     * Creates an SVG icon element from the SvgIcons registry.
+     *
+     * @param name
+     * The name of the icon from SvgIcons registry
+     *
+     * @param className
+     * CSS class name for the SVG element (default: 'hcg-icon')
+     *
+     * @returns
+     * SVG element with the specified icon
+     */
+    function createGridIcon(name, className = Grid_Core_Globals.getClassName('icon')) {
+        const createElement = (type) => document.createElementNS('http://www.w3.org/2000/svg', type);
+        const { width = 16, height = 16, viewBox, fill, children } = SvgIcons.icons[name];
+        const svg = createElement('svg');
+        svg.setAttribute('width', width.toString());
+        svg.setAttribute('height', height.toString());
+        svg.setAttribute('viewBox', viewBox ?? `0 0 ${width} ${height}`);
+        svg.setAttribute('fill', fill ?? 'none');
+        for (const childDefinition of children ?? []) {
+            const path = createElement('path');
+            const attrKeys = new Set([
+                ...Object.keys(childDefinition),
+                ...Object.keys(SvgIcons.pathDefaults)
+            ]);
+            for (const attr of attrKeys) {
+                const value = childDefinition[attr] ?? SvgIcons.pathDefaults[attr];
+                if (value !== void 0) {
+                    path.setAttribute(attr, value.toString());
+                }
+            }
+            svg.appendChild(path);
+        }
+        svg.classList.add(className);
+        return svg;
+    }
+    SvgIcons.createGridIcon = createGridIcon;
+})(SvgIcons || (SvgIcons = {}));
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const UI_SvgIcons = (SvgIcons);
+
+;// ./code/grid/es-modules/Grid/Core/UI/ToolbarButton.js
+/* *
+ *
+ *  Grid Toolbar Button class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+const { makeHTMLElement: ToolbarButton_makeHTMLElement } = Core_GridUtils;
+/* *
+ *
+ *  Class
+ *
+ * */
+class ToolbarButton {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor(options) {
+        /**
+         * Used to remove the event listeners when the button is destroyed.
+         */
+        this.eventListenerDestroyers = [];
+        /**
+         * Whether the button is active.
+         */
+        this.isActive = false;
+        this.options = options;
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    /**
+     * Adds the button to the toolbar.
+     *
+     * @param toolbar
+     * The toolbar to add the button to.
+     */
+    add(toolbar) {
+        const cfg = this.options;
+        this.toolbar = toolbar;
+        toolbar.buttons.push(this);
+        const wrapper = ToolbarButton_makeHTMLElement('span', cfg.classNameKey && {
+            className: Grid_Core_Globals.getClassName(cfg.classNameKey)
+        }, toolbar.container);
+        this.wrapper = wrapper;
+        const button = this.buttonEl = ToolbarButton_makeHTMLElement('button', {
+            className: (Grid_Core_Globals.getClassName('button') +
+                (this.isActive ? ' active' : ''))
+        }, wrapper);
+        button.setAttribute('type', 'button');
+        button.setAttribute('tabindex', '-1');
+        if (cfg.tooltip) {
+            button.title = cfg.tooltip;
+            button.setAttribute('aria-label', cfg.tooltip);
+        }
+        this.setIcon(cfg.icon);
+        this.refreshState();
+        this.addEventListeners();
+        return this;
+    }
+    focus() {
+        this.buttonEl?.focus();
+        const tb = this.toolbar;
+        if (tb) {
+            tb.focusCursor = tb.buttons.indexOf(this);
+        }
+    }
+    /**
+     * Sets the icon for the button.
+     *
+     * @param icon
+     * The icon to set.
+     */
+    setIcon(icon) {
+        this.icon?.remove();
+        this.icon = UI_SvgIcons.createGridIcon(icon);
+        this.buttonEl?.appendChild(this.icon);
+    }
+    setActive(active) {
+        this.isActive = active;
+        this.buttonEl?.classList.toggle('active', active);
+        this.renderActiveIndicator(active);
+    }
+    setHighlighted(highlighted) {
+        this.buttonEl?.classList.toggle('highlighted', highlighted);
+    }
+    /**
+     * Destroys the button.
+     */
+    destroy() {
+        this.removeEventListeners();
+        this.wrapper?.remove();
+        // Unregister from toolbar
+        this.toolbar?.buttons.splice(this.toolbar.buttons.indexOf(this), 1);
+        delete this.toolbar;
+    }
+    /**
+     * Initializes the state of the button.
+     */
+    refreshState() {
+        // Do nothing, to be overridden by subclasses
+    }
+    /**
+     * Handles the click event for the button.
+     *
+     * @param event
+     * The mouse event.
+     */
+    clickHandler(event) {
+        this.options.onClick?.(event, this);
+    }
+    /**
+     * Renders the active indicator for the button.
+     *
+     * @param render
+     * Whether the active indicator should be rendered.
+     */
+    renderActiveIndicator(render) {
+        const button = this.buttonEl;
+        if (!button) {
+            return;
+        }
+        this.activeIndicator?.remove();
+        if (!render) {
+            delete this.activeIndicator;
+            return;
+        }
+        this.activeIndicator = ToolbarButton_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('toolbarButtonActiveIndicator')
+        }, button);
+    }
+    /**
+     * Adds event listeners to the button.
+     */
+    addEventListeners() {
+        const clickListener = (event) => {
+            this.clickHandler(event);
+        };
+        this.buttonEl?.addEventListener('click', clickListener);
+        this.eventListenerDestroyers.push(() => {
+            this.buttonEl?.removeEventListener('click', clickListener);
+        });
+    }
+    /**
+     * Removes event listeners from the button.
+     */
+    removeEventListeners() {
+        for (const destroyer of this.eventListenerDestroyers) {
+            destroyer();
+        }
+        this.eventListenerDestroyers.length = 0;
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const UI_ToolbarButton = (ToolbarButton);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Header/ColumnToolbar/StateHelpers.js
+/* *
+ *
+ *  Grid Header Cell State Helpers namespace
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+/* *
+ *
+ *  Namespace
+ *
+ * */
+var StateHelpers;
+(function (StateHelpers) {
+    /**
+     * Checks if the column is filtered.
+     *
+     * @param column
+     * The column to check.
+     */
+    function isFiltered(column) {
+        const { condition, value } = column.options.filtering || {};
+        return !!(condition && (['empty', 'notEmpty', 'true', 'false'].includes(condition) ||
+            (value !== void 0 && value !== '') // Accept null and 0
+        ));
+    }
+    StateHelpers.isFiltered = isFiltered;
+    /**
+     * Checks if the column is sorted.
+     *
+     * @param column
+     * The column to check.
+     *
+     * @param order
+     * Optional sorting order to check for.
+     *
+     * @returns
+     * True if the column is sorted. In case of `order` is provided, true
+     * only if the column is sorted in the provided order.
+     */
+    function isSorted(column, order) {
+        const { currentSorting } = column.viewport.grid.querying.sorting || {};
+        if (currentSorting?.columnId !== column.id) {
+            return false;
+        }
+        return order ?
+            currentSorting?.order === order :
+            !!currentSorting?.order;
+    }
+    StateHelpers.isSorted = isSorted;
+})(StateHelpers || (StateHelpers = {}));
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnToolbar_StateHelpers = (StateHelpers);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Header/ColumnToolbar/ToolbarButtons/SortToolbarButton.js
+/* *
+ *
+ *  Grid Sort Toolbar Button class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+const { addEvent: SortToolbarButton_addEvent } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+class SortToolbarButton extends UI_ToolbarButton {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor() {
+        super({
+            icon: 'upDownArrows',
+            classNameKey: 'headerCellSortIcon'
+        });
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    clickHandler(event) {
+        super.clickHandler(event);
+        this.toolbar?.column.sorting?.toggle();
+    }
+    refreshState() {
+        const column = this.toolbar?.column;
+        if (!column) {
+            return;
+        }
+        if (!ColumnToolbar_StateHelpers.isSorted(column)) {
+            this.setActive(false);
+            this.setIcon('upDownArrows');
+            return;
+        }
+        const { currentSorting } = column.viewport.grid.querying.sorting;
+        this.setActive(true);
+        this.setIcon(currentSorting?.order === 'asc' ? 'sortAsc' : 'sortDesc');
+    }
+    addEventListeners() {
+        super.addEventListeners();
+        const column = this.toolbar?.column;
+        if (!column) {
+            return;
+        }
+        // If this grid is currently sorted, update the state
+        this.eventListenerDestroyers.push(SortToolbarButton_addEvent(column.viewport.grid, 'afterSort', () => this.refreshState()));
+    }
+    renderActiveIndicator() {
+        // Do nothing
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ToolbarButtons_SortToolbarButton = (SortToolbarButton);
+
+;// ./code/grid/es-modules/Grid/Core/UI/Popup.js
+/* *
+ *
+ *  Grid Popup abstract class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+const { makeHTMLElement: Popup_makeHTMLElement } = Core_GridUtils;
+const { fireEvent: Popup_fireEvent } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Abstract base class for for Grid popups.
+ */
+class Popup {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    /**
+     * Constructs a popup for the given grid.
+     *
+     * @param grid
+     * The grid that will own this popup.
+     *
+     * @param button
+     * The button that opened the popup, if any.
+     *
+     * @param options
+     * Popup options.
+     */
+    constructor(grid, button, options) {
+        /**
+         * Whether the popup is currently visible.
+         */
+        this.isVisible = false;
+        /**
+         * Event listener destroyers.
+         */
+        this.eventListenerDestroyers = [];
+        this.grid = grid;
+        this.button = button;
+        this.options = options || {};
+    }
+    /**
+     * Shows the popup positioned relative to the anchor element.
+     *
+     * @param anchorElement
+     * The element to position the popup relative to.
+     */
+    show(anchorElement) {
+        if (this.container) {
+            return;
+        }
+        this.button?.setHighlighted(true);
+        this.container = Popup_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('popup')
+        });
+        this.content = Popup_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('popupContent')
+        });
+        const { header } = this.options;
+        if (header) {
+            this.addHeader(header.label, header.category);
+        }
+        this.renderContent(this.content);
+        this.container.appendChild(this.content);
+        this.anchorElement = anchorElement;
+        this.isVisible = true;
+        this.grid.contentWrapper?.appendChild(this.container);
+        this.position(anchorElement);
+        this.addEventListeners();
+        this.grid.popups.add(this);
+        Popup_fireEvent(this, 'afterShow');
+    }
+    /**
+     * Hides the popup. In reality, it just destroys the popup container and
+     * removes the event listeners.
+     */
+    hide() {
+        if (!this.container) {
+            return;
+        }
+        this.grid.popups.delete(this);
+        this.isVisible = false;
+        // Remove event listeners
+        this.removeEventListeners();
+        this.container.remove();
+        delete this.container;
+        delete this.content;
+        this.button?.setHighlighted(false);
+        Popup_fireEvent(this, 'afterHide');
+    }
+    /**
+     * Toggles the popup visibility.
+     *
+     * @param anchorElement
+     * The element to position the popup relative to. If not provided, the popup
+     * will be positioned relative to the parent element.
+     */
+    toggle(anchorElement) {
+        if (this.isVisible) {
+            this.hide();
+        }
+        else {
+            this.show(anchorElement);
+        }
+    }
+    /**
+     * Reflows the popup.
+     */
+    reflow() {
+        if (this.anchorElement?.isConnected) {
+            this.position(this.anchorElement);
+        }
+        else {
+            this.hide();
+        }
+    }
+    /**
+     * Positions the popup relative to the anchor element.
+     *
+     * @param anchorElement
+     * The element to position relative to. If not provided, the popup will be
+     * positioned relative to the parent element.
+     */
+    position(anchorElement) {
+        const wrapper = this.grid.contentWrapper;
+        if (!this.container || !this.content || !wrapper) {
+            return;
+        }
+        const next = this.options.nextToAnchor || false;
+        const popupRect = this.container.getBoundingClientRect();
+        const parentRect = wrapper.getBoundingClientRect();
+        const anchorRect = anchorElement?.getBoundingClientRect() ?? parentRect;
+        const top = next ? anchorRect.top : anchorRect.bottom + 4;
+        let left = next ? anchorRect.right + 3 : anchorRect.left;
+        // If popup's right side is after the parent's right side, shift popup
+        // to the left of the anchor element.
+        if (left + popupRect.width > parentRect.width) {
+            left = -popupRect.width + (next ? anchorRect.left + 4 : anchorRect.right);
+        }
+        // If popup's left side is before the parent's left side,
+        // shift popup so it's aligned to parent's left.
+        if (left < parentRect.left) {
+            left = parentRect.left;
+        }
+        // Apply positioning
+        this.container.style.top = `${top - parentRect.top}px`;
+        this.container.style.left = `${left - parentRect.left}px`;
+        // If the content is too tall, constrain the container to the bottom
+        // of the parent to enable content Y-scrolling.
+        const contentRect = this.content.getBoundingClientRect();
+        if (contentRect.height + contentRect.top - parentRect.top >
+            parentRect.height) {
+            this.container.style.top = 'auto';
+            this.container.style.bottom = '0';
+        }
+        else {
+            this.container.style.top = `${top - parentRect.top}px`;
+            this.container.style.bottom = 'auto';
+        }
+    }
+    /**
+     * Adds a header to the context menu.
+     *
+     * @param label
+     * The label shown in the header of the context menu.
+     *
+     * @param category
+     * The category shown in the header of the context menu, before the label.
+     *
+     * @returns
+     * The header element.
+     */
+    addHeader(label, category) {
+        if (!this.content) {
+            return;
+        }
+        const container = Popup_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('menuHeader')
+        }, this.content);
+        if (category) {
+            Popup_makeHTMLElement('span', {
+                className: Grid_Core_Globals.getClassName('menuHeaderCategory'),
+                innerText: category + ' '
+            }, container);
+        }
+        Popup_makeHTMLElement('span', {
+            className: Grid_Core_Globals.getClassName('menuHeaderName'),
+            innerText: label
+        }, container);
+        return container;
+    }
+    /**
+     * Handles key down events.
+     *
+     * @param e
+     * Keyboard event
+     */
+    onKeyDown(e) {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            this.hide();
+            this.button?.focus();
+        }
+    }
+    /**
+     * Handles click outside events.
+     *
+     * @param e
+     * Mouse event
+     */
+    onClickOutside(e) {
+        if (!this.container?.contains(e.target) &&
+            !this.anchorElement?.contains(e.target)) {
+            this.hide();
+        }
+    }
+    /**
+     * Adds event listeners for click outside and escape key.
+     */
+    addEventListeners() {
+        const container = this.container;
+        if (!container) {
+            return;
+        }
+        const clickOutsideListener = (event) => {
+            this.onClickOutside(event);
+        };
+        const keyDownListener = (event) => {
+            this.onKeyDown(event);
+        };
+        document.addEventListener('mousedown', clickOutsideListener);
+        container.addEventListener('keydown', keyDownListener);
+        this.eventListenerDestroyers.push(() => {
+            document.removeEventListener('mousedown', clickOutsideListener);
+            container.removeEventListener('keydown', keyDownListener);
+        });
+    }
+    /**
+     * Removes event listeners.
+     */
+    removeEventListeners() {
+        for (const destroyer of this.eventListenerDestroyers) {
+            destroyer();
+        }
+        this.eventListenerDestroyers.length = 0;
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const UI_Popup = (Popup);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Header/ColumnToolbar/FilterPopup.js
+/* *
+ *
+ *  Grid Filter Popup class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+const { merge: FilterPopup_merge } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * The column filtering popup.
+ */
+class FilterPopup extends UI_Popup {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    /**
+     * Constructs a column filtering popup.
+     *
+     * @param filtering
+     * The column filtering.
+     *
+     * @param button
+     * The button that opened the popup.
+     *
+     * @param options
+     * Popup options.
+     */
+    constructor(filtering, button, options) {
+        const grid = filtering.column.viewport.grid;
+        super(grid, button, FilterPopup_merge({
+            header: {
+                category: grid.options?.lang?.setFilter,
+                label: filtering.column.header?.value || ''
+            }
+        }, options));
+        this.filtering = filtering;
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    show(anchorElement) {
+        super.show(anchorElement);
+        this.filtering.filterSelect?.focus();
+    }
+    renderContent(contentElement) {
+        this.filtering.renderFilteringContent(contentElement);
+    }
+    onKeyDown(event) {
+        super.onKeyDown(event);
+        this.filtering.onKeyDown(event);
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnToolbar_FilterPopup = (FilterPopup);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Header/ColumnToolbar/ToolbarButtons/FilterToolbarButton.js
+/* *
+ *
+ *  Grid Filter Toolbar Button class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+
+const { addEvent: FilterToolbarButton_addEvent } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+class FilterToolbarButton extends UI_ToolbarButton {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor() {
+        super({
+            icon: 'filter',
+            classNameKey: 'headerCellFilterIcon'
+        });
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    refreshState() {
+        const column = this.toolbar?.column;
+        if (column) {
+            this.setActive(ColumnToolbar_StateHelpers.isFiltered(column));
+        }
+    }
+    addEventListeners() {
+        super.addEventListeners();
+        const toolbar = this.toolbar;
+        if (!toolbar) {
+            return;
+        }
+        this.eventListenerDestroyers.push(FilterToolbarButton_addEvent(toolbar.column, 'afterFilter', () => {
+            this.refreshState();
+        }));
+    }
+    clickHandler(event) {
+        super.clickHandler(event);
+        const filtering = this.toolbar?.column.filtering;
+        if (!filtering) {
+            return;
+        }
+        if (!this.popup) {
+            this.popup = new ColumnToolbar_FilterPopup(filtering, this);
+        }
+        this.popup.toggle(this.wrapper);
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ToolbarButtons_FilterToolbarButton = (FilterToolbarButton);
+
+;// ./code/grid/es-modules/Grid/Core/UI/ContextMenu.js
+/* *
+ *
+ * Grid Context Menu abstract class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+/* *
+ *
+ *  Imports
+ *
+ * */
+
+
+
+const { makeHTMLElement: ContextMenu_makeHTMLElement } = Core_GridUtils;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * The context menu.
+ */
+class ContextMenu extends UI_Popup {
+    constructor() {
+        /* *
+         *
+         *  Properties
+         *
+         * */
+        super(...arguments);
+        /**
+         * The array of buttons in the context menu.
+         */
+        this.buttons = [];
+        /**
+         * The index of the focused button in the context menu.
+         */
+        this.focusCursor = 0;
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    /**
+     * Ensures that the items container element is created.
+     *
+     * @returns
+     * The items container element.
+     */
+    ensureItemsContainer() {
+        if (!this.content) {
+            return;
+        }
+        if (this.itemsContainer) {
+            return this.itemsContainer;
+        }
+        this.itemsContainer = ContextMenu_makeHTMLElement('ul', {
+            className: Grid_Core_Globals.getClassName('menuContainer')
+        }, this.content);
+        return this.itemsContainer;
+    }
+    show(anchorElement) {
+        super.show(anchorElement);
+        this.buttons[0]?.focus();
+    }
+    hide() {
+        for (const btn of this.buttons) {
+            btn.destroy();
+        }
+        this.buttons.length = 0;
+        this.itemsContainer?.remove();
+        delete this.itemsContainer;
+        super.hide();
+    }
+    /**
+     * Adds a divider to the context menu.
+     *
+     * @returns
+     * The divider element.
+     */
+    addDivider() {
+        if (!this.ensureItemsContainer()) {
+            return;
+        }
+        return ContextMenu_makeHTMLElement('li', {
+            className: Grid_Core_Globals.getClassName('menuDivider')
+        }, this.itemsContainer);
+    }
+    onClickOutside(event) {
+        const buttons = this.buttons;
+        for (let i = 0, iEnd = buttons.length; i < iEnd; ++i) {
+            if (buttons[i].popup?.container?.contains(event.target)) {
+                return;
+            }
+        }
+        super.onClickOutside(event);
+    }
+    onKeyDown(e) {
+        super.onKeyDown(e);
+        const len = this.buttons.length;
+        const cursor = this.focusCursor;
+        switch (e.key) {
+            case 'ArrowUp':
+            case 'ArrowLeft':
+                e.preventDefault();
+                this.buttons[Math.abs((cursor - 1 + len) % len)].focus();
+                break;
+            case 'ArrowDown':
+            case 'ArrowRight':
+                e.preventDefault();
+                this.buttons[(cursor + 1) % len].focus();
+                break;
+        }
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const UI_ContextMenu = (ContextMenu);
+
+;// ./code/grid/es-modules/Grid/Core/UI/ContextMenuButton.js
+/* *
+ *
+ *  Grid Context Menu Button class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+const { makeHTMLElement: ContextMenuButton_makeHTMLElement } = Core_GridUtils;
+/* *
+ *
+ *  Class
+ *
+ * */
+class ContextMenuButton {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor(options) {
+        /**
+         * Used to remove the event listeners when the button is destroyed.
+         */
+        this.eventListenerDestroyers = [];
+        /**
+         * Whether the button is active.
+         */
+        this.isActive = false;
+        this.options = options;
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    /**
+     * Adds the button to the context menu.
+     *
+     * @param contextMenu
+     * The context menu to add the button to.
+     */
+    add(contextMenu) {
+        const cfg = this.options;
+        this.contextMenu = contextMenu;
+        contextMenu.buttons.push(this);
+        const container = contextMenu.ensureItemsContainer();
+        if (!container) {
+            return;
+        }
+        const liEl = this.wrapper = ContextMenuButton_makeHTMLElement('li', cfg.classNameKey && {
+            className: Grid_Core_Globals.getClassName(cfg.classNameKey)
+        }, container);
+        const buttonEl = this.buttonEl = ContextMenuButton_makeHTMLElement('button', {
+            className: Grid_Core_Globals.getClassName('menuItem')
+        }, liEl);
+        const iconEl = this.iconWrapper = ContextMenuButton_makeHTMLElement('span', {
+            className: Grid_Core_Globals.getClassName('menuItemIcon')
+        }, buttonEl);
+        this.spanEl = ContextMenuButton_makeHTMLElement('span', {
+            className: Grid_Core_Globals.getClassName('menuItemLabel'),
+            innerText: cfg.label || ''
+        }, buttonEl);
+        const chevronEl = ContextMenuButton_makeHTMLElement('span', {
+            className: Grid_Core_Globals.getClassName('menuItemIcon')
+        }, buttonEl);
+        iconEl.setAttribute('aria-hidden', 'true');
+        chevronEl.setAttribute('aria-hidden', 'true');
+        buttonEl.setAttribute('type', 'button');
+        buttonEl.setAttribute('tabindex', '-1');
+        this.refreshState();
+        if (cfg.chevron) {
+            chevronEl.appendChild(UI_SvgIcons.createGridIcon('chevronRight'));
+        }
+        if (cfg.icon) {
+            this.setIcon(cfg.icon);
+        }
+        this.addEventListeners();
+        return this;
+    }
+    focus() {
+        this.buttonEl?.focus();
+        const cm = this.contextMenu;
+        if (cm) {
+            cm.focusCursor = cm.buttons.indexOf(this);
+        }
+    }
+    setLabel(label) {
+        if (this.spanEl) {
+            this.spanEl.innerText = label;
+        }
+    }
+    /**
+     * Sets the icon for the button.
+     *
+     * @param icon
+     * The icon to set.
+     */
+    setIcon(icon) {
+        this.icon?.remove();
+        if (!icon) {
+            return;
+        }
+        this.icon = UI_SvgIcons.createGridIcon(icon);
+        this.iconWrapper?.appendChild(this.icon);
+    }
+    setActive(active) {
+        this.isActive = active;
+        this.buttonEl?.classList.toggle('active', active);
+        const { activeIcon, icon } = this.options;
+        if (activeIcon) {
+            this.setIcon(active ? activeIcon : icon);
+        }
+    }
+    setHighlighted(highlighted) {
+        this.buttonEl?.classList.toggle('highlighted', highlighted);
+    }
+    /**
+     * Destroys the button.
+     */
+    destroy() {
+        this.removeEventListeners();
+        this.wrapper?.remove();
+        // Unregister from the context menu
+        const cm = this.contextMenu;
+        if (cm) {
+            cm.buttons.splice(cm.buttons.indexOf(this), 1);
+            delete this.contextMenu;
+        }
+    }
+    /**
+     * Initializes the state of the button.
+     */
+    refreshState() {
+        // Do nothing, to be overridden by subclasses
+    }
+    /**
+     * Handles the click event for the button.
+     *
+     * @param event
+     * The mouse event.
+     */
+    clickHandler(event) {
+        this.options.onClick?.(event, this);
+    }
+    /**
+     * Adds event listeners to the button.
+     */
+    addEventListeners() {
+        const clickListener = (event) => {
+            this.clickHandler(event);
+        };
+        this.buttonEl?.addEventListener('click', clickListener);
+        this.eventListenerDestroyers.push(() => {
+            this.buttonEl?.removeEventListener('click', clickListener);
+        });
+    }
+    /**
+     * Removes event listeners from the button.
+     */
+    removeEventListeners() {
+        for (const destroyer of this.eventListenerDestroyers) {
+            destroyer();
+        }
+        this.eventListenerDestroyers.length = 0;
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const UI_ContextMenuButton = (ContextMenuButton);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Header/ColumnToolbar/MenuButtons/FilterMenuButton.js
+/* *
+ *
+ *  Grid Filter Context Menu Button class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+
+const { addEvent: FilterMenuButton_addEvent } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+class FilterMenuButton_FilterToolbarButton extends UI_ContextMenuButton {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor(langOptions) {
+        super({
+            label: langOptions.filter,
+            icon: 'filter',
+            chevron: true
+        });
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    refreshState() {
+        const column = this.contextMenu?.button.toolbar?.column;
+        if (column) {
+            this.setActive(ColumnToolbar_StateHelpers.isFiltered(column));
+        }
+    }
+    addEventListeners() {
+        super.addEventListeners();
+        const toolbar = this.contextMenu?.button.toolbar;
+        if (!toolbar) {
+            return;
+        }
+        this.eventListenerDestroyers.push(FilterMenuButton_addEvent(toolbar.column, 'afterFilter', () => {
+            this.refreshState();
+        }));
+    }
+    clickHandler(event) {
+        super.clickHandler(event);
+        const filtering = this.contextMenu?.button.toolbar?.column.filtering;
+        if (!filtering) {
+            return;
+        }
+        if (!this.popup) {
+            this.popup = new ColumnToolbar_FilterPopup(filtering, this, {
+                nextToAnchor: true
+            });
+        }
+        this.popup.toggle(this.wrapper);
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const FilterMenuButton = (FilterMenuButton_FilterToolbarButton);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Header/ColumnToolbar/MenuButtons/SortMenuButton.js
+/* *
+ *
+ *  Grid Sort Context Menu Button class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+const { addEvent: SortMenuButton_addEvent } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+class SortMenuButton extends UI_ContextMenuButton {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor(langOptions, direction) {
+        super({ icon: direction === 'asc' ? 'sortAsc' : 'sortDesc' });
+        this.direction = direction;
+        this.options.label = langOptions[direction === 'asc' ? 'sortAscending' : 'sortDescending'];
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    refreshState() {
+        const column = this.contextMenu?.button?.toolbar?.column;
+        if (!column) {
+            return;
+        }
+        this.setActive(ColumnToolbar_StateHelpers.isSorted(column, this.direction));
+    }
+    addEventListeners() {
+        super.addEventListeners();
+        const column = this.contextMenu?.button?.toolbar?.column;
+        if (!column) {
+            return;
+        }
+        // If this grid is currently sorted, update the state
+        this.eventListenerDestroyers.push(SortMenuButton_addEvent(column.viewport.grid, 'afterSort', () => this.refreshState()));
+    }
+    clickHandler(event) {
+        super.clickHandler(event);
+        const sorting = this.contextMenu?.button?.toolbar?.column.sorting;
+        if (!sorting) {
+            return;
+        }
+        void sorting.setOrder(this.isActive ? null : this.direction);
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const MenuButtons_SortMenuButton = (SortMenuButton);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Header/ColumnToolbar/MenuPopup.js
+/* *
+ *
+ *  Grid Menu Popup class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * The column filtering popup.
+ */
+class MenuPopup extends UI_ContextMenu {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor(grid, button) {
+        super(grid, button);
+        this.button = button;
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    renderContent() {
+        const lang = this.grid.options?.lang || {};
+        const columnOptions = this.button.toolbar?.column.options || {};
+        const filteringEnabled = (columnOptions.filtering?.enabled &&
+            !columnOptions.filtering.inline);
+        const sortingEnabled = columnOptions.sorting?.sortable;
+        this.addHeader(this.button.toolbar?.column.header?.value || '', lang.column);
+        if (sortingEnabled) {
+            new MenuButtons_SortMenuButton(lang, 'desc').add(this);
+            new MenuButtons_SortMenuButton(lang, 'asc').add(this);
+            if (filteringEnabled) {
+                this.addDivider();
+            }
+        }
+        if (filteringEnabled) {
+            new FilterMenuButton(lang || {}).add(this);
+        }
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnToolbar_MenuPopup = (MenuPopup);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Header/ColumnToolbar/ToolbarButtons/MenuToolbarButton.js
+/* *
+ *
+ *  Grid Menu Toolbar Button class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+
+const { addEvent: MenuToolbarButton_addEvent } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+class MenuToolbarButton extends UI_ToolbarButton {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor() {
+        super({
+            icon: 'menu',
+            classNameKey: 'headerCellMenuIcon'
+        });
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    clickHandler(event) {
+        super.clickHandler(event);
+        const grid = this.toolbar?.column.viewport.grid;
+        if (!grid) {
+            return;
+        }
+        if (!this.popup) {
+            this.popup = new ColumnToolbar_MenuPopup(grid, this);
+        }
+        this.popup.toggle(this.wrapper);
+    }
+    refreshState() {
+        const column = this.toolbar?.column;
+        if (!column) {
+            return;
+        }
+        this.setActive(ColumnToolbar_StateHelpers.isSorted(column) ||
+            ColumnToolbar_StateHelpers.isFiltered(column));
+    }
+    addEventListeners() {
+        super.addEventListeners();
+        const column = this.toolbar?.column;
+        if (!column) {
+            return;
+        }
+        this.eventListenerDestroyers.push(MenuToolbarButton_addEvent(column.viewport.grid, 'afterSort', () => {
+            this.refreshState();
+        }), MenuToolbarButton_addEvent(column, 'afterFilter', () => {
+            this.refreshState();
+        }));
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ToolbarButtons_MenuToolbarButton = (MenuToolbarButton);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Header/ColumnToolbar/ColumnToolbar.js
+/* *
+ *
+ *  Grid Header Cell Toolbar class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+
+
+
+const { makeHTMLElement: ColumnToolbar_makeHTMLElement } = Core_GridUtils;
+const { getStyle: ColumnToolbar_getStyle } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+class HeaderCellToolbar {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor(column) {
+        this.buttons = [];
+        this.focusCursor = 0;
+        /**
+         * The event listener destroyers of the toolbar.
+         */
+        this.eventListenerDestroyers = [];
+        this.column = column;
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    /**
+     * Initializes the buttons of the toolbar.
+     */
+    renderFull() {
+        const columnOptions = this.column.options;
+        if (columnOptions.sorting?.sortable) {
+            new ToolbarButtons_SortToolbarButton().add(this);
+        }
+        if (columnOptions.filtering?.enabled &&
+            !columnOptions.filtering.inline) {
+            new ToolbarButtons_FilterToolbarButton().add(this);
+        }
+    }
+    renderMinimized() {
+        const columnOptions = this.column.options;
+        if (columnOptions.sorting?.sortable || (columnOptions.filtering?.enabled &&
+            !columnOptions.filtering.inline)) {
+            new ToolbarButtons_MenuToolbarButton().add(this);
+        }
+    }
+    /**
+     * Render the toolbar.
+     */
+    add() {
+        const headerCell = this.column.header;
+        if (!headerCell?.container) {
+            return;
+        }
+        if (this.columnResizeObserver) {
+            this.columnResizeObserver.disconnect();
+            delete this.columnResizeObserver;
+        }
+        this.columnResizeObserver = new ResizeObserver(() => this.reflow());
+        this.columnResizeObserver.observe(headerCell.container);
+        const container = this.container = ColumnToolbar_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('headerCellIcons')
+        });
+        headerCell.container.appendChild(container);
+        const onKeyDown = (e) => {
+            this.keyDownHandler(e);
+        };
+        container.addEventListener('keydown', onKeyDown);
+        this.eventListenerDestroyers.push(() => {
+            container.removeEventListener('keydown', onKeyDown);
+        });
+    }
+    /**
+     * Destroys all buttons of the toolbar.
+     */
+    clearButtons() {
+        const { buttons } = this;
+        while (buttons.length > 0) {
+            buttons[buttons.length - 1].destroy();
+        }
+    }
+    /**
+     * Reflows the toolbar. It is called when the column is resized.
+     */
+    reflow() {
+        const width = this.column.getWidth();
+        const shouldBeMinimized = width <= HeaderCellToolbar.MINIMIZED_COLUMN_WIDTH;
+        if (shouldBeMinimized !== this.isMinimized) {
+            this.isMinimized = shouldBeMinimized;
+            this.clearButtons();
+            if (shouldBeMinimized) {
+                this.renderMinimized();
+            }
+            else {
+                this.renderFull();
+            }
+        }
+        if (!shouldBeMinimized) {
+            return;
+        }
+        const parent = this.column.header?.htmlElement;
+        const container = this.container;
+        const parentWidth = parent?.offsetWidth || 0;
+        const containerWidth = this.buttons[0]?.wrapper?.offsetWidth || 0;
+        const parentPaddings = ((parent && ColumnToolbar_getStyle(parent, 'padding-left', true) || 0) +
+            (parent && ColumnToolbar_getStyle(parent, 'padding-right', true) || 0));
+        const containerMargins = ((container && ColumnToolbar_getStyle(container, 'margin-left', true) || 0) +
+            (container && ColumnToolbar_getStyle(container, 'margin-right', true) || 0));
+        const shouldBeCentered = parentWidth - parentPaddings < containerWidth + containerMargins;
+        if (this.isMenuCentered !== shouldBeCentered) {
+            this.isMenuCentered = shouldBeCentered;
+            this.column.header?.container?.classList.toggle(Grid_Core_Globals.getClassName('noWidth'), shouldBeCentered);
+        }
+    }
+    /**
+     * Destroy the toolbar.
+     */
+    destroy() {
+        for (const destroyer of this.eventListenerDestroyers) {
+            destroyer();
+        }
+        this.eventListenerDestroyers.length = 0;
+        this.columnResizeObserver?.disconnect();
+        delete this.columnResizeObserver;
+    }
+    /**
+     * Focuses the first button of the toolbar.
+     */
+    focus() {
+        this.buttons[0]?.focus();
+    }
+    /**
+     * Handles the key down event on the toolbar.
+     *
+     * @param e
+     * Keyboard event object.
+     */
+    keyDownHandler(e) {
+        const len = this.buttons.length;
+        const cursor = this.focusCursor;
+        switch (e.key) {
+            case 'ArrowUp':
+            case 'ArrowLeft':
+                this.buttons[Math.abs((cursor - 1 + len) % len)].focus();
+                break;
+            case 'ArrowDown':
+            case 'ArrowRight':
+                this.buttons[(cursor + 1) % len].focus();
+                break;
+            case 'Escape':
+                this.column.header?.htmlElement.focus();
+                break;
+        }
+    }
+}
+/**
+ * The maximum width of the column to be minimized.
+ */
+HeaderCellToolbar.MINIMIZED_COLUMN_WIDTH = 120;
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnToolbar = (HeaderCellToolbar);
 
 ;// ./code/grid/es-modules/Grid/Core/Table/Header/HeaderCell.js
 /* *
@@ -13759,8 +15682,9 @@ class ColumnSorting {
 
 
 
-const { makeHTMLElement: HeaderCell_makeHTMLElement, setHTMLContent: HeaderCell_setHTMLContent } = Core_GridUtils;
-const { fireEvent: HeaderCell_fireEvent, merge: HeaderCell_merge, isString: HeaderCell_isString } = Core_Utilities;
+
+const { makeHTMLElement: HeaderCell_makeHTMLElement, setHTMLContent: HeaderCell_setHTMLContent, createOptionsProxy: HeaderCell_createOptionsProxy } = Core_GridUtils;
+const { fireEvent: HeaderCell_fireEvent, isString: HeaderCell_isString } = Core_Utilities;
 /* *
  *
  *  Class
@@ -13791,9 +15715,11 @@ class HeaderCell extends Table_Cell {
     constructor(row, column, columnsTree) {
         super(row, column);
         /**
-         * Reference to options in settings header.
+         * Reference to options taken from the header settings, that will override
+         * the column options.
+         * @internal
          */
-        this.options = {};
+        this.superColumnOptions = {};
         /**
          * List of columns that are subordinated to the header cell.
          */
@@ -13802,6 +15728,11 @@ class HeaderCell extends Table_Cell {
          * Content value of the header cell.
          */
         this.value = '';
+        const header = this.row.viewport.header;
+        if (!header) {
+            throw new Error('No header found.');
+        }
+        this.tableHeader = header;
         if (column) {
             column.header = this;
             this.columns.push(column);
@@ -13835,7 +15766,7 @@ class HeaderCell extends Table_Cell {
      */
     render() {
         const { column } = this;
-        const options = HeaderCell_merge(column?.options || {}, this.options);
+        const options = HeaderCell_createOptionsProxy(this.superColumnOptions, column?.options);
         const headerCellOptions = options.header || {};
         const isSortableData = options.sorting?.sortable && column?.data;
         if (headerCellOptions.formatter) {
@@ -13851,14 +15782,18 @@ class HeaderCell extends Table_Cell {
         }
         // Render content of th element
         this.row.htmlElement.appendChild(this.htmlElement);
+        // Create flex container for header content and icons
+        const container = this.container = HeaderCell_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('headerCellContainer')
+        }, this.htmlElement);
         this.headerContent = HeaderCell_makeHTMLElement('span', {
             className: Grid_Core_Globals.getClassName('headerCellContent')
-        }, this.htmlElement);
+        }, container);
         // Render the header cell element content.
         HeaderCell_setHTMLContent(this.headerContent, this.value);
         this.htmlElement.setAttribute('scope', 'col');
-        if (this.options.className) {
-            this.htmlElement.classList.add(...this.options.className.split(/\s+/g));
+        if (this.superColumnOptions.className) {
+            this.htmlElement.classList.add(...this.superColumnOptions.className.split(/\s+/g));
         }
         if (column) {
             this.htmlElement.setAttribute('data-column-id', column.id);
@@ -13871,10 +15806,17 @@ class HeaderCell extends Table_Cell {
             }
             // Add resizing
             column.viewport.columnsResizer?.renderColumnDragHandles(column, this);
+            // Add toolbar
+            this.toolbar = new ColumnToolbar(column);
+            this.toolbar.add();
             // Add sorting
             this.initColumnSorting();
         }
         this.setCustomClassName(options.header?.className);
+        // Add alignment to number column
+        if (column?.dataType === 'number') {
+            this.setCustomClassName(Grid_Core_Globals.getClassName('rightAlign'));
+        }
         HeaderCell_fireEvent(this, 'afterRender', { column });
     }
     reflow() {
@@ -13889,15 +15831,15 @@ class HeaderCell extends Table_Cell {
         // Set the width of the column. Max width is needed for the
         // overflow: hidden to work.
         th.style.width = th.style.maxWidth = width + 'px';
+        this.toolbar?.reflow();
     }
     onKeyDown(e) {
         if (!this.column || e.target !== this.htmlElement) {
             return;
         }
         if (e.key === 'Enter') {
-            if (this.column.options.sorting?.sortable) {
-                this.column.sorting?.toggle();
-            }
+            this.toolbar?.focus();
+            e.preventDefault();
             return;
         }
         super.onKeyDown(e);
@@ -13934,6 +15876,10 @@ class HeaderCell extends Table_Cell {
         const lastViewportColumn = vp.columns[vp.columns.length - 1];
         const lastCellColumn = this.columns?.[this.columns.length - 1];
         return lastViewportColumn === lastCellColumn;
+    }
+    destroy() {
+        this.toolbar?.destroy();
+        super.destroy();
     }
 }
 /* *
@@ -14006,19 +15952,21 @@ class HeaderRow extends Table_Row {
      *
      * @param level
      * The current level in the header tree
+     *
+     * @internal
      */
-    renderMultipleLevel(level) {
-        const header = this.viewport.grid.options?.header;
+    renderContent(level) {
+        const headerOpt = this.viewport.grid.options?.header;
         const vp = this.viewport;
-        const enabledColumns = vp.grid.enabledColumns;
+        const enabledColumns = vp.grid.enabledColumns || [];
         // Render element
         vp.theadElement?.appendChild(this.htmlElement);
         this.htmlElement.classList.add(Grid_Core_Globals.getClassName('headerRow'));
-        if (!header) {
+        if (!headerOpt) {
             super.render();
         }
         else {
-            const columnsOnLevel = this.getColumnsAtLevel(header, level);
+            const columnsOnLevel = this.getColumnsAtLevel(headerOpt, level);
             for (let i = 0, iEnd = columnsOnLevel.length; i < iEnd; i++) {
                 const columnOnLevel = columnsOnLevel[i];
                 const colIsString = typeof columnOnLevel === 'string';
@@ -14042,13 +15990,13 @@ class HeaderRow extends Table_Row {
                     vp.grid.accessibility?.addHeaderCellDescription(headerCell.htmlElement, columnOnLevel.accessibility?.description);
                 }
                 if (HeaderRow_isString(headerFormat)) {
-                    if (!headerCell.options.header) {
-                        headerCell.options.header = {};
+                    if (!headerCell.superColumnOptions.header) {
+                        headerCell.superColumnOptions.header = {};
                     }
-                    headerCell.options.header.format = headerFormat;
+                    headerCell.superColumnOptions.header.format = headerFormat;
                 }
                 if (className) {
-                    headerCell.options.className = className;
+                    headerCell.superColumnOptions.className = className;
                 }
                 // Add class to disable left border on first column
                 if (dataColumn?.index === 0 && i === 0) {
@@ -14065,16 +16013,22 @@ class HeaderRow extends Table_Row {
                 }
             }
         }
-        const lastCell = this.cells[this.cells.length - 1];
-        if (lastCell.isLastColumn()) {
-            lastCell.htmlElement.classList.add(Grid_Core_Globals.getClassName('lastHeaderCellInRow'));
-        }
+        this.setLastCellClass();
     }
     reflow() {
         const row = this;
         for (let i = 0, iEnd = row.cells.length; i < iEnd; i++) {
             const cell = row.cells[i];
             cell.reflow();
+        }
+    }
+    /**
+     * Sets a specific class to the last cell in the row.
+     */
+    setLastCellClass() {
+        const lastCell = this.cells[this.cells.length - 1];
+        if (lastCell.isLastColumn()) {
+            lastCell.htmlElement.classList.add(Grid_Core_Globals.getClassName('lastHeaderCellInRow'));
         }
     }
     /**
@@ -14108,8 +16062,8 @@ class HeaderRow extends Table_Row {
      * Sets the row HTML element attributes and additional classes.
      */
     setRowAttributes() {
-        const a11y = this.viewport.grid.accessibility;
-        a11y?.setRowIndex(this.htmlElement, this.level);
+        this.viewport.grid.accessibility?.setRowIndex(this.htmlElement, this.level // Level (1-based)
+        );
     }
 }
 /* *
@@ -14118,6 +16072,176 @@ class HeaderRow extends Table_Row {
  *
  * */
 /* harmony default export */ const Header_HeaderRow = (HeaderRow);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Actions/ColumnFiltering/FilterCell.js
+/* *
+ *
+ *  Grid Filter Cell class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+const { fireEvent: FilterCell_fireEvent } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Represents a cell in the data grid header.
+ */
+class FilterCell extends Header_HeaderCell {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor(row, column) {
+        const trueHeader = column.header;
+        super(row, column);
+        column.header = trueHeader;
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    render() {
+        const { column } = this;
+        if (!column) {
+            return;
+        }
+        // Render content of th element
+        this.row.htmlElement.appendChild(this.htmlElement);
+        this.htmlElement.setAttribute('scope', 'col');
+        this.htmlElement.setAttribute('data-column-id', column.id);
+        // Add user column classname
+        if (column.options.className) {
+            this.htmlElement.classList.add(...column.options.className.split(/\s+/g));
+        }
+        this.setCustomClassName(column.options.header?.className);
+        FilterCell_fireEvent(this, 'afterRender', { column, filtering: true });
+    }
+    onKeyDown(e) {
+        this.column.filtering?.onKeyDown(e);
+        if (e.target === this.htmlElement) {
+            if (e.key === 'Enter') {
+                this.column.filtering?.filterSelect?.focus();
+            }
+            else {
+                super.onKeyDown(e);
+            }
+        }
+        else {
+            if (e.key === 'Escape') {
+                this.htmlElement.focus();
+            }
+        }
+    }
+    onClick(e) {
+        if (e.target === this.htmlElement) {
+            this.htmlElement.focus();
+        }
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnFiltering_FilterCell = (FilterCell);
+
+;// ./code/grid/es-modules/Grid/Core/Table/Actions/ColumnFiltering/FilterRow.js
+/* *
+ *
+ *  Grid FilteringRow class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Represents a special filtering row in the data grid header.
+ */
+class FilterRow extends Header_HeaderRow {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    /**
+     * Constructs a filtering row in the Grid's header.
+     *
+     * @param viewport
+     * The Grid Table instance which the row belongs to.
+     */
+    constructor(viewport) {
+        super(viewport, (viewport.header?.levels ?? 0) + 1 // Level (1-based)
+        );
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    createCell(column) {
+        return new ColumnFiltering_FilterCell(this, column);
+    }
+    renderContent() {
+        const vp = this.viewport;
+        const enabledColumns = vp.grid.enabledColumns || [];
+        vp.theadElement?.appendChild(this.htmlElement);
+        this.htmlElement.classList.add(Grid_Core_Globals.getClassName('headerRow'));
+        for (let i = 0, iEnd = vp.columns.length; i < iEnd; i++) {
+            const column = vp.columns[i];
+            if (enabledColumns?.indexOf(column.id) < 0) {
+                continue;
+            }
+            const cell = this.createCell(column);
+            cell.render();
+            if (column.options.filtering?.inline) {
+                column.filtering?.renderFilteringContent(cell.htmlElement);
+            }
+        }
+        const firstCell = this.cells[0];
+        if (firstCell.column?.index === 0) {
+            // Add class to disable left border on first column
+            this.cells[0].htmlElement.classList.add(Grid_Core_Globals.getClassName('columnFirst'));
+        }
+        this.setLastCellClass();
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const ColumnFiltering_FilterRow = (FilterRow);
 
 ;// ./code/grid/es-modules/Grid/Core/Table/Header/TableHeader.js
 /* *
@@ -14135,6 +16259,7 @@ class HeaderRow extends Table_Row {
  *  - Sebastian Bochan
  *
  * */
+
 
 
 /* *
@@ -14174,6 +16299,7 @@ class TableHeader {
         this.rows = [];
         /**
          * Amount of levels in the header, that is used in creating correct rows.
+         * Excludes any extra levels, like filtering row.
          */
         this.levels = 1;
         this.viewport = viewport;
@@ -14195,9 +16321,17 @@ class TableHeader {
         if (!vp.grid.enabledColumns) {
             return;
         }
+        // Render regular, multiple level rows.
         for (let i = 0, iEnd = this.levels; i < iEnd; i++) {
             const row = new Header_HeaderRow(vp, i + 1); // Avoid indexing from 0
-            row.renderMultipleLevel(i);
+            row.renderContent(i);
+            this.rows.push(row);
+        }
+        // Render an extra row for inline filtering.
+        if (vp.columns.some((column) => (column.options.filtering?.enabled &&
+            column.options.filtering.inline) || false)) {
+            const row = new ColumnFiltering_FilterRow(vp);
+            row.renderContent();
             this.rows.push(row);
         }
     }
@@ -14210,7 +16344,6 @@ class TableHeader {
             return;
         }
         const { clientWidth, offsetWidth } = vp.tbodyElement;
-        const header = vp.header;
         const rows = this.rows;
         const bordersWidth = offsetWidth - clientWidth;
         for (const row of rows) {
@@ -14219,16 +16352,6 @@ class TableHeader {
         if (vp.rowsWidth) {
             vp.theadElement.style.width =
                 Math.max(vp.rowsWidth, clientWidth) + bordersWidth + 'px';
-        }
-        if (header &&
-            bordersWidth > 0 &&
-            this.viewport.columnDistribution.type === 'full') {
-            const row = this.columns[this.columns.length - 1].header?.row;
-            const lastCellEl = row?.cells[row.cells.length - 1]?.htmlElement;
-            if (lastCellEl) {
-                lastCellEl.style.width = lastCellEl.style.maxWidth =
-                    lastCellEl.offsetWidth + bordersWidth + 'px';
-            }
         }
     }
     /**
@@ -14265,6 +16388,14 @@ class TableHeader {
         }
         el.style.transform = `translateX(${-scrollLeft}px)`;
     }
+    /**
+     * Destroys the table header and all its associated components.
+     */
+    destroy() {
+        for (const row of this.rows) {
+            row.destroy();
+        }
+    }
 }
 /* *
  *
@@ -14289,6 +16420,7 @@ class TableHeader {
  *  - Sebastian Bochan
  *
  * */
+
 
 
 
@@ -14358,6 +16490,10 @@ class TableCell extends Table_Cell {
         }
         this.htmlElement.setAttribute('data-value', this.value + '');
         this.setCustomClassName(this.column.options.cells?.className);
+        // Add alignment to number column
+        if (this.column.dataType === 'number') {
+            this.setCustomClassName(Grid_Core_Globals.getClassName('rightAlign'));
+        }
         TableCell_fireEvent(this, 'afterRender', { target: this });
     }
     /**
@@ -14383,7 +16519,8 @@ class TableCell extends Table_Cell {
         }
         this.row.data[this.column.id] = this.value;
         originalDataTable.setCell(this.column.id, rowTableIndex, this.value);
-        if (vp.grid.querying.getModifiers().length < 1) {
+        // If no modifiers, don't update all rows
+        if (vp.grid.dataTable === vp.grid.presentationTable) {
             return false;
         }
         await vp.updateRows();
@@ -14643,7 +16780,8 @@ class TableRow extends Table_Row {
      * lifecycle.
      */
     updateRowAttributes() {
-        const a11y = this.viewport.grid.accessibility;
+        const vp = this.viewport;
+        const a11y = vp.grid.accessibility;
         const idx = this.index;
         const el = this.htmlElement;
         // Index of the row in the original data table (ID)
@@ -14651,7 +16789,7 @@ class TableRow extends Table_Row {
             el.setAttribute('data-row-id', this.id);
         }
         // Calculate levels of header, 1 to avoid indexing from 0
-        a11y?.setRowIndex(el, idx + (this.viewport.header?.levels ?? 1) + 1);
+        a11y?.setRowIndex(el, idx + (vp.header?.rows.length ?? 0) + 1);
     }
     /**
      * Sets the vertical translation of the row. Used for virtual scrolling.
@@ -14746,7 +16884,7 @@ class RowsVirtualizer {
      */
     initialRender() {
         // Initial reflow to set the viewport height
-        if (this.rowSettings?.virtualization) {
+        if (this.viewport.virtualRows) {
             this.viewport.reflow();
         }
         // Load & render rows
@@ -14770,7 +16908,7 @@ class RowsVirtualizer {
             rows.length = 0;
         }
         this.renderRows(this.rowCursor);
-        if (this.rowSettings?.virtualization) {
+        if (this.viewport.virtualRows) {
             if (oldScrollTop !== void 0) {
                 tbody.scrollTop = oldScrollTop;
             }
@@ -14853,7 +16991,7 @@ class RowsVirtualizer {
         if (rowCount < 1) {
             return;
         }
-        const isVirtualization = this.rowSettings?.virtualization;
+        const isVirtualization = this.viewport.virtualRows;
         const rowsPerPage = isVirtualization ? Math.ceil((vp.grid.tableElement?.clientHeight || 0) /
             this.defaultRowHeight) : Infinity; // Need to be refactored when add pagination
         let rows = vp.rows;
@@ -14922,8 +17060,12 @@ class RowsVirtualizer {
             }
         }
         // Set the focus anchor cell
-        if (!vp.focusCursor || !vp.focusAnchorCell?.row.rendered) {
-            vp.setFocusAnchorCell(rows[rowCursor - rows[0].index].cells[0]);
+        if ((!vp.focusCursor || !vp.focusAnchorCell?.row.rendered) &&
+            rows.length > 0) {
+            const rowIndex = rowCursor - rows[0].index;
+            if (rows[rowIndex]) {
+                vp.setFocusAnchorCell(rows[rowIndex].cells[0]);
+            }
         }
     }
     /**
@@ -14933,7 +17075,7 @@ class RowsVirtualizer {
      */
     adjustRowHeights() {
         if (this.strictRowHeights ||
-            !this.rowSettings?.virtualization) {
+            !this.viewport.virtualRows) {
             return;
         }
         const { rowCursor: cursor, defaultRowHeight: defaultH } = this;
@@ -15081,7 +17223,7 @@ class ColumnsResizer {
             }
             const diff = e.pageX - (this.dragStartX || 0);
             const vp = this.viewport;
-            vp.columnDistribution.resize(this, diff);
+            vp.columnResizing.resize(this, diff);
             vp.reflow();
             vp.rowsVirtualizer.adjustRowHeights();
             ColumnsResizer_fireEvent(this.draggedColumn, 'afterResize', {
@@ -15094,6 +17236,9 @@ class ColumnsResizer {
          */
         this.onDocumentMouseUp = () => {
             this.draggedColumn?.header?.htmlElement?.classList.remove(Grid_Core_Globals.getClassName('resizedColumn'));
+            if (!this.draggedResizeHandle?.matches(':hover')) {
+                this.draggedResizeHandle?.classList.remove('hovered');
+            }
             this.dragStartX = void 0;
             this.draggedColumn = void 0;
             this.draggedResizeHandle = void 0;
@@ -15123,9 +17268,7 @@ class ColumnsResizer {
      */
     renderColumnDragHandles(column, cell) {
         const vp = column.viewport;
-        if (vp.columnsResizer && (vp.columnDistribution.type !== 'full' ||
-            (vp.grid.enabledColumns &&
-                column.index < vp.grid.enabledColumns.length - 1))) {
+        if (vp.columnsResizer) {
             const handle = ColumnsResizer_makeHTMLElement('div', {
                 className: Grid_Core_Globals.getClassName('resizerHandles')
             }, cell.htmlElement);
@@ -15146,6 +17289,7 @@ class ColumnsResizer {
         const onHandleMouseDown = (e) => {
             const vp = column.viewport;
             this.isResizing = true;
+            handle.classList.add('hovered');
             vp.reflow();
             this.dragStartX = e.pageX;
             this.draggedColumn = column;
@@ -15155,8 +17299,32 @@ class ColumnsResizer {
                 vp.columns[column.index + 1]?.getWidth();
             column.header?.htmlElement.classList.add(Grid_Core_Globals.getClassName('resizedColumn'));
         };
-        this.handles.push([handle, onHandleMouseDown]);
-        handle.addEventListener('mousedown', onHandleMouseDown);
+        const onHandleMouseOver = () => {
+            if (this.draggedResizeHandle) {
+                return;
+            }
+            handle.classList.add('hovered');
+        };
+        const onHandleMouseOut = () => {
+            if (this.draggedResizeHandle) {
+                return;
+            }
+            handle.classList.remove('hovered');
+        };
+        const handleListeners = [{
+                eventName: 'mousedown',
+                listener: onHandleMouseDown
+            }, {
+                eventName: 'mouseover',
+                listener: onHandleMouseOver
+            }, {
+                eventName: 'mouseout',
+                listener: onHandleMouseOut
+            }];
+        for (const { eventName, listener } of handleListeners) {
+            handle.addEventListener(eventName, listener);
+        }
+        this.handles.push([handle, handleListeners]);
     }
     /**
      * Removes all added event listeners from the document and handles. This
@@ -15166,8 +17334,10 @@ class ColumnsResizer {
         document.removeEventListener('mousemove', this.onDocumentMouseMove);
         document.removeEventListener('mouseup', this.onDocumentMouseUp);
         for (let i = 0, iEnd = this.handles.length; i < iEnd; i++) {
-            const [handle, listener] = this.handles[i];
-            handle.removeEventListener('mousedown', listener);
+            const [handle, listeners] = this.handles[i];
+            for (const { eventName, listener } of listeners) {
+                handle.removeEventListener(eventName, listener);
+            }
         }
     }
 }
@@ -15194,7 +17364,6 @@ class ColumnsResizer {
  *  - Sebastian Bochan
  *
  * */
-
 
 
 
@@ -15265,11 +17434,12 @@ class Table {
             this.header?.scrollHorizontally(this.tbodyElement.scrollLeft);
         };
         this.grid = grid;
+        this.tableElement = tableElement;
         this.dataTable = this.grid.presentationTable;
         const dgOptions = grid.options;
         const customClassName = dgOptions?.rendering?.table?.className;
-        this.columnDistribution = ColumnDistribution_ColumnDistribution.initStrategy(this);
-        this.virtualRows = !!dgOptions?.rendering?.rows?.virtualization;
+        this.columnResizing = ColumnResizing_ColumnResizing.initMode(this);
+        this.virtualRows = this.shouldVirtualizeRows();
         if (dgOptions?.rendering?.header?.enabled) {
             this.theadElement = Table_makeHTMLElement('thead', {}, tableElement);
         }
@@ -15277,8 +17447,7 @@ class Table {
         if (this.virtualRows) {
             tableElement.classList.add(Grid_Core_Globals.getClassName('virtualization'));
         }
-        if (!(dgOptions?.rendering?.columns?.resizing?.enabled === false ||
-            dgOptions?.columnDefaults?.resizing === false)) {
+        if (dgOptions?.rendering?.columns?.resizing?.enabled) {
             this.columnsResizer = new Actions_ColumnsResizer(this);
         }
         if (customClassName) {
@@ -15332,6 +17501,27 @@ class Table {
         }
     }
     /**
+     * Checks if rows virtualization should be enabled.
+     *
+     * @returns
+     * Whether rows virtualization should be enabled.
+     */
+    shouldVirtualizeRows() {
+        const { grid } = this;
+        const rows = grid.userOptions.rendering?.rows;
+        if (Table_defined(rows?.virtualization)) {
+            return rows.virtualization;
+        }
+        // Consider changing this to use the presentation table row count
+        // instead of the original data table row count.
+        const rowCount = Number(grid.dataTable?.rowCount);
+        const threshold = rows?.virtualizationThreshold ?? 50;
+        const paginationPageSize = grid.pagination?.currentPageSize;
+        return paginationPageSize ?
+            paginationPageSize >= threshold :
+            rowCount >= threshold;
+    }
+    /**
      * Loads the columns of the table.
      */
     loadColumns() {
@@ -15344,21 +17534,7 @@ class Table {
             columnId = enabledColumns[i];
             this.columns.push(new Table_Column(this, columnId, i));
         }
-        this.columnDistribution.loadColumns();
-    }
-    /**
-     * Fires an empty update to properly load the virtualization, only if
-     * there's a row count compared to the threshold change detected (due to
-     * performance reasons).
-     */
-    updateVirtualization() {
-        const rows = this.grid.options?.rendering?.rows;
-        const threshold = Number(rows?.virtualizationThreshold ||
-            Core_Defaults.defaultOptions.rendering?.rows?.virtualizationThreshold);
-        const rowCount = Number(this.dataTable?.rowCount);
-        if (rows?.virtualization !== (rowCount >= threshold)) {
-            void this.grid.update();
-        }
+        this.columnResizing.loadColumns();
     }
     /**
      * Updates the rows of the table.
@@ -15369,23 +17545,36 @@ class Table {
         if (vp.focusCursor) {
             focusedRowId = vp.dataTable.getOriginalRowIndex(vp.focusCursor[0]);
         }
+        vp.grid.pagination?.clampCurrentPage();
+        // Update data
         const oldRowsCount = (vp.rows[vp.rows.length - 1]?.index ?? -1) + 1;
         await vp.grid.querying.proceed();
-        this.dataTable = this.grid.presentationTable;
-        for (const column of this.columns) {
+        vp.dataTable = vp.grid.presentationTable;
+        for (const column of vp.columns) {
             column.loadData();
         }
-        if (oldRowsCount !== vp.dataTable.rowCount) {
-            this.updateVirtualization();
-            this.rowsVirtualizer.rerender();
+        // Update virtualization if needed
+        const shouldVirtualize = this.shouldVirtualizeRows();
+        let shouldRerender = false;
+        if (this.virtualRows !== shouldVirtualize) {
+            this.virtualRows = shouldVirtualize;
+            vp.tableElement.classList.toggle(Grid_Core_Globals.getClassName('virtualization'), shouldVirtualize);
+            shouldRerender = true;
+        }
+        if (shouldRerender || oldRowsCount !== vp.dataTable.rowCount) {
+            // Rerender all rows
+            vp.rowsVirtualizer.rerender();
         }
         else {
-            for (let i = 0, iEnd = this.rows.length; i < iEnd; ++i) {
-                this.rows[i].update();
+            // Update existing rows
+            for (let i = 0, iEnd = vp.rows.length; i < iEnd; ++i) {
+                vp.rows[i].update();
             }
-            this.rowsVirtualizer.adjustRowHeights();
-            this.reflow();
         }
+        // Update the pagination controls
+        vp.grid.pagination?.updateControls();
+        vp.reflow();
+        // Scroll to the focused row
         if (focusedRowId !== void 0 && vp.focusCursor) {
             const newRowIndex = vp.dataTable.getLocalRowIndex(focusedRowId);
             if (newRowIndex !== void 0) {
@@ -15402,31 +17591,20 @@ class Table {
         }
     }
     /**
-     * Loads the modified data from the data table and renders the rows. Always
-     * removes all rows and re-renders them, so it's better to use `updateRows`
-     * instead, because it is more performant in some cases.
-     *
-     * @deprecated
-     * Use `updateRows` instead. This method is kept for backward compatibility
-     * reasons, but it will be removed in the next major version.
-     */
-    loadPresentationData() {
-        this.dataTable = this.grid.presentationTable;
-        for (const column of this.columns) {
-            column.loadData();
-        }
-        this.updateVirtualization();
-        this.rowsVirtualizer.rerender();
-    }
-    /**
      * Reflows the table's content dimensions.
      */
     reflow() {
-        this.columnDistribution.reflow();
+        this.columnResizing.reflow();
         // Reflow the head
         this.header?.reflow();
         // Reflow rows content dimensions
         this.rowsVirtualizer.reflowRows();
+        // Reflow the pagination
+        this.grid.pagination?.reflow();
+        // Reflow popups
+        this.grid.popups.forEach((popup) => {
+            popup.reflow();
+        });
     }
     /**
      * Scrolls the table to the specified row.
@@ -15437,7 +17615,7 @@ class Table {
      * Try it: {@link https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/grid-lite/basic/scroll-to-row | Scroll to row}
      */
     scrollToRow(index) {
-        if (this.grid.options?.rendering?.rows?.virtualization) {
+        if (this.virtualRows) {
             this.tbodyElement.scrollTop =
                 index * this.rowsVirtualizer.defaultRowHeight;
             return;
@@ -15486,6 +17664,7 @@ class Table {
         this.tbodyElement.removeEventListener('scroll', this.onScroll);
         this.resizeObserver.disconnect();
         this.columnsResizer?.removeEventListeners();
+        this.header?.destroy();
         for (let i = 0, iEnd = this.rows.length; i < iEnd; ++i) {
             this.rows[i].destroy();
         }
@@ -15502,7 +17681,7 @@ class Table {
         return {
             scrollTop: this.tbodyElement.scrollTop,
             scrollLeft: this.tbodyElement.scrollLeft,
-            columnDistribution: this.columnDistribution,
+            columnResizing: this.columnResizing,
             focusCursor: this.focusCursor
         };
     }
@@ -15587,7 +17766,7 @@ class Table {
 
 
 
-const { merge: ChainModifier_merge } = Core_Utilities;
+const { addEvent: ChainModifier_addEvent, fireEvent: ChainModifier_fireEvent, merge: ChainModifier_merge } = Core_Utilities;
 /* *
  *
  *  Class
@@ -15674,8 +17853,10 @@ class ChainModifier extends Modifiers_DataModifier {
         });
     }
     /**
-     * Applies several modifications to the table and returns a modified copy of
-     * the given table.
+     * Sequentially applies all modifiers in the chain to the given table,
+     * updating its `modified` property with the final result.
+     *
+     * *Note:* The `modified` property reference of the table gets replaced.
      *
      * @param {Highcharts.DataTable} table
      * Table to modify.
@@ -15690,7 +17871,7 @@ class ChainModifier extends Modifiers_DataModifier {
         const modifiers = (this.options.reverse ?
             this.chain.slice().reverse() :
             this.chain.slice());
-        if (table.modified === table) {
+        if (!table.modified) {
             table.modified = table.clone(false, eventDetail);
         }
         let modified = table;
@@ -15706,123 +17887,15 @@ class ChainModifier extends Modifiers_DataModifier {
                 });
                 throw error;
             }
-            modified = modified.modified;
+            modified = modified.getModified();
         }
         table.modified = modified;
         return table;
     }
     /**
-     * Applies partial modifications of a cell change to the property `modified`
-     * of the given modified table.
-     *
-     * *Note:* The `modified` property of the table gets replaced.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {string} columnName
-     * Column name of changed cell.
-     *
-     * @param {number|undefined} rowIndex
-     * Row index of changed cell.
-     *
-     * @param {Highcharts.DataTableCellType} cellValue
-     * Changed cell value.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyCell(table, columnName, rowIndex, cellValue, eventDetail) {
-        const modifiers = (this.options.reverse ?
-            this.chain.reverse() :
-            this.chain);
-        if (modifiers.length) {
-            let clone = table.clone();
-            for (let i = 0, iEnd = modifiers.length; i < iEnd; ++i) {
-                modifiers[i].modifyCell(clone, columnName, rowIndex, cellValue, eventDetail);
-                clone = clone.modified;
-            }
-            table.modified = clone;
-        }
-        return table;
-    }
-    /**
-     * Applies partial modifications of column changes to the property
-     * `modified` of the given table.
-     *
-     * *Note:* The `modified` property of the table gets replaced.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {Highcharts.DataTableColumnCollection} columns
-     * Changed columns as a collection, where the keys are the column names.
-     *
-     * @param {number} [rowIndex=0]
-     * Index of the first changed row.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyColumns(table, columns, rowIndex, eventDetail) {
-        const modifiers = (this.options.reverse ?
-            this.chain.reverse() :
-            this.chain.slice());
-        if (modifiers.length) {
-            let clone = table.clone();
-            for (let i = 0, iEnd = modifiers.length; i < iEnd; ++i) {
-                modifiers[i].modifyColumns(clone, columns, rowIndex, eventDetail);
-                clone = clone.modified;
-            }
-            table.modified = clone;
-        }
-        return table;
-    }
-    /**
-     * Applies partial modifications of row changes to the property `modified`
-     * of the given table.
-     *
-     * *Note:* The `modified` property of the table gets replaced.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {Array<(Highcharts.DataTableRow|Highcharts.DataTableRowObject)>} rows
-     * Changed rows.
-     *
-     * @param {number} [rowIndex]
-     * Index of the first changed row.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyRows(table, rows, rowIndex, eventDetail) {
-        const modifiers = (this.options.reverse ?
-            this.chain.reverse() :
-            this.chain.slice());
-        if (modifiers.length) {
-            let clone = table.clone();
-            for (let i = 0, iEnd = modifiers.length; i < iEnd; ++i) {
-                modifiers[i].modifyRows(clone, rows, rowIndex, eventDetail);
-                clone = clone.modified;
-            }
-            table.modified = clone;
-        }
-        return table;
-    }
-    /**
      * Applies several modifications to the table.
      *
-     * *Note:* The `modified` property of the table gets replaced.
+     * *Note:* The `modified` property reference of the table gets replaced.
      *
      * @param {DataTable} table
      * Table to modify.
@@ -15846,10 +17919,11 @@ class ChainModifier extends Modifiers_DataModifier {
         const modifiers = (chain.options.reverse ?
             chain.chain.reverse() :
             chain.chain.slice());
-        let modified = table.modified;
+        let modified = table.getModified();
         for (let i = 0, iEnd = modifiers.length, modifier; i < iEnd; ++i) {
             modifier = modifiers[i];
-            modified = modifier.modifyTable(modified, eventDetail).modified;
+            modified =
+                modifier.modifyTable(modified, eventDetail).getModified();
         }
         table.modified = modified;
         chain.emit({
@@ -15881,6 +17955,12 @@ class ChainModifier extends Modifiers_DataModifier {
             detail: eventDetail,
             modifier
         });
+    }
+    emit(e) {
+        ChainModifier_fireEvent(this, e.type, e);
+    }
+    on(type, callback) {
+        return ChainModifier_addEvent(this, type, callback);
     }
 }
 /* *
@@ -15916,7 +17996,6 @@ Modifiers_DataModifier.registerType('Chain', ChainModifier);
  *  - Dawid Dragula
  *
  * */
-
 
 
 
@@ -15963,10 +18042,10 @@ class SortModifier extends Modifiers_DataModifier {
      *
      * */
     /**
-     * Constructs an instance of the range modifier.
+     * Constructs an instance of the sort modifier.
      *
-     * @param {Partial<RangeDataModifier.Options>} [options]
-     * Options to configure the range modifier.
+     * @param {Partial<SortDataModifier.Options>} [options]
+     * Options to configure the sort modifier.
      */
     constructor(options) {
         super();
@@ -15998,139 +18077,10 @@ class SortModifier extends Modifiers_DataModifier {
         }
         return rowReferences;
     }
-    /**
-     * Applies partial modifications of a cell change to the property `modified`
-     * of the given modified table.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {string} columnName
-     * Column name of changed cell.
-     *
-     * @param {number|undefined} rowIndex
-     * Row index of changed cell.
-     *
-     * @param {Highcharts.DataTableCellType} cellValue
-     * Changed cell value.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyCell(table, columnName, rowIndex, cellValue, eventDetail) {
-        const modifier = this, { orderByColumn, orderInColumn } = modifier.options;
-        if (columnName === orderByColumn) {
-            if (orderInColumn) {
-                table.modified.setCell(columnName, rowIndex, cellValue);
-                table.modified.setColumn(orderInColumn, modifier
-                    .modifyTable(new Data_DataTable({
-                    columns: table
-                        .getColumns([orderByColumn, orderInColumn])
-                }))
-                    .modified
-                    .getColumn(orderInColumn));
-            }
-            else {
-                modifier.modifyTable(table, eventDetail);
-            }
-        }
-        return table;
-    }
-    /**
-     * Applies partial modifications of column changes to the property
-     * `modified` of the given table.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {Highcharts.DataTableColumnCollection} columns
-     * Changed columns as a collection, where the keys are the column names.
-     *
-     * @param {number} [rowIndex=0]
-     * Index of the first changed row.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyColumns(table, columns, rowIndex, eventDetail) {
-        const modifier = this, { orderByColumn, orderInColumn } = modifier.options, columnNames = Object.keys(columns);
-        if (columnNames.indexOf(orderByColumn) > -1) {
-            if (orderInColumn &&
-                columns[columnNames[0]].length) {
-                table.modified.setColumns(columns, rowIndex);
-                table.modified.setColumn(orderInColumn, modifier
-                    .modifyTable(new Data_DataTable({
-                    columns: table
-                        .getColumns([orderByColumn, orderInColumn])
-                }))
-                    .modified
-                    .getColumn(orderInColumn));
-            }
-            else {
-                modifier.modifyTable(table, eventDetail);
-            }
-        }
-        return table;
-    }
-    /**
-     * Applies partial modifications of row changes to the property `modified`
-     * of the given table.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {Array<(Highcharts.DataTableRow|Highcharts.DataTableRowObject)>} rows
-     * Changed rows.
-     *
-     * @param {number} [rowIndex]
-     * Index of the first changed row.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyRows(table, rows, rowIndex, eventDetail) {
-        const modifier = this, { orderByColumn, orderInColumn } = modifier.options;
-        if (orderInColumn &&
-            rows.length) {
-            table.modified.setRows(rows, rowIndex);
-            table.modified.setColumn(orderInColumn, modifier
-                .modifyTable(new Data_DataTable({
-                columns: table
-                    .getColumns([orderByColumn, orderInColumn])
-            }))
-                .modified
-                .getColumn(orderInColumn));
-        }
-        else {
-            modifier.modifyTable(table, eventDetail);
-        }
-        return table;
-    }
-    /**
-     * Sorts rows in the table.
-     *
-     * @param {DataTable} table
-     * Table to sort in.
-     *
-     * @param {DataEvent.Detail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {DataTable}
-     * Table with `modified` property as a reference.
-     */
     modifyTable(table, eventDetail) {
         const modifier = this;
         modifier.emit({ type: 'modify', detail: eventDetail, table });
-        const columnNames = table.getColumnNames(), rowCount = table.getRowCount(), rowReferences = this.getRowReferences(table), { direction, orderByColumn, orderInColumn, compare: customCompare } = modifier.options, compare = SortModifier.compareFactory(direction, customCompare), orderByColumnIndex = columnNames.indexOf(orderByColumn), modified = table.modified;
+        const columnIds = table.getColumnIds(), rowCount = table.getRowCount(), rowReferences = this.getRowReferences(table), { direction, orderByColumn, orderInColumn, compare: customCompare } = modifier.options, compare = SortModifier.compareFactory(direction, customCompare), orderByColumnIndex = columnIds.indexOf(orderByColumn), modified = table.getModified();
         if (orderByColumnIndex !== -1) {
             rowReferences.sort((a, b) => compare(a.row[orderByColumnIndex], b.row[orderByColumnIndex]));
         }
@@ -16147,7 +18097,7 @@ class SortModifier extends Modifiers_DataModifier {
             let rowReference;
             for (let i = 0; i < rowCount; ++i) {
                 rowReference = rowReferences[i];
-                originalIndexes.push(modified.getOriginalRowIndex(rowReference.index));
+                originalIndexes.push(table.getOriginalRowIndex(rowReference.index));
                 rows.push(rowReference.row);
             }
             modified.setRows(rows, 0);
@@ -16316,6 +18266,639 @@ class SortingController {
  * */
 /* harmony default export */ const Querying_SortingController = (SortingController);
 
+;// ./code/grid/es-modules/Data/Modifiers/FilterModifier.js
+/* *
+ *
+ *  (c) 2009-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+const { isFunction: FilterModifier_isFunction, merge: FilterModifier_merge } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Filters out table rows matching a given condition.
+ */
+class FilterModifier extends Modifiers_DataModifier {
+    /* *
+     *
+     *  Static Functions
+     *
+     * */
+    /**
+     * Compiles a filter condition into a callback function.
+     *
+     * @param {FilterCondition} condition
+     * Condition to compile.
+     */
+    static compile(condition) {
+        if (FilterModifier_isFunction(condition)) {
+            return condition;
+        }
+        const op = condition.operator;
+        switch (op) {
+            case 'and': {
+                const subs = condition.conditions.map((c) => this.compile(c));
+                return (row, table, i) => subs.every((cond) => cond(row, table, i));
+            }
+            case 'or': {
+                const subs = condition.conditions.map((c) => this.compile(c));
+                return (row, table, i) => subs.some((cond) => cond(row, table, i));
+            }
+            case 'not': {
+                const sub = this.compile(condition.condition);
+                return (row, table, i) => !sub(row, table, i);
+            }
+        }
+        const { columnId: col, value } = condition;
+        switch (op) {
+            case '==':
+                // eslint-disable-next-line eqeqeq
+                return (row) => row[col] == value;
+            case '===':
+                return (row) => row[col] === value;
+            case '!=':
+                // eslint-disable-next-line eqeqeq
+                return (row) => row[col] != value;
+            case '!==':
+                return (row) => row[col] !== value;
+            case '>':
+                return (row) => (row[col] || 0) > (value || 0);
+            case '>=':
+                return (row) => (row[col] || 0) >= (value || 0);
+            case '<':
+                return (row) => (row[col] || 0) < (value || 0);
+            case '<=':
+                return (row) => (row[col] || 0) <= (value || 0);
+            case 'empty':
+                return (row) => row[col] === null || row[col] === '';
+        }
+        const { ignoreCase } = condition;
+        const str = (val) => {
+            const s = '' + val;
+            return (ignoreCase ?? true) ? s.toLowerCase() : s;
+        };
+        switch (op) {
+            case 'contains':
+                return (row) => str(row[col]).includes(str(value));
+            default:
+                return (row) => str(row[col])[op](str(value));
+        }
+    }
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    /**
+     * Constructs an instance of the filter modifier.
+     *
+     * @param {Partial<FilterModifier.Options>} [options]
+     * Options to configure the filter modifier.
+     */
+    constructor(options) {
+        super();
+        this.options = FilterModifier_merge(FilterModifier.defaultOptions, options);
+    }
+    /* *
+     *
+     *  Functions
+     *
+     * */
+    /**
+     * Filters out table rows matching a given condition. If the given table
+     * does not have defined a `modified` property, the filtering is applied
+     * in-place on the original table rather than on a `modified` copy.
+     *
+     * @param {DataTable} table
+     * Table to modify.
+     *
+     * @param {DataEvent.Detail} [eventDetail]
+     * Custom information for pending events.
+     *
+     * @return {DataTable}
+     * Table with `modified` property as a reference or modified table, if
+     * `modified` property of the original table is undefined.
+     */
+    modifyTable(table, eventDetail) {
+        const modifier = this;
+        modifier.emit({ type: 'modify', detail: eventDetail, table });
+        const { condition } = modifier.options;
+        if (!condition) {
+            // If no condition is set, return the unmodified table.
+            return table;
+        }
+        const matchRow = FilterModifier.compile(condition);
+        const modified = table.getModified();
+        const rows = [];
+        const indexes = [];
+        for (let i = 0, iEnd = table.getRowCount(); i < iEnd; ++i) {
+            const row = table.getRowObject(i);
+            if (!row) {
+                continue;
+            }
+            if (matchRow(row, table, i)) {
+                rows.push(row);
+                indexes.push(table.getOriginalRowIndex(i));
+            }
+        }
+        modified.deleteRows();
+        modified.setRows(rows);
+        modified.setOriginalRowIndexes(indexes);
+        modifier.emit({ type: 'afterModify', detail: eventDetail, table });
+        return table;
+    }
+}
+/* *
+ *
+ *  Static Properties
+ *
+ * */
+/**
+ * Default options for the filter modifier.
+ */
+FilterModifier.defaultOptions = {
+    type: 'Filter'
+};
+Modifiers_DataModifier.registerType('Filter', FilterModifier);
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Modifiers_FilterModifier = (FilterModifier);
+
+;// ./code/grid/es-modules/Grid/Core/Querying/FilteringController.js
+/* *
+ *
+ *  Grid Filtering Controller class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+const { isString: FilteringController_isString } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Class that manages one of the data grid querying types - filtering.
+ */
+class FilteringController {
+    /* *
+    *
+    *  Constructor
+    *
+    * */
+    /**
+     * Constructs the FilteringController instance.
+     *
+     * @param querying
+     * The querying controller instance.
+     */
+    constructor(querying) {
+        /**
+         * A map of the filtering conditions for each column.
+         */
+        this.columnConditions = {};
+        this.querying = querying;
+    }
+    /* *
+    *
+    *  Functions
+    *
+    * */
+    /**
+     * Maps filtering options to the filtering condition.
+     *
+     * @param columnId
+     * Id of the column to filter.
+     *
+     * @param options
+     * Filtering options.
+     */
+    static mapOptionsToFilter(columnId, options) {
+        const { condition, value } = options;
+        const isStringValue = FilteringController_isString(value);
+        const stringifiedValue = isStringValue ? value : '';
+        const nonValueConditions = ['empty', 'notEmpty', 'true', 'false'];
+        if ((typeof value === 'undefined' ||
+            (isStringValue && !stringifiedValue)) && !nonValueConditions.includes(condition ?? '')) {
+            return;
+        }
+        switch (condition) {
+            case 'contains':
+                return {
+                    columnId,
+                    operator: 'contains',
+                    value: stringifiedValue
+                };
+            case 'doesNotContain':
+                return {
+                    operator: 'not',
+                    condition: {
+                        columnId,
+                        operator: 'contains',
+                        value: stringifiedValue
+                    }
+                };
+            case 'equals':
+                return {
+                    columnId,
+                    operator: '===',
+                    value
+                };
+            case 'doesNotEqual':
+                return {
+                    columnId,
+                    operator: '!==',
+                    value
+                };
+            case 'beginsWith':
+                return {
+                    columnId,
+                    operator: 'startsWith',
+                    value: stringifiedValue
+                };
+            case 'endsWith':
+                return {
+                    columnId,
+                    operator: 'endsWith',
+                    value: stringifiedValue
+                };
+            case 'greaterThan':
+                return {
+                    columnId,
+                    operator: '>',
+                    value
+                };
+            case 'greaterThanOrEqualTo':
+                return {
+                    columnId,
+                    operator: '>=',
+                    value
+                };
+            case 'lessThan':
+                return {
+                    columnId,
+                    operator: '<',
+                    value
+                };
+            case 'lessThanOrEqualTo':
+                return {
+                    columnId,
+                    operator: '<=',
+                    value
+                };
+            case 'before':
+                return {
+                    columnId,
+                    operator: '<',
+                    value
+                };
+            case 'after':
+                return {
+                    columnId,
+                    operator: '>',
+                    value
+                };
+            case 'empty':
+                return {
+                    columnId,
+                    operator: 'empty',
+                    value
+                };
+            case 'notEmpty':
+                return {
+                    operator: 'not',
+                    condition: {
+                        columnId,
+                        operator: 'empty',
+                        value
+                    }
+                };
+            case 'true':
+                return {
+                    columnId,
+                    operator: '===',
+                    value: true
+                };
+            case 'false':
+                return {
+                    columnId,
+                    operator: '===',
+                    value: false
+                };
+        }
+    }
+    /**
+     * Loads filtering options from the data grid options.
+     */
+    loadOptions() {
+        const columnOptionsMap = this.querying.grid.columnOptionsMap;
+        const newConditions = {};
+        if (columnOptionsMap) {
+            const columnIds = Object.keys(columnOptionsMap);
+            for (let i = 0, iEnd = columnIds.length; i < iEnd; ++i) {
+                const columnId = columnIds[i];
+                const filteringOptions = columnOptionsMap[columnId]?.options?.filtering;
+                if (!filteringOptions) {
+                    continue;
+                }
+                const condition = FilteringController.mapOptionsToFilter(columnId, filteringOptions);
+                if (condition) {
+                    newConditions[columnId] = condition;
+                }
+            }
+        }
+        this.columnConditions = newConditions;
+        this.updateModifier();
+    }
+    /**
+     * Adds a new filtering condition to the specified column.
+     *
+     * @param columnId
+     * The column ID to filter in.
+     *
+     * @param options
+     * The filtering options.
+     */
+    addColumnFilterCondition(columnId, options) {
+        const condition = FilteringController.mapOptionsToFilter(columnId, options);
+        if (condition) {
+            this.columnConditions[columnId] = condition;
+        }
+        else {
+            delete this.columnConditions[columnId];
+        }
+        this.updateModifier();
+    }
+    /**
+     * Clears the filtering condition for the specified column. If no column ID
+     * is provided, clears all the column filtering conditions.
+     *
+     * @param columnId
+     * The column ID to clear or `undefined` to clear all the column filtering
+     * conditions.
+     */
+    clearColumnFiltering(columnId) {
+        if (!columnId) {
+            this.columnConditions = {};
+        }
+        else {
+            delete this.columnConditions[columnId];
+        }
+        this.updateModifier();
+    }
+    /**
+     * Updates the modifier based on the current column conditions.
+     */
+    updateModifier() {
+        const columnConditions = Object.values(this.columnConditions);
+        this.querying.shouldBeUpdated = true;
+        if (columnConditions.length < 1) {
+            delete this.modifier;
+            return;
+        }
+        this.modifier = new Modifiers_FilterModifier({
+            condition: {
+                operator: 'and',
+                conditions: columnConditions
+            }
+        });
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Querying_FilteringController = (FilteringController);
+
+;// ./code/grid/es-modules/Data/Modifiers/RangeModifier.js
+/* *
+ *
+ *  (c) 2009-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Sophie Bremer
+ *  - Dawid Dragula
+ *
+ * */
+
+
+
+const { merge: RangeModifier_merge } = Core_Utilities;
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Slices the table rows based on the specified range.
+ */
+class RangeModifier extends Modifiers_DataModifier {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    /**
+     * Constructs an instance of the range modifier.
+     *
+     * @param {Partial<RangeModifier.Options>} [options]
+     * Options to configure the range modifier.
+     */
+    constructor(options) {
+        super();
+        this.options = RangeModifier_merge(RangeModifier.defaultOptions, options);
+    }
+    /* *
+     *
+     *  Functions
+     *
+     * */
+    /**
+     * Replaces table rows with ranged rows. If the given table does not have
+     * defined a `modified` property, the filtering is applied in-place on the
+     * original table rather than on a `modified` copy.
+     *
+     * @param {DataTable} table
+     * Table to modify.
+     *
+     * @param {DataEvent.Detail} [eventDetail]
+     * Custom information for pending events.
+     *
+     * @return {DataTable}
+     * Table with `modified` property as a reference or modified table, if
+     * `modified` property of the original table is undefined.
+     */
+    modifyTable(table, eventDetail) {
+        const modifier = this;
+        modifier.emit({ type: 'modify', detail: eventDetail, table });
+        let { start, end } = modifier.options;
+        start = Math.max(0, start || 0);
+        end = Math.min(end || Infinity, table.getRowCount());
+        const length = Math.max(end - start, 0);
+        const modified = table.getModified();
+        modified.deleteRows();
+        modified.setRows(table.getRows(start, length));
+        modified.setOriginalRowIndexes(Array.from({ length }, (_, i) => table.getOriginalRowIndex(start + i)));
+        modifier.emit({ type: 'afterModify', detail: eventDetail, table });
+        return table;
+    }
+}
+/* *
+ *
+ *  Static Properties
+ *
+ * */
+/**
+ * Default options for the range modifier.
+ */
+RangeModifier.defaultOptions = {
+    type: 'Range',
+    start: 0,
+    end: Infinity
+};
+Modifiers_DataModifier.registerType('Range', RangeModifier);
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Modifiers_RangeModifier = (RangeModifier);
+
+;// ./code/grid/es-modules/Grid/Core/Querying/PaginationController.js
+/* *
+ *
+ *  Grid Pagination Controller class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Sebastian Bochan
+ *
+ * */
+
+
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Class that manages one of the data grid querying types - pagination.
+ */
+class PaginationController {
+    /* *
+    *
+    *  Constructor
+    *
+    * */
+    /**
+     * Constructs the PaginationController instance.
+     *
+     * @param querying
+     * The querying controller instance.
+     */
+    constructor(querying) {
+        this.querying = querying;
+    }
+    /* *
+    *
+    *  Functions
+    *
+    * */
+    /**
+     * Sets the range options.
+     *
+     * @param currentPage
+     * The current page.
+     */
+    setRange(currentPage) {
+        this.currentPage = currentPage;
+        this.querying.shouldBeUpdated = true;
+    }
+    /**
+     * Loads range options from the grid options.
+     */
+    loadOptions() {
+        const pagination = this.querying.grid.pagination;
+        if (pagination?.options.enabled &&
+            this.currentPage !== pagination.currentPage) {
+            this.currentPage = pagination.currentPage;
+            this.setRange(this.currentPage);
+        }
+    }
+    /**
+     * Returns the range modifier.
+     *
+     * @param rowsCountBeforePagination
+     * The number of rows before pagination. Default is the number of rows in
+     * the original data table.
+     */
+    createModifier(rowsCountBeforePagination = (this.querying.grid.dataTable?.rowCount || 0)) {
+        const currentPage = this.currentPage || 1; // Start from page 1, not 0
+        const pageSize = this.querying.grid.pagination?.currentPageSize;
+        if (!pageSize) {
+            return;
+        }
+        // Calculate the start index (0-based)
+        const start = (currentPage - 1) * pageSize;
+        const end = Math.min(start + pageSize, rowsCountBeforePagination);
+        this.totalItems = rowsCountBeforePagination;
+        return new Modifiers_RangeModifier({
+            start,
+            end
+        });
+    }
+    /**
+     * Reset the pagination controller.
+     */
+    reset() {
+        delete this.currentPage;
+        this.querying.shouldBeUpdated = true;
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Querying_PaginationController = (PaginationController);
+
 ;// ./code/grid/es-modules/Grid/Core/Querying/QueryingController.js
 /* *
  *
@@ -16332,11 +18915,8 @@ class SortingController {
  *
  * */
 
-/* *
- *
- *  Imports
- *
- * */
+
+
 
 
 /* *
@@ -16361,7 +18941,9 @@ class QueryingController {
          */
         this.shouldBeUpdated = false;
         this.grid = grid;
+        this.filtering = new Querying_FilteringController(this);
         this.sorting = new Querying_SortingController(this);
+        this.pagination = new Querying_PaginationController(this);
     }
     /* *
     *
@@ -16384,15 +18966,27 @@ class QueryingController {
      * Load all options needed to generate the modifiers.
      */
     loadOptions() {
+        this.filtering.loadOptions();
         this.sorting.loadOptions();
+        this.pagination.loadOptions();
     }
     /**
      * Creates a list of modifiers that should be applied to the data table.
      */
-    getModifiers() {
+    willNotModify() {
+        return (!this.sorting.modifier &&
+            !this.filtering.modifier);
+    }
+    /**
+     * Returns a list of modifiers that should be applied to the data table.
+     */
+    getGroupedModifiers() {
         const modifiers = [];
         if (this.sorting.modifier) {
             modifiers.push(this.sorting.modifier);
+        }
+        if (this.filtering.modifier) {
+            modifiers.push(this.filtering.modifier);
         }
         return modifiers;
     }
@@ -16404,16 +18998,26 @@ class QueryingController {
         if (!originalDataTable) {
             return;
         }
-        const modifiers = this.getModifiers();
-        if (modifiers.length > 0) {
-            const chainModifier = new Modifiers_ChainModifier({}, ...modifiers);
+        const groupedModifiers = this.getGroupedModifiers();
+        let interTable;
+        // Grouped modifiers
+        if (groupedModifiers.length > 0) {
+            const chainModifier = new Modifiers_ChainModifier({}, ...groupedModifiers);
             const dataTableCopy = originalDataTable.clone();
-            await chainModifier.modify(dataTableCopy.modified);
-            this.grid.presentationTable = dataTableCopy.modified;
+            await chainModifier.modify(dataTableCopy.getModified());
+            interTable = dataTableCopy.getModified();
         }
         else {
-            this.grid.presentationTable = originalDataTable.modified;
+            interTable = originalDataTable.getModified();
         }
+        // Pagination modifier
+        const paginationModifier = this.pagination.createModifier(interTable.rowCount);
+        if (paginationModifier) {
+            interTable = interTable.clone();
+            await paginationModifier.modify(interTable);
+            interTable = interTable.getModified();
+        }
+        this.grid.presentationTable = interTable;
         this.shouldBeUpdated = false;
     }
 }
@@ -16423,6 +19027,869 @@ class QueryingController {
  *
  * */
 /* harmony default export */ const Querying_QueryingController = (QueryingController);
+
+;// ./code/grid/es-modules/Grid/Core/Pagination/Icons.js
+const icons = {
+    first: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 9L1 5L5 1M9 9L5 5L9 1" stroke="currentColor" stroke-width="1.34" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    previous: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 8 10" fill="none"><path d="M5 9L1 5L5 1" stroke="currentColor" stroke-width="1.34" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    next: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 4 10" fill="none"><path d="M1 1L5 5L1 9" stroke="currentColor" stroke-width="1.34" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    last: '<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M5 1L9 5L5 9M1 1L5 5L1 9" stroke="currentColor" stroke-width="1.34" stroke-linecap="round" stroke-linejoin="round"/></svg>'
+};
+/* harmony default export */ const Icons = (icons);
+
+;// ./code/grid/es-modules/Grid/Core/Pagination/Pagination.js
+/* *
+ *
+ *  Grid Pagination class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Sebastian Bochan
+ *
+ * */
+
+
+
+
+
+
+
+const { makeHTMLElement: Pagination_makeHTMLElement } = Core_GridUtils;
+const { merge: Pagination_merge, fireEvent: Pagination_fireEvent, isObject: Pagination_isObject, defined: Pagination_defined } = Core_Utilities;
+/**
+ *  Representing the pagination functionalities for the Grid.
+ */
+class Pagination {
+    /* *
+    *
+    *  Constructor
+    *
+    * */
+    /**
+     * Construct the pagination object.
+     *
+     * @param grid
+     * The Grid Table instance which the pagination controller belongs to.
+     *
+     * @param options
+     * The Pagination user options.
+     *
+     * @param state
+     * The Pagination state. Used to restore the previous state after the Grid
+     * is destroyed.
+     */
+    constructor(grid, options, state = {}) {
+        /**
+         * Current page number, starting from 1.
+         */
+        this.currentPage = 1;
+        this.grid = grid;
+        this.options = Pagination_merge(Pagination.defaultOptions, options);
+        const pageSizeSelector = this.options.controls.pageSizeSelector;
+        this.pageSizeOptions = Pagination_isObject(pageSizeSelector) ?
+            pageSizeSelector.options :
+            Pagination.defaultOptions.controls.pageSizeSelector.options; // eslint-disable-line
+        this.currentPageSize =
+            state.currentPageSize ||
+                this.options.pageSize ||
+                this.pageSizeOptions[0];
+        // Lang pack
+        this.lang = Pagination_merge(Core_Defaults.defaultOptions.pagination, this.grid.options?.lang?.pagination);
+        // Set state
+        if (state.currentPage) {
+            this.currentPage = state.currentPage;
+        }
+    }
+    /* *
+    *
+    *  Methods
+    *
+    * */
+    /**
+     * Total number of items (rows)
+     */
+    get totalItems() {
+        return this.grid.querying.pagination.totalItems || 0;
+    }
+    /**
+     * Total number of pages
+     */
+    get totalPages() {
+        return Math.ceil(this.totalItems / this.currentPageSize) || 1;
+    }
+    /**
+     * Format text with placeholders.
+     *
+     * @param template The text template with placeholders
+     * @param values Object containing values to replace placeholders
+     * @returns Formatted text
+     */
+    formatText(template, values) {
+        return template.replace(/\{(\w+)\}/g, (match, key) => (values[key] !== void 0 ? String(values[key]) : match));
+    }
+    /**
+     * Render the pagination container.
+     *
+     * The pagination container is positioned based on the `position` option:
+     * - `'top'`: Rendered before the table
+     * - `'bottom'`: Rendered after the table (default)
+     * - `'footer'`: Rendered inside a tfoot element
+     * - `'#id'` or any string: Rendered inside a custom container with
+     * the specified ID.
+     */
+    render() {
+        const position = this.options.position;
+        const grid = this.grid;
+        this.oldTotalItems = this.totalItems;
+        // Set row count for a11y
+        grid.tableElement?.setAttribute('aria-current', 'page');
+        this.updateA11yRowsCount(this.currentPageSize);
+        // Render pagination container
+        if (typeof position === 'string' && position.startsWith('#')) {
+            this.renderCustomContainer(position);
+        }
+        else {
+            if (position === 'footer') {
+                this.renderFooter();
+            }
+            this.contentWrapper = Pagination_makeHTMLElement('nav', {
+                className: Grid_Core_Globals.getClassName('paginationWrapper')
+            }, position === 'footer' ?
+                this.paginationContainer : grid.contentWrapper);
+            this.contentWrapper.setAttribute('aria-label', 'Results pagination');
+        }
+        // Clamps the current page to the valid range
+        this.clampCurrentPage();
+        // Render all components
+        this.renderPageInfo();
+        this.renderControls();
+        this.renderPageSizeSelector();
+        // Update button states after rendering
+        this.updateButtonStates();
+    }
+    /**
+     * Render pagination in a tfoot element.
+     */
+    renderFooter() {
+        const tableElement = this.grid.tableElement;
+        if (!tableElement) {
+            return;
+        }
+        // Create tfoot element
+        const tfootElement = Pagination_makeHTMLElement('tfoot', {}, tableElement);
+        // Create tfoot row
+        const tfootRow = Pagination_makeHTMLElement('tr', {}, tfootElement);
+        // Create tfoot cell with colspan and store it in paginationContainer
+        this.paginationContainer = Pagination_makeHTMLElement('td', {}, tfootRow);
+        this.paginationContainer.setAttribute('colSpan', (this.grid.enabledColumns || []).length.toString());
+        this.reflow();
+    }
+    /**
+     * Render pagination in a custom container by ID.
+     *
+     * @param id
+     * The ID of the custom container.
+     */
+    renderCustomContainer(id) {
+        const customContainer = document.querySelector(id);
+        if (!customContainer) {
+            console.warn(`Pagination: Custom container with ID "${id}" not found.`); // eslint-disable-line no-console
+            return;
+        }
+        this.paginationContainer = customContainer;
+        // Set content wrapper to the custom container
+        this.contentWrapper = Pagination_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('paginationContainer')
+        }, customContainer);
+    }
+    /**
+     * Render the page information text.
+     */
+    renderPageInfo() {
+        const pageInfo = this.options.controls?.pageInfo;
+        if (pageInfo === false ||
+            (Pagination_isObject(pageInfo) && pageInfo.enabled === false)) {
+            return;
+        }
+        this.pageInfoElement = Pagination_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('paginationPageInfo')
+        }, this.contentWrapper);
+        this.updatePageInfo();
+    }
+    /**
+     * Update the page information text.
+     */
+    updatePageInfo() {
+        if (!this.pageInfoElement) {
+            return;
+        }
+        const startItem = (this.currentPage - 1) * this.currentPageSize + 1;
+        const endItem = Math.min(this.currentPage * this.currentPageSize, this.totalItems);
+        const pageInfoText = this.formatText(this.lang.pageInfo, {
+            start: startItem,
+            end: endItem,
+            total: this.totalItems,
+            currentPage: this.currentPage,
+            totalPages: this.totalPages
+        });
+        this.pageInfoElement.innerHTML = pageInfoText;
+    }
+    /**
+     * Render the controls buttons and page numbers.
+     */
+    renderControls() {
+        const navContainer = Pagination_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('paginationControls')
+        }, this.contentWrapper);
+        // Render first/previous buttons
+        if (this.options.controls?.firstLastButtons) {
+            this.renderFirstButton(navContainer);
+        }
+        // Render previous button
+        if (this.options.controls?.previousNextButtons) {
+            this.renderPrevButton(navContainer);
+        }
+        // Render page numbers
+        if (this.options.controls?.pageButtons) {
+            this.renderPageNumbers(navContainer);
+        }
+        // Render mobile page selector
+        this.renderMobilePageSelector(navContainer);
+        // Render next button
+        if (this.options.controls?.previousNextButtons) {
+            this.renderNextButton(navContainer);
+        }
+        // Render last/first buttons
+        if (this.options.controls?.firstLastButtons) {
+            this.renderLastButton(navContainer);
+        }
+    }
+    /**
+     * Update the pagination controls.
+     */
+    updateControls() {
+        if (this.oldTotalItems === this.totalItems) {
+            return;
+        }
+        this.updatePageInfo();
+        this.updatePageNumbers();
+        this.updateButtonStates();
+        this.updateA11yRowsCount(this.currentPageSize);
+        this.oldTotalItems = this.totalItems;
+    }
+    /**
+     * Render the first page button.
+     *
+     * @param container
+     * The container element for the first page button.
+     *
+     */
+    renderFirstButton(container) {
+        const firstLastButtons = this.options.controls?.firstLastButtons;
+        if (firstLastButtons === false ||
+            (Pagination_isObject(firstLastButtons) && firstLastButtons.enabled === false)) {
+            return;
+        }
+        // Create first button
+        this.firstButton = Pagination_makeHTMLElement('button', {
+            innerHTML: Icons.first,
+            className: Grid_Core_Globals.getClassName('paginationButton') + ' ' +
+                Grid_Core_Globals.getClassName('paginationFirstButton')
+        }, container);
+        this.firstButton.title = this.lang.firstPage;
+        // Set aria-label for a11y
+        this.firstButton.setAttribute('aria-label', this.lang.firstPage);
+        // Add click event
+        this.firstButton.addEventListener('click', () => {
+            void this.goToPage(1);
+        });
+        this.setButtonState(this.firstButton, this.currentPage === 1);
+    }
+    /**
+     * Render the previous page button.
+     *
+     * @param container
+     * The container element for the previous page button.
+     */
+    renderPrevButton(container) {
+        const previousNextButtons = this.options.controls?.previousNextButtons;
+        if (previousNextButtons === false ||
+            (Pagination_isObject(previousNextButtons) &&
+                previousNextButtons.enabled === false)) {
+            return;
+        }
+        // Create previous button
+        this.prevButton = Pagination_makeHTMLElement('button', {
+            innerHTML: Icons.previous,
+            className: Grid_Core_Globals.getClassName('paginationButton') + ' ' +
+                Grid_Core_Globals.getClassName('paginationPrevButton')
+        }, container);
+        this.prevButton.title = this.lang.previousPage;
+        // Set aria-label for a11y
+        this.prevButton.setAttribute('aria-label', this.lang.previousPage);
+        // Add click event
+        this.prevButton.addEventListener('click', () => {
+            void this.goToPage(this.currentPage - 1);
+        });
+        this.setButtonState(this.prevButton, this.currentPage === 1);
+    }
+    /**
+     * Render the next page button.
+     *
+     * @param container
+     * The container element for the next page button.
+     */
+    renderNextButton(container) {
+        const previousNextButtons = this.options.controls?.previousNextButtons;
+        if (previousNextButtons === false ||
+            (Pagination_isObject(previousNextButtons) &&
+                previousNextButtons.enabled === false)) {
+            return;
+        }
+        // Create next button
+        this.nextButton = Pagination_makeHTMLElement('button', {
+            innerHTML: Icons.next,
+            className: Grid_Core_Globals.getClassName('paginationButton') + ' ' +
+                Grid_Core_Globals.getClassName('paginationNextButton')
+        }, container);
+        this.nextButton.title = this.lang.nextPage;
+        // Set aria-label for a11y
+        this.nextButton.setAttribute('aria-label', this.lang.nextPage);
+        // Add click event
+        this.nextButton.addEventListener('click', () => {
+            void this.goToPage(this.currentPage + 1);
+        });
+        this.setButtonState(this.nextButton, this.currentPage >= this.totalPages);
+    }
+    /**
+     * Render the last page button.
+     *
+     * @param container
+     * The container element for the last page button.
+     */
+    renderLastButton(container) {
+        const firstLastButtons = this.options.controls?.firstLastButtons;
+        if (firstLastButtons === false ||
+            (Pagination_isObject(firstLastButtons) && firstLastButtons.enabled === false)) {
+            return;
+        }
+        // Create last button
+        this.lastButton = Pagination_makeHTMLElement('button', {
+            innerHTML: Icons.last,
+            className: Grid_Core_Globals.getClassName('paginationButton') + ' ' +
+                Grid_Core_Globals.getClassName('paginationLastButton')
+        }, container);
+        this.lastButton.title = this.lang.lastPage;
+        // Set aria-label for a11y
+        this.lastButton.setAttribute('aria-label', this.lang.lastPage);
+        // Add click event
+        this.lastButton.addEventListener('click', () => {
+            void this.goToPage(this.totalPages);
+        });
+        this.setButtonState(this.lastButton, this.currentPage >= this.totalPages);
+    }
+    /**
+     * Render page number buttons with ellipsis.
+     *
+     * @param container
+     * The container element for the page number buttons.
+     */
+    renderPageNumbers(container) {
+        const pageButtons = this.options.controls?.pageButtons;
+        if (pageButtons === false ||
+            (Pagination_isObject(pageButtons) && pageButtons.enabled === false)) {
+            return;
+        }
+        this.pageNumbersContainer = Pagination_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('paginationPageButton')
+        }, container);
+        this.updatePageNumbers();
+    }
+    /**
+     * Update page number buttons based on current page and total pages.
+     */
+    updatePageNumbers() {
+        if (!this.pageNumbersContainer) {
+            return;
+        }
+        // Clear existing page numbers
+        this.pageNumbersContainer.innerHTML = HTML_AST.emptyHTML;
+        const pageButtons = this.options.controls?.pageButtons;
+        const maxPageNumbers = Pagination_isObject(pageButtons) ?
+            pageButtons.count :
+            Pagination.defaultOptions.controls.pageButtons.count; // eslint-disable-line
+        const totalPages = this.totalPages;
+        const currentPage = this.currentPage;
+        if (totalPages <= maxPageNumbers) {
+            // Show all page numbers if total pages is less than max
+            for (let i = 1; i <= totalPages; i++) {
+                this.createPageButton(i, i === currentPage);
+            }
+        }
+        else {
+            const elements = [];
+            // Determine layout based on current page position
+            const isNearStart = currentPage <= 3;
+            const isNearEnd = currentPage >= totalPages - 2;
+            if (isNearStart) {
+                // -2 for ellipsis and last page
+                const pagesToShow = maxPageNumbers - 2;
+                const maxPages = Math.min(pagesToShow, totalPages - 1);
+                for (let i = 1; i <= maxPages; i++) {
+                    elements.push({ type: 'button', page: i });
+                }
+                if (totalPages > pagesToShow + 1) {
+                    elements.push({ type: 'ellipsis' });
+                    elements.push({ type: 'button', page: totalPages });
+                }
+            }
+            else if (isNearEnd) {
+                // -2 for first page and ellipsis
+                const pagesToShow = maxPageNumbers - 2;
+                let i = totalPages - pagesToShow + 1;
+                elements.push({ type: 'button', page: 1 });
+                elements.push({ type: 'ellipsis' });
+                for (i; i <= totalPages; i++) {
+                    elements.push({ type: 'button', page: i });
+                }
+            }
+            else {
+                // Always add first page
+                elements.push({ type: 'button', page: 1 });
+                // -4 for first, last, and two ellipsis
+                const maxMiddlePages = maxPageNumbers - 4;
+                const halfMiddle = Math.floor(maxMiddlePages / 2);
+                let startPage = Math.max(2, currentPage - halfMiddle);
+                let endPage = Math.min(totalPages - 1, currentPage + halfMiddle);
+                // Adjust to ensure we have exactly maxMiddlePages
+                if (endPage - startPage + 1 > maxMiddlePages) {
+                    if (startPage === 2) {
+                        endPage = startPage + maxMiddlePages - 1;
+                    }
+                    else {
+                        startPage = endPage - maxMiddlePages + 1;
+                    }
+                }
+                // Check if we actually need ellipsis
+                const needFirstEllipsis = startPage > 2;
+                const needLastEllipsis = endPage < totalPages - 1;
+                if (!needFirstEllipsis && !needLastEllipsis) {
+                    // -2 for first and last
+                    const availableSlots = maxPageNumbers - 2;
+                    startPage = 2;
+                    endPage = Math.min(totalPages - 1, startPage + availableSlots - 1);
+                }
+                else if (!needFirstEllipsis) {
+                    // -3 for first, last, and one ellipsis
+                    const availableSlots = maxPageNumbers - 3;
+                    startPage = 2;
+                    endPage = Math.min(totalPages - 1, startPage + availableSlots - 1);
+                }
+                else if (!needLastEllipsis) {
+                    // -3 for first, last, and one ellipsis
+                    const availableSlots = maxPageNumbers - 3;
+                    endPage = totalPages - 1;
+                    startPage = Math.max(2, endPage - availableSlots + 1);
+                }
+                // Add first ellipsis
+                if (needFirstEllipsis) {
+                    elements.push({ type: 'ellipsis' });
+                }
+                // Add middle pages
+                for (let i = startPage; i <= endPage; i++) {
+                    elements.push({ type: 'button', page: i });
+                }
+                // Add last ellipsis
+                if (needLastEllipsis) {
+                    elements.push({ type: 'ellipsis' });
+                }
+                // Always add last page
+                elements.push({ type: 'button', page: totalPages });
+            }
+            // Render all elements
+            elements.forEach((element) => {
+                if (element.type === 'button' && Pagination_defined(element.page)) {
+                    this.createPageButton(element.page, element.page === currentPage);
+                }
+                else if (element.type === 'ellipsis') {
+                    this.createEllipsis();
+                }
+            });
+        }
+        // Update mobile selector if it exists
+        if (this.mobilePageSelector) {
+            this.mobilePageSelector.value = this.currentPage.toString();
+        }
+    }
+    /**
+     * Create a page number button.
+     *
+     * @param pageNumber
+     * The page number to create a button for.
+     *
+     * @param isActive
+     * Whether the page number button is active.
+     */
+    createPageButton(pageNumber, isActive) {
+        if (!this.pageNumbersContainer) {
+            return;
+        }
+        const button = Pagination_makeHTMLElement('button', {
+            innerHTML: pageNumber.toString(),
+            className: Grid_Core_Globals.getClassName(isActive ? 'paginationPageButtonActive' : 'paginationPageButton')
+        }, this.pageNumbersContainer);
+        button.title = this.formatText(this.lang.pageNumber, { page: pageNumber });
+        // Set aria-label for a11y
+        button.setAttribute('aria-label', this.formatText(this.lang.pageNumber, { page: pageNumber }));
+        // Add click event
+        button.addEventListener('click', () => {
+            void this.goToPage(pageNumber);
+        });
+    }
+    /**
+     * Create an ellipsis element.
+     */
+    createEllipsis() {
+        if (!this.pageNumbersContainer) {
+            return;
+        }
+        const ellipsisElement = Pagination_makeHTMLElement('span', {
+            innerHTML: '...',
+            className: Grid_Core_Globals.getClassName('paginationEllipsis')
+        }, this.pageNumbersContainer);
+        ellipsisElement.title = this.lang.ellipsis;
+        // Set aria-label for a11y
+        ellipsisElement.setAttribute('aria-hidden', true);
+    }
+    /**
+     * Render the page size selector.
+     */
+    renderPageSizeSelector() {
+        const pageSizeSelector = this.options.controls.pageSizeSelector;
+        if (pageSizeSelector === false ||
+            (Pagination_isObject(pageSizeSelector) &&
+                pageSizeSelector.enabled === false)) {
+            return;
+        }
+        const container = Pagination_makeHTMLElement('div', {
+            className: Grid_Core_Globals.getClassName('paginationPageSizeContainer')
+        }, this.contentWrapper);
+        Pagination_makeHTMLElement('span', {
+            innerHTML: this.lang.pageSizeLabel
+        }, container);
+        this.pageSizeSelect = Pagination_makeHTMLElement('select', {
+            className: Grid_Core_Globals.getClassName('paginationPageSizeSelect')
+        }, container);
+        this.pageSizeOptions.forEach((option) => {
+            const optionElement = document.createElement('option');
+            optionElement.value = option.toString();
+            optionElement.innerHTML = option.toString();
+            if (option === this.currentPageSize) {
+                optionElement.selected = true;
+            }
+            this.pageSizeSelect?.appendChild(optionElement);
+        });
+        this.pageSizeSelect.addEventListener('change', () => {
+            if (!this.pageSizeSelect) {
+                return;
+            }
+            void this.setPageSize(parseInt(this.pageSizeSelect.value, 10));
+        });
+        // Render mobile page size selector in the same container
+        this.renderMobilePageSizeSelector(container);
+    }
+    /**
+     * Set the page size and recalculate pagination.
+     *
+     * @param newPageSize
+     * The new page size to set.
+     */
+    async setPageSize(newPageSize) {
+        const pageSize = this.currentPageSize;
+        const langAccessibility = this.grid.options?.lang?.accessibility;
+        Pagination_fireEvent(this, 'beforePageSizeChange', {
+            pageSize: pageSize,
+            newPageSize: newPageSize
+        });
+        this.currentPageSize = newPageSize;
+        // Reset to first page when changing page size
+        this.currentPage = 1;
+        // Update the grid's pagination range
+        await this.updateGridPagination();
+        // Update UI
+        this.updatePageInfo();
+        this.updatePageNumbers();
+        this.updateButtonStates();
+        // Update row count for a11y
+        this.updateA11yRowsCount(this.currentPageSize);
+        // Announce the page size change
+        this.grid.accessibility?.announce(langAccessibility?.pagination?.announcements?.pageSizeChange +
+            ' ' + newPageSize);
+        // Update mobile page size selector if it exists
+        if (this.mobilePageSizeSelector) {
+            this.mobilePageSizeSelector.value = this.currentPageSize.toString();
+        }
+        Pagination_fireEvent(this, 'afterPageSizeChange', {
+            pageSize: newPageSize,
+            previousPageSize: pageSize
+        });
+    }
+    /**
+     * Navigate to a specific page.
+     *
+     * @param pageNumber
+     * The page number to navigate to.
+     */
+    async goToPage(pageNumber) {
+        const langAccessibility = this.grid.options?.lang?.accessibility;
+        if (pageNumber < 1 ||
+            pageNumber > this.totalPages ||
+            pageNumber === this.currentPage) {
+            return;
+        }
+        const previousPage = this.currentPage;
+        Pagination_fireEvent(this, 'beforePageChange', {
+            currentPage: this.currentPage,
+            nextPage: pageNumber,
+            pageSize: this.currentPageSize
+        });
+        this.currentPage = pageNumber;
+        await this.updateGridPagination();
+        this.updatePageInfo();
+        this.updatePageNumbers();
+        this.updateButtonStates();
+        // Announce the page change
+        this.grid.accessibility?.announce(langAccessibility?.pagination?.announcements?.pageChange +
+            ' ' + this.currentPage);
+        Pagination_fireEvent(this, 'afterPageChange', {
+            currentPage: this.currentPage,
+            previousPage: previousPage,
+            pageSize: this.currentPageSize
+        });
+    }
+    /**
+     * Update the grid's pagination state.
+     *
+     * @param ignoreDataRange
+     * Whether to ignore the data range update. Used when updating the data
+     * range is not needed, for example when updating the data range from
+     * the server.
+     * @internal
+     */
+    async updateGridPagination(ignoreDataRange = false) {
+        if (!this.grid.querying?.pagination) {
+            return;
+        }
+        this.grid.querying.pagination.setRange(ignoreDataRange ? 1 : this.currentPage);
+        // Trigger the grid to update its data and viewport
+        this.grid.querying.shouldBeUpdated = true;
+        // Force the querying controller to proceed with updates
+        await this.grid.querying.proceed(true);
+        // Update the viewport to reflect the new data
+        await this.grid.viewport?.updateRows();
+        this.grid.viewport?.header?.reflow();
+        // Scroll to top after page change
+        const tBody = this.grid.viewport?.tbodyElement;
+        if (tBody) {
+            tBody.scrollTop = 0;
+        }
+    }
+    /**
+     * Ensures the current page is within valid range.
+     */
+    clampCurrentPage() {
+        if (this.currentPage > this.totalPages) {
+            this.currentPage = this.totalPages;
+            this.grid.querying.pagination.setRange(this.currentPage);
+        }
+    }
+    /**
+     * Update button states based on current page.
+     */
+    updateButtonStates() {
+        if (this.firstButton) {
+            this.setButtonState(this.firstButton, this.currentPage === 1);
+        }
+        if (this.prevButton) {
+            this.setButtonState(this.prevButton, this.currentPage === 1);
+        }
+        if (this.nextButton) {
+            this.setButtonState(this.nextButton, this.currentPage >= this.totalPages);
+        }
+        if (this.lastButton) {
+            this.setButtonState(this.lastButton, this.currentPage >= this.totalPages);
+        }
+    }
+    /**
+     * Call modifier to replace items with new ones.
+     *
+     * @param isNextPage
+     * Declare prev or next action triggered by button.
+     * @returns
+     */
+    async updatePage(isNextPage = true) {
+        const newPage = isNextPage ? this.currentPage + 1 : this.currentPage - 1;
+        await this.goToPage(newPage);
+    }
+    /**
+     * Set button state (enabled/disabled).
+     *
+     * @param button
+     * The button to set the state for.
+     *
+     * @param disabled
+     * Whether the button should be disabled.
+     */
+    setButtonState(button, disabled) {
+        if (disabled) {
+            button.classList.add(Grid_Core_Globals.getClassName('paginationButtonDisabled'));
+            button.setAttribute('disabled', 'disabled');
+        }
+        else {
+            button.classList.remove(Grid_Core_Globals.getClassName('paginationButtonDisabled'));
+            button.removeAttribute('disabled');
+        }
+    }
+    /**
+     * Reflow the pagination container.
+     */
+    reflow() {
+        const position = this.options.position;
+        if (!this.paginationContainer) {
+            return;
+        }
+        if (position === 'footer') {
+            // Set the width to match the table width
+            this.paginationContainer.style.width =
+                this.grid.tableElement?.offsetWidth + 'px';
+            return;
+        }
+    }
+    /**
+     * Destroy the pagination instance.
+     */
+    destroy() {
+        const position = this.options.position;
+        if (position === 'footer') {
+            // For footer position, remove the entire tfoot element.
+            this.paginationContainer?.parentElement?.parentElement?.remove();
+        }
+        else {
+            this.contentWrapper?.remove();
+        }
+        this.grid.querying.pagination.reset();
+    }
+    /**
+     * Render the mobile page selector (select dropdown).
+     *
+     * @param container
+     * The container element for the mobile page selector.
+     */
+    renderMobilePageSelector(container) {
+        const totalPages = this.totalPages;
+        if (totalPages <= 1) {
+            return;
+        }
+        const mobileSelect = Pagination_makeHTMLElement('select', {
+            className: Grid_Core_Globals.getClassName('paginationMobileSelector')
+        }, container);
+        // Add options for each page
+        for (let i = 1; i <= totalPages; i++) {
+            const option = Pagination_makeHTMLElement('option', {}, mobileSelect);
+            option.value = i.toString();
+            option.textContent = `Page ${i} of ${totalPages}`;
+        }
+        // Set current page as selected
+        mobileSelect.value = this.currentPage.toString();
+        this.mobilePageSelector = mobileSelect;
+        // Add event listener for page change
+        mobileSelect.addEventListener('change', () => {
+            const newPage = parseInt(mobileSelect.value, 10);
+            if (newPage !== this.currentPage) {
+                void this.goToPage(newPage);
+            }
+        });
+    }
+    /**
+     * Render the mobile page size selector (select dropdown).
+     *
+     * @param container
+     * The container element for the mobile page size selector.
+     */
+    renderMobilePageSizeSelector(container) {
+        const mobilePageSizeSelect = Pagination_makeHTMLElement('select', {
+            className: Grid_Core_Globals.getClassName('paginationMobilePageSizeSelector')
+        }, container);
+        this.pageSizeOptions.forEach((option) => {
+            const optionElement = Pagination_makeHTMLElement('option', {}, mobilePageSizeSelect);
+            optionElement.value = option.toString();
+            optionElement.textContent = `${option} ${this.lang.pageSizeLabel}`;
+            if (option === this.currentPageSize) {
+                optionElement.selected = true;
+            }
+        });
+        this.mobilePageSizeSelector = mobilePageSizeSelect;
+        mobilePageSizeSelect.addEventListener('change', () => {
+            if (!this.mobilePageSizeSelector) {
+                return;
+            }
+            void this.setPageSize(parseInt(this.mobilePageSizeSelector.value, 10));
+        });
+    }
+    /**
+     * Update the row count for a11y.
+     *
+     * @param currentPageSize
+     * The current page size.
+     */
+    updateA11yRowsCount(currentPageSize) {
+        const grid = this.grid;
+        grid.tableElement?.setAttribute('aria-rowcount', currentPageSize || this.totalItems);
+    }
+}
+/* *
+*
+*  Static Properties
+*
+* */
+/**
+ * Default options of the pagination.
+ */
+Pagination.defaultOptions = {
+    enabled: false,
+    pageSize: 10,
+    position: 'bottom',
+    controls: {
+        pageSizeSelector: {
+            enabled: true,
+            options: [10, 20, 50, 100]
+        },
+        pageInfo: {
+            enabled: true
+        },
+        firstLastButtons: {
+            enabled: true
+        },
+        previousNextButtons: {
+            enabled: true
+        },
+        pageButtons: {
+            enabled: true,
+            count: 7
+        }
+    }
+};
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Pagination_Pagination = (Pagination);
 
 ;// ./code/grid/es-modules/Grid/Core/Grid.js
 /* *
@@ -16451,8 +19918,9 @@ class QueryingController {
 
 
 
+
 const { makeHTMLElement: Grid_makeHTMLElement, setHTMLContent: Grid_setHTMLContent } = Core_GridUtils;
-const { fireEvent: Grid_fireEvent, extend: Grid_extend, getStyle: Grid_getStyle, merge: Grid_merge, pick: Grid_pick, defined: Grid_defined } = Core_Utilities;
+const { extend: Grid_extend, fireEvent: Grid_fireEvent, getStyle: Grid_getStyle, merge: Grid_merge, pick: Grid_pick, isObject: Grid_isObject } = Core_Utilities;
 /* *
  *
  *  Class
@@ -16508,25 +19976,31 @@ class Grid {
          */
         this.initialContainerHeight = 0;
         /**
+         * The list of currently shown popups.
+         */
+        this.popups = new Set();
+        /**
          * Functions that unregister events attached to the grid's data table,
          * that need to be removed when the grid is destroyed.
          */
         this.dataTableEventDestructors = [];
         this.loadUserOptions(options);
-        this.querying = new Querying_QueryingController(this);
         this.id = this.options?.id || Core_Utilities.uniqueKey();
-        this.initContainers(renderTo);
-        this.initAccessibility();
-        this.loadDataTable(this.options?.dataTable);
-        this.initVirtualization();
+        this.querying = new Querying_QueryingController(this);
         this.locale = this.options?.lang?.locale || (this.container?.closest('[lang]')?.lang);
         this.time = new Shared_TimeBase(Grid_extend(this.options?.time, { locale: this.locale }), this.options?.lang);
+        Grid_fireEvent(this, 'beforeLoad');
+        Grid.grids.push(this);
+        this.initContainers(renderTo);
+        this.initAccessibility();
+        this.initPagination();
+        this.loadDataTable();
         this.querying.loadOptions();
         void this.querying.proceed().then(() => {
             this.renderViewport();
             afterLoadCallback?.(this);
+            Grid_fireEvent(this, 'afterLoad');
         });
-        Grid.grids.push(this);
     }
     /* *
      *
@@ -16541,6 +20015,28 @@ class Grid {
         delete this.accessibility;
         if (this.options?.accessibility?.enabled) {
             this.accessibility = new Accessibility_Accessibility(this);
+        }
+    }
+    /*
+     * Initializes the pagination.
+     */
+    initPagination() {
+        let state;
+        if (this.pagination) {
+            const { currentPageSize, currentPage } = this.pagination || {};
+            state = {
+                currentPageSize,
+                currentPage
+            };
+        }
+        this.pagination?.destroy();
+        delete this.pagination;
+        const rawOptions = this.options?.pagination;
+        const options = Grid_isObject(rawOptions) ? rawOptions : {
+            enabled: rawOptions
+        };
+        if (options?.enabled) {
+            this.pagination = new Pagination_Pagination(this, options, state);
         }
     }
     /**
@@ -16621,7 +20117,7 @@ class Grid {
      */
     setColumnOptions(newColumnOptions, overwrite = false) {
         if (!this.userOptions.columns) {
-            this.userOptions.columns = [];
+            this.userOptions.columns = this.options?.columns ?? [];
         }
         const columnOptions = this.userOptions.columns;
         for (let i = 0, iEnd = newColumnOptions.length; i < iEnd; ++i) {
@@ -16691,15 +20187,17 @@ class Grid {
      */
     async update(options = {}, render = true, oneToOne = false) {
         this.loadUserOptions(options, oneToOne);
-        this.initAccessibility();
-        let newDataTable = false;
         if (!this.dataTable || options.dataTable) {
             this.userOptions.dataTable = options.dataTable;
             (this.options ?? {}).dataTable = options.dataTable;
-            this.loadDataTable(this.options?.dataTable);
-            newDataTable = true;
-            this.initVirtualization();
+            this.loadDataTable();
+            this.querying.shouldBeUpdated = true;
         }
+        if (!render) {
+            return;
+        }
+        this.initAccessibility();
+        this.initPagination();
         this.querying.loadOptions();
         // Update locale.
         const locale = options.lang?.locale;
@@ -16707,10 +20205,8 @@ class Grid {
             this.locale = locale;
             this.time.update(Grid_extend(options.time || {}, { locale: this.locale }));
         }
-        if (render) {
-            await this.querying.proceed(newDataTable);
-            this.renderViewport();
-        }
+        await this.querying.proceed();
+        this.renderViewport();
     }
     /**
      * Updates the column of the Grid with new options.
@@ -16882,12 +20378,19 @@ class Grid {
      */
     renderViewport() {
         const viewportMeta = this.viewport?.getStateMeta();
+        const pagination = this.pagination;
+        const paginationPosition = pagination?.options.position;
         this.enabledColumns = this.getEnabledColumnIDs();
         this.credits?.destroy();
         this.viewport?.destroy();
         delete this.viewport;
         this.resetContentWrapper();
+        Grid_fireEvent(this, 'beforeRenderViewport');
         this.renderCaption();
+        // Render top pagination if enabled (before table)
+        if (paginationPosition === 'top') {
+            pagination?.render();
+        }
         if (this.enabledColumns.length > 0) {
             this.viewport = this.renderTable();
             if (viewportMeta && this.viewport) {
@@ -16897,8 +20400,13 @@ class Grid {
         else {
             this.renderNoData();
         }
-        this.renderDescription();
         this.accessibility?.setA11yOptions();
+        // Render bottom pagination, footer pagination,
+        // or custom container pagination (after table).
+        if (paginationPosition !== 'top') {
+            pagination?.render();
+        }
+        this.renderDescription();
         Grid_fireEvent(this, 'afterRenderViewport');
         this.viewport?.reflow();
     }
@@ -16932,19 +20440,19 @@ class Grid {
         const header = this.options?.header;
         const headerColumns = this.getColumnIds(header || [], false);
         const columnsIncluded = this.options?.rendering?.columns?.included || (headerColumns && headerColumns.length > 0 ?
-            headerColumns : this.dataTable?.getColumnNames());
+            headerColumns : this.dataTable?.getColumnIds());
         if (!columnsIncluded?.length) {
             return [];
         }
         if (!columnOptionsMap) {
             return columnsIncluded;
         }
-        let columnName;
+        let columnId;
         const result = [];
         for (let i = 0, iEnd = columnsIncluded.length; i < iEnd; ++i) {
-            columnName = columnsIncluded[i];
-            if (columnOptionsMap?.[columnName]?.options?.enabled !== false) {
-                result.push(columnName);
+            columnId = columnsIncluded[i];
+            if (columnOptionsMap?.[columnId]?.options?.enabled !== false) {
+                result.push(columnId);
             }
         }
         return result;
@@ -16952,19 +20460,16 @@ class Grid {
     /**
      * Loads the data table of the Grid. If the data table is passed as a
      * reference, it should be used instead of creating a new one.
-     *
-     * @param tableOptions
-     * The data table to load. If not provided, a new data table will be
-     * created.
      */
-    loadDataTable(tableOptions) {
+    loadDataTable() {
         // Unregister all events attached to the previous data table.
         this.dataTableEventDestructors.forEach((fn) => fn());
+        const tableOptions = this.options?.dataTable;
         // If the table is passed as a reference, it should be used instead of
         // creating a new one.
         if (tableOptions?.clone) {
             this.dataTable = tableOptions;
-            this.presentationTable = this.dataTable.modified;
+            this.presentationTable = this.dataTable.getModified();
             return;
         }
         const dt = this.dataTable = this.presentationTable =
@@ -17058,33 +20563,27 @@ class Grid {
         delete this.loadingWrapper;
     }
     /**
-     * Returns the current grid data as a JSON string.
+     * Returns the grid data as a JSON string.
+     *
+     * @param modified
+     * Whether to return the modified data table (after filtering/sorting/etc.)
+     * or the unmodified, original one. Default value is set to `true`.
      *
      * @return
      * JSON representation of the data
      */
-    getData() {
-        const json = this.viewport?.dataTable.modified.columns;
-        if (!this.enabledColumns || !json) {
+    getData(modified = true) {
+        const dataTable = modified ? this.viewport?.dataTable : this.dataTable;
+        const columns = dataTable?.columns;
+        if (!this.enabledColumns || !columns) {
             return '{}';
         }
-        for (const key of Object.keys(json)) {
+        for (const key of Object.keys(columns)) {
             if (this.enabledColumns.indexOf(key) === -1) {
-                delete json[key];
+                delete columns[key];
             }
         }
-        return JSON.stringify(json);
-    }
-    /**
-     * Returns the current grid data as a JSON string.
-     *
-     * @return
-     * JSON representation of the data
-     *
-     * @deprecated
-     */
-    getJSON() {
-        return this.getData();
+        return JSON.stringify(columns, null, 2);
     }
     /**
      * Returns the current Grid options.
@@ -17105,39 +20604,6 @@ class Grid {
         }
         return options;
     }
-    /**
-     * Returns the current Grid options.
-     *
-     * @param onlyUserOptions
-     * Whether to return only the user options or all options (user options
-     * merged with the default ones). Default is `true`.
-     *
-     * @returns
-     * Options as a JSON string
-     *
-     * @deprecated
-     */
-    getOptionsJSON(onlyUserOptions = true) {
-        return JSON.stringify(this.getOptions(onlyUserOptions));
-    }
-    /**
-     * Enables virtualization if the row count is greater than or equal to the
-     * threshold or virtualization is enabled externally. Should be fired after
-     * the data table is loaded.
-     */
-    initVirtualization() {
-        var _a,
-            _b;
-        const rows = this.userOptions.rendering?.rows;
-        const virtualization = rows?.virtualization;
-        const threshold = Number(rows?.virtualizationThreshold ||
-            Core_Defaults.defaultOptions.rendering?.rows?.virtualizationThreshold);
-        const rowCount = Number(this.dataTable?.rowCount);
-        // Makes sure all nested options are defined.
-        (_b = ((_a = (this.options ?? (this.options = {}))).rendering ?? (_a.rendering = {}))).rows ?? (_b.rows = {});
-        this.options.rendering.rows.virtualization =
-            Grid_defined(virtualization) ? virtualization : rowCount >= threshold;
-    }
 }
 /* *
 *
@@ -17146,7 +20612,7 @@ class Grid {
 * */
 /**
  * An array containing the current Grid objects in the page.
- * @internal
+ * @private
  */
 Grid.grids = [];
 /* *
@@ -17155,35 +20621,6 @@ Grid.grids = [];
  *
  * */
 /* harmony default export */ const Core_Grid = (Grid);
-
-;// ./code/grid/es-modules/Data/DataPoolDefaults.js
-/* *
- *
- *  (c) 2009-2025 Highsoft AS
- *
- *  License: www.highcharts.com/license
- *
- *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
- *
- *  Authors:
- *  - Sophie Bremer
- *
- * */
-
-/* *
- *
- *  API Options
- *
- * */
-const DataPoolDefaults = {
-    connectors: []
-};
-/* *
- *
- *  Export Defaults
- *
- * */
-/* harmony default export */ const Data_DataPoolDefaults = (DataPoolDefaults);
 
 ;// ./code/grid/es-modules/Data/DataPool.js
 /* *
@@ -17201,7 +20638,7 @@ const DataPoolDefaults = {
 
 
 
-
+const { addEvent: DataPool_addEvent, fireEvent: DataPool_fireEvent, merge: DataPool_merge } = Core_Utilities;
 /* *
  *
  *  Class
@@ -17213,7 +20650,7 @@ const DataPoolDefaults = {
  * @class
  * @name Data.DataPool
  *
- * @param {Data.DataPoolOptions} options
+ * @param {DataPoolOptions} options
  * Pool options with all connectors.
  */
 class DataPool {
@@ -17222,27 +20659,25 @@ class DataPool {
      *  Constructor
      *
      * */
-    constructor(options = Data_DataPoolDefaults) {
-        options.connectors = (options.connectors || []);
+    constructor(options) {
+        this.options = DataPool_merge(DataPool.defaultOptions, options);
         this.connectors = {};
-        this.options = options;
         this.waiting = {};
     }
     /* *
      *
-     *  Functions
+     *  Methods
      *
      * */
     /**
      * Emits an event on this data pool to all registered callbacks of the given
      * event.
-     * @private
      *
      * @param {DataTable.Event} e
      * Event object with event information.
      */
     emit(e) {
-        Core_Utilities.fireEvent(this, e.type, e);
+        DataPool_fireEvent(this, e.type, e);
     }
     /**
      * Loads the connector.
@@ -17312,7 +20747,7 @@ class DataPool {
      * @param {string} connectorId
      * ID of the connector.
      *
-     * @return {DataPoolConnectorOptions|undefined}
+     * @return {DataConnectorTypeOptions | undefined}
      * Returns the options of the connector, or `undefined` if not found.
      */
     getConnectorOptions(connectorId) {
@@ -17322,22 +20757,6 @@ class DataPool {
                 return connectors[i];
             }
         }
-    }
-    /**
-     * Loads the connector table.
-     *
-     * @function Data.DataPool#getConnectorTable
-     *
-     * @param {string} connectorId
-     * ID of the connector.
-     *
-     * @return {Promise<Data.DataTable>}
-     * Returns the connector table.
-     */
-    getConnectorTable(connectorId) {
-        return this
-            .getConnector(connectorId)
-            .then((connector) => connector.table);
     }
     /**
      * Tests whether the connector has never been requested.
@@ -17353,7 +20772,8 @@ class DataPool {
         return !this.connectors[connectorId];
     }
     /**
-     * Creates and loads the connector.
+     * Instantiates the connector class for the given options and loads its
+     * data.
      *
      * @private
      *
@@ -17373,12 +20793,12 @@ class DataPool {
             if (!ConnectorClass) {
                 throw new Error(`Connector type not found. (${options.type})`);
             }
-            const connector = this.connectors[options.id] = new ConnectorClass(options.options, options.dataTables);
+            const connector = this.connectors[options.id] =
+                new ConnectorClass(options);
             // eslint-disable-next-line @typescript-eslint/no-floating-promises
             connector
                 .load()
-                .then(({ converter, dataTables }) => {
-                connector.dataTables = dataTables;
+                .then(({ converter }) => {
                 connector.converter = converter;
                 connector.loaded = true;
                 this.emit({
@@ -17413,31 +20833,33 @@ class DataPool {
      * Function to unregister callback from the event.
      */
     on(type, callback) {
-        return Core_Utilities.addEvent(this, type, callback);
+        return DataPool_addEvent(this, type, callback);
     }
     /**
      * Sets connector options under the specified `options.id`.
      *
-     * @param {Data.DataPoolConnectorOptions} options
+     * @param options
      * Connector options to set.
      */
     setConnectorOptions(options) {
-        const connectors = this.options.connectors, instances = this.connectors;
+        const connectorsOptions = this.options.connectors;
+        const connectorsInstances = this.connectors;
         this.emit({
             type: 'setConnectorOptions',
             options
         });
-        for (let i = 0, iEnd = connectors.length; i < iEnd; ++i) {
-            if (connectors[i].id === options.id) {
-                connectors.splice(i, 1);
+        for (let i = 0, iEnd = connectorsOptions.length; i < iEnd; ++i) {
+            if (connectorsOptions[i].id === options.id) {
+                connectorsOptions.splice(i, 1);
                 break;
             }
         }
-        if (instances[options.id]) {
-            instances[options.id].stopPolling();
-            delete instances[options.id];
+        // TODO: Check if can be refactored
+        if (connectorsInstances[options.id]) {
+            connectorsInstances[options.id].stopPolling();
+            delete connectorsInstances[options.id];
         }
-        connectors.push(options);
+        connectorsOptions.push(options);
         this.emit({
             type: 'afterSetConnectorOptions',
             options
@@ -17449,11 +20871,9 @@ class DataPool {
  *  Static Properties
  *
  * */
-/**
- * Semantic version string of the DataPool class.
- * @internal
- */
-DataPool.version = '1.0.0';
+DataPool.defaultOptions = {
+    connectors: []
+};
 /* *
  *
  *  Default Export
@@ -17675,8 +21095,10 @@ var CreditsLiteComposition;
  *  - Christer Vasseng
  *  - Gøran Slettemark
  *  - Sophie Bremer
+ *  - Kamil Kubik
  *
  * */
+
 
 
 
@@ -17700,7 +21122,7 @@ class CSVConverter extends Converters_DataConverter {
     /**
      * Constructs an instance of the CSV parser.
      *
-     * @param {CSVConverter.UserOptions} [options]
+     * @param {Partial<CSVConverterOptions>} [options]
      * Options for the CSV parser.
      */
     constructor(options) {
@@ -17711,7 +21133,6 @@ class CSVConverter extends Converters_DataConverter {
          *  Properties
          *
          * */
-        this.columns = [];
         this.headers = [];
         this.dataTypes = [];
         this.options = mergedOptions;
@@ -17722,85 +21143,16 @@ class CSVConverter extends Converters_DataConverter {
      *
      * */
     /**
-     * Creates a CSV string from the datatable on the connector instance.
+     * Parses the CSV string into a DataTable column collection.
+     * Handles line and item delimiters, optional header row, and
+     * applies pre-processing if a beforeParse callback is provided.
      *
-     * @param {DataConnector} connector
-     * Connector instance to export from.
-     *
-     * @param {CSVConverter.Options} [options]
-     * Options used for the export.
-     *
-     * @return {string}
-     * CSV string from the connector table.
-     */
-    export(connector, options = this.options) {
-        const { useLocalDecimalPoint, lineDelimiter } = options, exportNames = (this.options.firstRowAsNames !== false);
-        let { decimalPoint, itemDelimiter } = options;
-        if (!decimalPoint) {
-            decimalPoint = (itemDelimiter !== ',' && useLocalDecimalPoint ?
-                (1.1).toLocaleString()[1] :
-                '.');
-        }
-        if (!itemDelimiter) {
-            itemDelimiter = (decimalPoint === ',' ? ';' : ',');
-        }
-        const columns = connector.getSortedColumns(options.usePresentationOrder), columnNames = Object.keys(columns), csvRows = [], columnsCount = columnNames.length;
-        const rowArray = [];
-        // Add the names as the first row if they should be exported
-        if (exportNames) {
-            csvRows.push(columnNames.map((columnName) => `"${columnName}"`).join(itemDelimiter));
-        }
-        for (let columnIndex = 0; columnIndex < columnsCount; columnIndex++) {
-            const columnName = columnNames[columnIndex], column = columns[columnName], columnLength = column.length;
-            const columnMeta = connector.whatIs(columnName);
-            let columnDataType;
-            if (columnMeta) {
-                columnDataType = columnMeta.dataType;
-            }
-            for (let rowIndex = 0; rowIndex < columnLength; rowIndex++) {
-                let cellValue = column[rowIndex];
-                if (!rowArray[rowIndex]) {
-                    rowArray[rowIndex] = [];
-                }
-                // Prefer datatype from metadata
-                if (columnDataType === 'string') {
-                    cellValue = '"' + cellValue + '"';
-                }
-                else if (typeof cellValue === 'number') {
-                    cellValue = String(cellValue).replace('.', decimalPoint);
-                }
-                else if (typeof cellValue === 'string') {
-                    cellValue = `"${cellValue}"`;
-                }
-                rowArray[rowIndex][columnIndex] = cellValue;
-                // On the final column, push the row to the CSV
-                if (columnIndex === columnsCount - 1) {
-                    // Trim repeated undefined values starting at the end
-                    // Currently, we export the first "comma" even if the
-                    // second value is undefined
-                    let i = columnIndex;
-                    while (rowArray[rowIndex].length > 2) {
-                        const cellVal = rowArray[rowIndex][i];
-                        if (cellVal !== void 0) {
-                            break;
-                        }
-                        rowArray[rowIndex].pop();
-                        i--;
-                    }
-                    csvRows.push(rowArray[rowIndex].join(itemDelimiter));
-                }
-            }
-        }
-        return csvRows.join(lineDelimiter);
-    }
-    /**
-     * Initiates parsing of CSV
-     *
-     * @param {CSVConverter.UserOptions}[options]
-     * Options for the parser
-     *
+     * @param {Partial<CSVConverterOptions>} [options]
+     * Options for the parser.
      * @param {DataEvent.Detail} [eventDetail]
      * Custom information for pending events.
+     * @return {DataTable.ColumnCollection}
+     * The parsed column collection.
      *
      * @emits CSVDataParser#parse
      * @emits CSVDataParser#afterParse
@@ -17808,10 +21160,10 @@ class CSVConverter extends Converters_DataConverter {
     parse(options, eventDetail) {
         const converter = this, dataTypes = converter.dataTypes, parserOptions = CSVConverter_merge(this.options, options), { beforeParse, lineDelimiter, firstRowAsNames, itemDelimiter } = parserOptions;
         let lines, rowIt = 0, { csv, startRow, endRow } = parserOptions, column;
-        converter.columns = [];
+        const columnsArray = [];
         converter.emit({
             type: 'parse',
-            columns: converter.columns,
+            columns: columnsArray,
             detail: eventDetail,
             headers: converter.headers
         });
@@ -17849,42 +21201,47 @@ class CSVConverter extends Converters_DataConverter {
                     offset++;
                 }
                 else {
-                    converter
-                        .parseCSVRow(lines[rowIt], rowIt - startRow - offset);
+                    converter.parseCSVRow(columnsArray, lines[rowIt], rowIt - startRow - offset);
                 }
             }
             if (dataTypes.length &&
                 dataTypes[0].length &&
                 dataTypes[0][1] === 'date' && // Format is a string date
                 !converter.options.dateFormat) {
-                converter.deduceDateFormat(converter.columns[0], null, true);
+                converter.deduceDateFormat(columnsArray[0], null, true);
             }
             // Guess types.
-            for (let i = 0, iEnd = converter.columns.length; i < iEnd; ++i) {
-                column = converter.columns[i];
+            for (let i = 0, iEnd = columnsArray.length; i < iEnd; ++i) {
+                column = columnsArray[i];
                 for (let j = 0, jEnd = column.length; j < jEnd; ++j) {
                     if (column[j] && typeof column[j] === 'string') {
-                        let cellValue = converter.asGuessedType(column[j]);
+                        let cellValue = converter.convertByType(column[j]);
                         if (cellValue instanceof Date) {
                             cellValue = cellValue.getTime();
                         }
-                        converter.columns[i][j] = cellValue;
+                        columnsArray[i][j] = cellValue;
                     }
                 }
             }
         }
+        // Normalize columns to same length to avoid truncation.
+        columnsArray.forEach((col) => {
+            col.length = Math.max(...columnsArray.map((c) => c.length));
+        });
         converter.emit({
             type: 'afterParse',
-            columns: converter.columns,
+            columns: columnsArray,
             detail: eventDetail,
             headers: converter.headers
         });
+        return Converters_DataConverterUtils.getColumnsCollection(columnsArray, converter.headers);
     }
     /**
-     * Internal method that parses a single CSV row
+     * Parses a single CSV row string into columns, handling delimiters,
+     * quoted values, data type inference, and column range selection.
      */
-    parseCSVRow(columnStr, rowNumber) {
-        const converter = this, columns = converter.columns || [], dataTypes = converter.dataTypes, { startColumn, endColumn } = converter.options, itemDelimiter = (converter.options.itemDelimiter ||
+    parseCSVRow(columns, columnStr, rowNumber) {
+        const converter = this, dataTypes = converter.dataTypes, { startColumn, endColumn } = converter.options, itemDelimiter = (converter.options.itemDelimiter ||
             converter.guessedItemDelimiter);
         let { decimalPoint } = converter.options;
         if (!decimalPoint || decimalPoint === itemDelimiter) {
@@ -17911,8 +21268,9 @@ class CSVConverter extends Converters_DataConverter {
             }
             // Save the type of the token.
             if (typeof token === 'string') {
-                if (!isNaN(parseFloat(token)) && isFinite(token)) {
-                    token = parseFloat(token);
+                const parsedNumber = parseFloat(token);
+                if (!isNaN(parsedNumber) && isFinite(Number(token))) {
+                    token = parsedNumber;
                     pushType('number');
                 }
                 else if (!isNaN(Date.parse(token))) {
@@ -17932,11 +21290,11 @@ class CSVConverter extends Converters_DataConverter {
             // Try to apply the decimal point, and check if the token then is a
             // number. If not, reapply the initial value
             if (typeof token !== 'number' &&
-                converter.guessType(token) !== 'number' &&
+                Converters_DataConverterUtils.guessType(token, converter) !== 'number' &&
                 decimalPoint) {
                 const initialValue = token;
                 token = token.replace(decimalPoint, '.');
-                if (converter.guessType(token) !== 'number') {
+                if (Converters_DataConverterUtils.guessType(token, converter) !== 'number') {
                     token = initialValue;
                 }
             }
@@ -17985,7 +21343,7 @@ class CSVConverter extends Converters_DataConverter {
     /**
      * Internal method that guesses the delimiter from the first
      * 13 lines of the CSV
-     * @param {Array<string>} lines
+     * @param {string[]} lines
      * The CSV, split into lines
      */
     guessDelimiter(lines) {
@@ -18074,15 +21432,6 @@ class CSVConverter extends Converters_DataConverter {
         }
         return guessed;
     }
-    /**
-     * Handles converting the parsed data to a table.
-     *
-     * @return {DataTable}
-     * Table from the parsed CSV.
-     */
-    getTable() {
-        return Converters_DataConverter.getTableFromColumns(this.columns, this.headers);
-    }
 }
 /* *
  *
@@ -18094,7 +21443,11 @@ class CSVConverter extends Converters_DataConverter {
  */
 CSVConverter.defaultOptions = {
     ...Converters_DataConverter.defaultOptions,
-    lineDelimiter: '\n'
+    lineDelimiter: '\n',
+    startColumn: 0,
+    endColumn: Number.MAX_VALUE,
+    startRow: 0,
+    endRow: Number.MAX_VALUE
 };
 Converters_DataConverter.registerType('CSV', CSVConverter);
 /* *
@@ -18118,13 +21471,14 @@ Converters_DataConverter.registerType('CSV', CSVConverter);
  *  - Christer Vasseng
  *  - Gøran Slettemark
  *  - Sophie Bremer
+ *  - Kamil Kubik
  *
  * */
 
 
 
 
-const { merge: CSVConnector_merge, defined: CSVConnector_defined } = Core_Utilities;
+const { merge: CSVConnector_merge, fireEvent: CSVConnector_fireEvent } = Core_Utilities;
 /* *
  *
  *  Class
@@ -18144,18 +21498,13 @@ class CSVConnector extends Connectors_DataConnector {
     /**
      * Constructs an instance of CSVConnector.
      *
-     * @param {CSVConnector.UserOptions} [options]
+     * @param {Partial<CSVConnectorOptions>} [options]
      * Options for the connector and converter.
-     *
-     * @param {Array<DataTableOptions>} [dataTables]
-     * Multiple connector data tables options.
-     *
      */
-    constructor(options, dataTables) {
+    constructor(options) {
         const mergedOptions = CSVConnector_merge(CSVConnector.defaultOptions, options);
-        super(mergedOptions, dataTables);
-        this.options = CSVConnector_defined(dataTables) ?
-            CSVConnector_merge(mergedOptions, { dataTables }) : mergedOptions;
+        super(mergedOptions);
+        this.options = mergedOptions;
         if (mergedOptions.enablePolling) {
             this.startPolling(Math.max(mergedOptions.dataRefreshRate || 0, 1) * 1000);
         }
@@ -18166,6 +21515,16 @@ class CSVConnector extends Connectors_DataConnector {
      *
      * */
     /**
+     * Overrides the DataConnector method. Emits an event on the connector to
+     * all registered callbacks of this event.
+     *
+     * @param {CSVConnector.Event} e
+     * Event object containing additional event information.
+     */
+    emit(e) {
+        CSVConnector_fireEvent(this, e.type, e);
+    }
+    /**
      * Initiates the loading of the CSV source to the connector
      *
      * @param {DataEvent.Detail} [eventDetail]
@@ -18175,12 +21534,12 @@ class CSVConnector extends Connectors_DataConnector {
      * @emits CSVConnector#afterLoad
      */
     load(eventDetail) {
-        const connector = this, tables = connector.dataTables, { csv, csvURL, dataModifier, dataTables } = connector.options;
+        const connector = this;
+        const options = connector.options;
+        const { csv, csvURL, dataTables, decimalPoint } = options;
         connector.emit({
             type: 'load',
-            csv,
-            detail: eventDetail,
-            tables
+            csv
         });
         return Promise
             .resolve(csvURL ?
@@ -18191,39 +21550,32 @@ class CSVConnector extends Connectors_DataConnector {
             .then((csv) => {
             if (csv) {
                 this.initConverters(csv, (key) => {
-                    const options = this.options;
                     const tableOptions = dataTables?.find((dataTable) => dataTable.key === key);
-                    // Takes over the connector default options.
-                    const mergedTableOptions = {
-                        dataTableKey: key,
-                        firstRowAsNames: tableOptions?.firstRowAsNames ??
-                            options.firstRowAsNames,
-                        beforeParse: tableOptions?.beforeParse ??
-                            options.beforeParse
+                    // The data table options takes precedence over the
+                    // connector options.
+                    const { firstRowAsNames = options.firstRowAsNames, beforeParse = options.beforeParse } = tableOptions || {};
+                    const converterOptions = {
+                        decimalPoint,
+                        firstRowAsNames,
+                        beforeParse
                     };
-                    return new Converters_CSVConverter(CSVConnector_merge(this.options, mergedTableOptions));
-                }, (converter, data) => {
-                    converter.parse({ csv: data });
-                });
+                    return new Converters_CSVConverter(CSVConnector_merge(options, converterOptions));
+                }, (converter, data) => converter.parse({ csv: data }));
             }
-            return connector
-                .setModifierOptions(dataModifier, dataTables)
-                .then(() => csv);
+            return connector.applyTableModifiers().then(() => csv);
         })
             .then((csv) => {
             connector.emit({
                 type: 'afterLoad',
-                csv,
                 detail: eventDetail,
-                tables
+                csv
             });
             return connector;
         })['catch']((error) => {
             connector.emit({
                 type: 'loadError',
                 detail: eventDetail,
-                error,
-                tables
+                error
             });
             throw error;
         });
@@ -18235,12 +21587,19 @@ class CSVConnector extends Connectors_DataConnector {
  *
  * */
 CSVConnector.defaultOptions = {
+    id: 'csv-connector',
+    type: 'CSV',
     csv: '',
     csvURL: '',
     enablePolling: false,
     dataRefreshRate: 1,
     firstRowAsNames: true
 };
+/* *
+ *
+ *  Registry
+ *
+ * */
 Connectors_DataConnector.registerType('CSV', CSVConnector);
 /* *
  *
@@ -18263,8 +21622,10 @@ Connectors_DataConnector.registerType('CSV', CSVConnector);
  *  - Gøran Slettemark
  *  - Wojciech Chmiel
  *  - Sophie Bremer
+ *  - Kamil Kubik
  *
  * */
+
 
 
 
@@ -18288,13 +21649,12 @@ class GoogleSheetsConverter extends Converters_DataConverter {
     /**
      * Constructs an instance of the GoogleSheetsConverter.
      *
-     * @param {GoogleSheetsConverter.UserOptions} [options]
+     * @param {Partial<GoogleSheetsConverterOptions>} [options]
      * Options for the GoogleSheetsConverter.
      */
     constructor(options) {
         const mergedOptions = GoogleSheetsConverter_merge(GoogleSheetsConverter.defaultOptions, options);
         super(mergedOptions);
-        this.columns = [];
         this.header = [];
         this.options = mergedOptions;
     }
@@ -18306,7 +21666,7 @@ class GoogleSheetsConverter extends Converters_DataConverter {
     /**
      * Initiates the parsing of the Google Sheet
      *
-     * @param {GoogleSheetsConverter.UserOptions}[options]
+     * @param {Partial<GoogleSheetsConverterOptions>}[options]
      * Options for the parser
      *
      * @param {DataEvent.Detail} [eventDetail]
@@ -18317,55 +21677,43 @@ class GoogleSheetsConverter extends Converters_DataConverter {
      */
     parse(options, eventDetail) {
         const converter = this, parseOptions = GoogleSheetsConverter_merge(converter.options, options);
-        let columns = ((parseOptions.json?.values) || []).map((column) => column.slice());
-        if (columns.length === 0) {
-            return false;
+        let columnsArray = ((parseOptions.json?.values) || []).map((column) => column.slice());
+        if (columnsArray.length === 0) {
+            return {};
         }
         converter.header = [];
-        converter.columns = [];
         converter.emit({
             type: 'parse',
-            columns: converter.columns,
+            columns: [],
             detail: eventDetail,
             headers: converter.header
         });
         // If beforeParse is defined, use it to modify the data
         const { beforeParse, json } = parseOptions;
         if (beforeParse && json) {
-            columns = beforeParse(json.values);
+            columnsArray = beforeParse(json.values);
         }
         let column;
-        converter.columns = columns;
-        for (let i = 0, iEnd = columns.length; i < iEnd; i++) {
-            column = columns[i];
+        for (let i = 0, iEnd = columnsArray.length; i < iEnd; i++) {
+            column = columnsArray[i];
             converter.header[i] = (parseOptions.firstRowAsNames ?
                 `${column.shift()}` :
                 GoogleSheetsConverter_uniqueKey());
             for (let j = 0, jEnd = column.length; j < jEnd; ++j) {
-                if (column[j] && typeof column[j] === 'string') {
-                    let cellValue = converter.asGuessedType(column[j]);
-                    if (cellValue instanceof Date) {
-                        cellValue = cellValue.getTime();
-                    }
-                    converter.columns[i][j] = cellValue;
+                let cellValue = column[j];
+                if (isDateObject(cellValue)) {
+                    cellValue = cellValue.getTime();
                 }
+                columnsArray[i][j] = cellValue;
             }
         }
         converter.emit({
             type: 'afterParse',
-            columns: converter.columns,
+            columns: columnsArray,
             detail: eventDetail,
             headers: converter.header
         });
-    }
-    /**
-     * Handles converting the parsed data to a table.
-     *
-     * @return {DataTable}
-     * Table from the parsed Google Sheet
-     */
-    getTable() {
-        return Converters_DataConverter.getTableFromColumns(this.columns, this.header);
+        return Converters_DataConverterUtils.getColumnsCollection(columnsArray, converter.header);
     }
 }
 /* *
@@ -18386,6 +21734,16 @@ Converters_DataConverter.registerType('GoogleSheets', GoogleSheetsConverter);
  *
  * */
 /* harmony default export */ const Converters_GoogleSheetsConverter = (GoogleSheetsConverter);
+/**
+ * Check if a value is a Date object
+ *
+ * @param {unknown} value to verify
+ * @return {boolean}
+ * True if the value is a Date object, false otherwise.
+ */
+function isDateObject(value) {
+    return Object.prototype.toString.call(value) === '[object Date]';
+}
 
 ;// ./code/grid/es-modules/Data/Connectors/GoogleSheetsConnector.js
 /* *
@@ -18402,13 +21760,14 @@ Converters_DataConverter.registerType('GoogleSheets', GoogleSheetsConverter);
  *  - Wojciech Chmiel
  *  - Sophie Bremer
  *  - Jomar Hønsi
+ *  - Kamil Kubik
  *
  * */
 
 
 
 
-const { merge: GoogleSheetsConnector_merge, pick: GoogleSheetsConnector_pick, defined: GoogleSheetsConnector_defined } = Core_Utilities;
+const { merge: GoogleSheetsConnector_merge, pick: GoogleSheetsConnector_pick, fireEvent: GoogleSheetsConnector_fireEvent } = Core_Utilities;
 /* *
  *
  *  Functions
@@ -18443,24 +21802,29 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
     /**
      * Constructs an instance of GoogleSheetsConnector
      *
-     * @param {GoogleSheetsConnector.UserOptions} [options]
+     * @param {Partial<GoogleSheetsConnectorOptions>} [options]
      * Options for the connector and converter.
-     *
-     * @param {Array<DataTableOptions>} [dataTables]
-     * Multiple connector data tables options.
-     *
      */
-    constructor(options, dataTables) {
+    constructor(options) {
         const mergedOptions = GoogleSheetsConnector_merge(GoogleSheetsConnector.defaultOptions, options);
-        super(mergedOptions, dataTables);
-        this.options = GoogleSheetsConnector_defined(dataTables) ?
-            GoogleSheetsConnector_merge(mergedOptions, { dataTables }) : mergedOptions;
+        super(mergedOptions);
+        this.options = mergedOptions;
     }
     /* *
      *
      *  Functions
      *
      * */
+    /**
+     * Overrides the DataConnector method. Emits an event on the connector to
+     * all registered callbacks of this event.
+     *
+     * @param {GoogleSheetsConnector.Event} e
+     * Event object containing additional event information.
+     */
+    emit(e) {
+        GoogleSheetsConnector_fireEvent(this, e.type, e);
+    }
     /**
      * Loads data from a Google Spreadsheet.
      *
@@ -18471,11 +21835,13 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
      * Same connector instance with modified table.
      */
     load(eventDetail) {
-        const connector = this, tables = connector.dataTables, { dataModifier, dataRefreshRate, enablePolling, googleAPIKey, googleSpreadsheetKey, dataTables } = connector.options, url = GoogleSheetsConnector.buildFetchURL(googleAPIKey, googleSpreadsheetKey, connector.options);
+        const connector = this;
+        const options = connector.options;
+        const { dataRefreshRate, enablePolling, googleAPIKey, googleSpreadsheetKey, dataTables } = options;
+        const url = GoogleSheetsConnector.buildFetchURL(googleAPIKey, googleSpreadsheetKey, options);
         connector.emit({
             type: 'load',
             detail: eventDetail,
-            tables,
             url
         });
         if (!URL.canParse(url)) {
@@ -18488,27 +21854,22 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
                 throw new Error(json.error.message);
             }
             this.initConverters(json, (key) => {
-                const options = this.options;
                 const tableOptions = dataTables?.find((dataTable) => dataTable.key === key);
-                // Takes over the connector default options.
-                const mergedTableOptions = {
-                    dataTableKey: key,
-                    firstRowAsNames: tableOptions?.firstRowAsNames ??
-                        options.firstRowAsNames,
-                    beforeParse: tableOptions?.beforeParse ??
-                        options.beforeParse
+                // The data table options takes precedence over the
+                // connector options.
+                const { firstRowAsNames = options.firstRowAsNames, beforeParse = options.beforeParse } = tableOptions || {};
+                const converterOptions = {
+                    firstRowAsNames,
+                    beforeParse
                 };
-                return new Converters_GoogleSheetsConverter(GoogleSheetsConnector_merge(this.options, mergedTableOptions));
-            }, (converter, data) => {
-                converter.parse({ json: data });
-            });
-            return connector.setModifierOptions(dataModifier, dataTables);
+                return new Converters_GoogleSheetsConverter(converterOptions);
+            }, (converter, data) => converter.parse({ json: data }));
+            return connector.applyTableModifiers();
         })
             .then(() => {
             connector.emit({
                 type: 'afterLoad',
                 detail: eventDetail,
-                tables,
                 url
             });
             // Polling
@@ -18520,8 +21881,7 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
             connector.emit({
                 type: 'loadError',
                 detail: eventDetail,
-                error,
-                tables
+                error
             });
             throw error;
         });
@@ -18533,6 +21893,8 @@ class GoogleSheetsConnector extends Connectors_DataConnector {
  *
  * */
 GoogleSheetsConnector.defaultOptions = {
+    id: 'google-sheets-connector',
+    type: 'GoogleSheets',
     googleAPIKey: '',
     googleSpreadsheetKey: '',
     enablePolling: false,
@@ -18567,12 +21929,12 @@ GoogleSheetsConnector.defaultOptions = {
      */
     function buildFetchURL(apiKey, sheetKey, options = {}) {
         const url = new URL(`https://sheets.googleapis.com/v4/spreadsheets/${sheetKey}/values/`);
-        const range = options.onlyColumnNames ?
+        const range = options.onlyColumnIds ?
             'A1:Z1' : buildQueryRange(options);
         url.pathname += range;
         const searchParams = url.searchParams;
         searchParams.set('alt', 'json');
-        if (!options.onlyColumnNames) {
+        if (!options.onlyColumnIds) {
             searchParams.set('dateTimeRenderOption', 'FORMATTED_STRING');
             searchParams.set('majorDimension', 'COLUMNS');
             searchParams.set('valueRenderOption', 'UNFORMATTED_VALUE');
@@ -18598,6 +21960,11 @@ GoogleSheetsConnector.defaultOptions = {
     }
     GoogleSheetsConnector.buildQueryRange = buildQueryRange;
 })(GoogleSheetsConnector || (GoogleSheetsConnector = {}));
+/* *
+ *
+ *  Registry
+ *
+ * */
 Connectors_DataConnector.registerType('GoogleSheets', GoogleSheetsConnector);
 /* *
  *
@@ -18620,8 +21987,10 @@ Connectors_DataConnector.registerType('GoogleSheets', GoogleSheetsConnector);
  *  - Gøran Slettemark
  *  - Wojciech Chmiel
  *  - Sophie Bremer
+ *  - Kamil Kubik
  *
  * */
+
 
 
 
@@ -18667,13 +22036,12 @@ class HTMLTableConverter extends Converters_DataConverter {
     /**
      * Constructs an instance of the HTMLTableConverter.
      *
-     * @param {HTMLTableConverter.UserOptions} [options]
+     * @param {Partial<HTMLTableConverterOptions>} [options]
      * Options for the HTMLTableConverter.
      */
     constructor(options) {
         const mergedOptions = HTMLTableConverter_merge(HTMLTableConverter.defaultOptions, options);
         super(mergedOptions);
-        this.columns = [];
         this.headers = [];
         this.options = mergedOptions;
         if (mergedOptions.tableElement) {
@@ -18701,7 +22069,7 @@ class HTMLTableConverter extends Converters_DataConverter {
      */
     export(connector, options = this.options) {
         const exportNames = (options.firstRowAsNames !== false), useMultiLevelHeaders = options.useMultiLevelHeaders;
-        const columns = connector.getSortedColumns(options.usePresentationOrder), columnNames = Object.keys(columns), htmlRows = [], columnsCount = columnNames.length;
+        const columns = connector.getSortedColumns(), columnIds = Object.keys(columns), htmlRows = [], columnsCount = columnIds.length;
         const rowArray = [];
         let tableHead = '';
         // Add the names as the first row if they should be exported
@@ -18710,32 +22078,30 @@ class HTMLTableConverter extends Converters_DataConverter {
             // If using multilevel headers, the first value
             // of each column is a subcategory
             if (useMultiLevelHeaders) {
-                for (const name of columnNames) {
-                    let column = columns[name];
+                for (const columnId of columnIds) {
+                    let column = columns[columnId];
                     if (!Array.isArray(column)) {
                         // Convert to conventional array from typed array
                         // if needed
                         column = Array.from(column);
                     }
                     const subhead = (column.shift() || '').toString();
-                    columns[name] = column;
+                    columns[columnId] = column;
                     subcategories.push(subhead);
                 }
-                tableHead = this.getTableHeaderHTML(columnNames, subcategories, options);
+                tableHead = this.getTableHeaderHTML(columnIds, subcategories, options);
             }
             else {
-                tableHead = this.getTableHeaderHTML(void 0, columnNames, options);
+                tableHead = this.getTableHeaderHTML(void 0, columnIds, options);
             }
         }
         for (let columnIndex = 0; columnIndex < columnsCount; columnIndex++) {
-            const columnName = columnNames[columnIndex], column = columns[columnName], columnLength = column.length;
+            const columnId = columnIds[columnIndex], column = columns[columnId], columnLength = column.length;
             for (let rowIndex = 0; rowIndex < columnLength; rowIndex++) {
                 let cellValue = column[rowIndex];
                 if (!rowArray[rowIndex]) {
                     rowArray[rowIndex] = [];
                 }
-                // Alternative: Datatype from HTML attribute with
-                // connector.whatIs(columnName)
                 if (!(typeof cellValue === 'string' ||
                     typeof cellValue === 'number' ||
                     typeof cellValue === 'undefined')) {
@@ -18856,7 +22222,7 @@ class HTMLTableConverter extends Converters_DataConverter {
     /**
      * Initiates the parsing of the HTML table
      *
-     * @param {HTMLTableConverter.UserOptions}[options]
+     * @param {Partial<HTMLTableConverterOptions>}[options]
      * Options for the parser
      *
      * @param {DataEvent.Detail} [eventDetail]
@@ -18867,22 +22233,22 @@ class HTMLTableConverter extends Converters_DataConverter {
      * @emits HTMLTableParser#parseError
      */
     parse(options, eventDetail) {
-        const converter = this, columns = [], headers = [], parseOptions = HTMLTableConverter_merge(converter.options, options), { endRow, startColumn, endColumn, firstRowAsNames } = parseOptions, tableHTML = parseOptions.tableElement || this.tableElement;
+        const converter = this, columnsArray = [], headers = [], parseOptions = HTMLTableConverter_merge(converter.options, options), { endRow, startColumn, endColumn, firstRowAsNames } = parseOptions, tableHTML = parseOptions.tableElement || this.tableElement;
         if (!(tableHTML instanceof HTMLElement)) {
             converter.emit({
                 type: 'parseError',
-                columns,
+                columns: columnsArray,
                 detail: eventDetail,
                 headers,
                 error: 'Not a valid HTML Table'
             });
-            return;
+            return {};
         }
         converter.tableElement = tableHTML;
         converter.tableElementID = tableHTML.id;
         this.emit({
             type: 'parse',
-            columns: converter.columns,
+            columns: columnsArray,
             detail: eventDetail,
             headers: converter.headers
         });
@@ -18908,20 +22274,20 @@ class HTMLTableConverter extends Converters_DataConverter {
                 const columnsInRow = rows[rowIndex].children, columnsInRowLength = columnsInRow.length;
                 let columnIndex = 0;
                 while (columnIndex < columnsInRowLength) {
-                    const relativeColumnIndex = columnIndex - startColumn, row = columns[relativeColumnIndex];
+                    const relativeColumnIndex = columnIndex - startColumn, row = columnsArray[relativeColumnIndex];
                     item = columnsInRow[columnIndex];
                     if ((item.tagName === 'TD' ||
                         item.tagName === 'TH') &&
                         (columnIndex >= startColumn &&
                             columnIndex <= endColumn)) {
-                        if (!columns[relativeColumnIndex]) {
-                            columns[relativeColumnIndex] = [];
+                        if (!columnsArray[relativeColumnIndex]) {
+                            columnsArray[relativeColumnIndex] = [];
                         }
-                        let cellValue = converter.asGuessedType(item.innerHTML);
+                        let cellValue = converter.convertByType(item.innerHTML);
                         if (cellValue instanceof Date) {
                             cellValue = cellValue.getTime();
                         }
-                        columns[relativeColumnIndex][rowIndex - startRow] = cellValue;
+                        columnsArray[relativeColumnIndex][rowIndex - startRow] = cellValue;
                         // Loop over all previous indices and make sure
                         // they are nulls, not undefined.
                         let i = 1;
@@ -18936,23 +22302,14 @@ class HTMLTableConverter extends Converters_DataConverter {
             }
             rowIndex++;
         }
-        this.columns = columns;
         this.headers = headers;
         this.emit({
             type: 'afterParse',
-            columns,
+            columns: columnsArray,
             detail: eventDetail,
             headers
         });
-    }
-    /**
-     * Handles converting the parsed data to a table.
-     *
-     * @return {DataTable}
-     * Table from the parsed HTML table
-     */
-    getTable() {
-        return Converters_DataConverter.getTableFromColumns(this.columns, this.headers);
+        return Converters_DataConverterUtils.getColumnsCollection(columnsArray, converter.headers);
     }
 }
 /* *
@@ -18966,7 +22323,11 @@ class HTMLTableConverter extends Converters_DataConverter {
 HTMLTableConverter.defaultOptions = {
     ...Converters_DataConverter.defaultOptions,
     useRowspanHeaders: true,
-    useMultiLevelHeaders: true
+    useMultiLevelHeaders: true,
+    startColumn: 0,
+    endColumn: Number.MAX_VALUE,
+    startRow: 0,
+    endRow: Number.MAX_VALUE
 };
 Converters_DataConverter.registerType('HTMLTable', HTMLTableConverter);
 /* *
@@ -18990,13 +22351,14 @@ Converters_DataConverter.registerType('HTMLTable', HTMLTableConverter);
  *  - Gøran Slettemark
  *  - Wojciech Chmiel
  *  - Sophie Bremer
+ *  - Kamil Kubik
  *
  * */
 
 
 
-const { win: HTMLTableConnector_win } = Core_Globals;
 
+const { win: HTMLTableConnector_win } = Core_Globals;
 
 const { merge: HTMLTableConnector_merge } = Core_Utilities;
 /* *
@@ -19018,14 +22380,14 @@ class HTMLTableConnector extends Connectors_DataConnector {
     /**
      * Constructs an instance of HTMLTableConnector.
      *
-     * @param {HTMLTableConnector.UserOptions} [options]
+     * @param {HTMLTableConnector.CombinedHTMLTableConnectorOptions} [options]
      * Options for the connector and converter.
      */
     constructor(options) {
         const mergedOptions = HTMLTableConnector_merge(HTMLTableConnector.defaultOptions, options);
         super(mergedOptions);
-        this.converter = new Converters_HTMLTableConverter(mergedOptions);
         this.options = mergedOptions;
+        this.converter = new Converters_HTMLTableConverter(mergedOptions);
     }
     /**
      * Initiates creating the dataconnector from the HTML table
@@ -19037,21 +22399,23 @@ class HTMLTableConnector extends Connectors_DataConnector {
      * @emits HTMLTableConnector#afterLoad
      * @emits HTMLTableConnector#loadError
      */
-    load(eventDetail) {
-        const connector = this, converter = connector.converter, table = connector.table, { dataModifier, table: tableHTML } = connector.options;
+    async load(eventDetail) {
+        const connector = this;
+        const options = connector.options;
+        const converter = connector.converter;
+        const table = connector.getTable();
+        const htmlTable = options.htmlTable;
         connector.emit({
             type: 'load',
-            detail: eventDetail,
-            tables: { table },
-            tableElement: connector.tableElement
+            detail: eventDetail
         });
         let tableElement;
-        if (typeof tableHTML === 'string') {
-            connector.tableID = tableHTML;
-            tableElement = HTMLTableConnector_win.document.getElementById(tableHTML);
+        if (typeof htmlTable === 'string') {
+            connector.tableID = htmlTable;
+            tableElement = HTMLTableConnector_win.document.getElementById(htmlTable);
         }
         else {
-            tableElement = tableHTML;
+            tableElement = htmlTable;
             connector.tableID = tableElement.id;
         }
         connector.tableElement = tableElement || void 0;
@@ -19060,26 +22424,20 @@ class HTMLTableConnector extends Connectors_DataConnector {
             connector.emit({
                 type: 'loadError',
                 detail: eventDetail,
-                error,
-                tables: { table }
+                error
             });
             return Promise.reject(new Error(error));
         }
-        converter.parse(HTMLTableConnector_merge({ tableElement: connector.tableElement }, connector.options), eventDetail);
+        const columns = converter.parse(HTMLTableConnector_merge({ tableElement: connector.tableElement }, options), eventDetail);
         // If already loaded, clear the current rows
         table.deleteColumns();
-        table.setColumns(converter.getTable().getColumns());
-        return connector
-            .setModifierOptions(dataModifier)
-            .then(() => {
-            connector.emit({
-                type: 'afterLoad',
-                detail: eventDetail,
-                tables: { table },
-                tableElement: connector.tableElement
-            });
-            return connector;
+        table.setColumns(columns);
+        await connector.applyTableModifiers();
+        connector.emit({
+            type: 'afterLoad',
+            detail: eventDetail
         });
+        return connector;
     }
 }
 /* *
@@ -19088,7 +22446,9 @@ class HTMLTableConnector extends Connectors_DataConnector {
  *
  * */
 HTMLTableConnector.defaultOptions = {
-    table: ''
+    id: 'HTML-table-connector',
+    type: 'HTMLTable',
+    htmlTable: ''
 };
 Connectors_DataConnector.registerType('HTMLTable', HTMLTableConnector);
 /* *
@@ -19109,6 +22469,7 @@ Connectors_DataConnector.registerType('HTMLTable', HTMLTableConnector);
  *
  *  Authors:
  *  - Pawel Lysy
+ *  - Kamil Kubik
  *
  * */
 
@@ -19135,7 +22496,7 @@ class JSONConverter extends Converters_DataConverter {
     /**
      * Constructs an instance of the JSON parser.
      *
-     * @param {JSONConverter.UserOptions} [options]
+     * @param {Partial<JSONConverterOptions>} [options]
      * Options for the JSON parser.
      */
     constructor(options) {
@@ -19146,10 +22507,9 @@ class JSONConverter extends Converters_DataConverter {
          *  Properties
          *
          * */
-        this.columns = [];
+        this.headerColumnIds = [];
         this.headers = [];
         this.options = mergedOptions;
-        this.table = new Data_DataTable();
     }
     /* *
      *
@@ -19159,7 +22519,7 @@ class JSONConverter extends Converters_DataConverter {
     /**
      * Initiates parsing of JSON structure.
      *
-     * @param {JSONConverter.UserOptions}[options]
+     * @param {Partial<JSONConverterOptions>}[options]
      * Options for the parser
      *
      * @param {DataEvent.Detail} [eventDetail]
@@ -19171,15 +22531,16 @@ class JSONConverter extends Converters_DataConverter {
     parse(options, eventDetail) {
         const converter = this;
         options = JSONConverter_merge(converter.options, options);
-        const { beforeParse, orientation, firstRowAsNames, columnNames } = options;
+        const { beforeParse, orientation, firstRowAsNames, columnIds } = options;
         let data = options.data;
         if (!data) {
-            return;
+            return {};
         }
-        converter.columns = [];
+        converter.headers = [];
+        const columnsArray = [];
         converter.emit({
             type: 'parse',
-            columns: converter.columns,
+            columns: columnsArray,
             detail: eventDetail,
             headers: converter.headers
         });
@@ -19188,77 +22549,134 @@ class JSONConverter extends Converters_DataConverter {
         }
         data = data.slice();
         if (orientation === 'columns') {
-            for (let i = 0, iEnd = data.length; i < iEnd; i++) {
-                const item = data[i];
-                if (!(item instanceof Array)) {
-                    return;
-                }
-                if (converter.headers instanceof Array) {
-                    if (firstRowAsNames) {
-                        converter.headers.push(`${item.shift()}`);
-                    }
-                    else if (columnNames && columnNames instanceof Array) {
-                        converter.headers.push(columnNames[i]);
-                    }
-                    converter.table.setColumn(converter.headers[i] || i.toString(), item);
-                }
-                else {
-                    JSONConverter_error('JSONConverter: Invalid `columnNames` option.', false);
-                }
-            }
+            this.parseColumnsOrientation(columnsArray, data, firstRowAsNames, columnIds);
         }
         else if (orientation === 'rows') {
-            if (firstRowAsNames) {
-                converter.headers = data.shift();
-            }
-            else if (columnNames) {
-                converter.headers = columnNames;
-            }
-            for (let rowIndex = 0, iEnd = data.length; rowIndex < iEnd; rowIndex++) {
-                let row = data[rowIndex];
-                if (JSONConverter_isArray(row)) {
-                    for (let columnIndex = 0, jEnd = row.length; columnIndex < jEnd; columnIndex++) {
-                        if (converter.columns.length < columnIndex + 1) {
-                            converter.columns.push([]);
-                        }
-                        converter.columns[columnIndex].push(row[columnIndex]);
-                        if (converter.headers instanceof Array) {
-                            this.table.setColumn(converter.headers[columnIndex] ||
-                                columnIndex.toString(), converter.columns[columnIndex]);
-                        }
-                        else {
-                            JSONConverter_error('JSONConverter: Invalid `columnNames` option.', false);
-                        }
-                    }
-                }
-                else {
-                    const columnNames = converter.headers;
-                    if (columnNames && !(columnNames instanceof Array)) {
-                        const newRow = {};
-                        JSONConverter_objectEach(columnNames, (arrayWithPath, name) => {
-                            newRow[name] = arrayWithPath.reduce((acc, key) => acc[key], row);
-                        });
-                        row = newRow;
-                    }
-                    this.table.setRows([row], rowIndex);
-                }
-            }
+            this.parseRowsOrientation(columnsArray, data, firstRowAsNames, columnIds);
         }
         converter.emit({
             type: 'afterParse',
-            columns: converter.columns,
+            columns: columnsArray,
             detail: eventDetail,
             headers: converter.headers
         });
+        return Converters_DataConverterUtils.getColumnsCollection(columnsArray, converter.headers);
     }
     /**
-     * Handles converting the parsed data to a table.
+     * Helper for parsing data in 'columns' orientation.
      *
-     * @return {DataTable}
-     * Table from the parsed CSV.
+     * @param {DataTable.BasicColumn[]} [columnsArray]
+     * Array of columns.
+     *
+     * @param {unknown[]} [data]
+     * Array of data elements.
+     *
+     * @param {Boolean} [firstRowAsNames]
+     * Defines row as names.
+     *
+     * @param {Array<string>} [columnIds]
+     * Column ids to retrieve.
+     *
+     * @return {void}
      */
-    getTable() {
-        return this.table;
+    parseColumnsOrientation(columnsArray, data, firstRowAsNames, columnIds) {
+        const converter = this;
+        for (let i = 0, iEnd = data.length; i < iEnd; i++) {
+            const item = data[i];
+            if (!(Array.isArray(item))) {
+                return;
+            }
+            if (Array.isArray(converter.headers)) {
+                if (firstRowAsNames) {
+                    converter.headers.push(`${item.shift()}`);
+                }
+                else if (columnIds && Array.isArray(columnIds)) {
+                    converter.headers.push(columnIds[i]);
+                }
+                columnsArray.push(item);
+            }
+            else {
+                JSONConverter_error('JSONConverter: Invalid `columnIds` option.', false);
+            }
+        }
+    }
+    /**
+     * Helper for parsing data in 'rows' orientation.
+     *
+     * @param {DataTable.BasicColumn[]} [columnsArray]
+     * Array of columns.
+     *
+     * Helper for parsing data in 'rows' orientation.
+     *
+     * @param {unknown[]} [data]
+     * Array of data elements.
+     *
+     * @param {Boolean} [firstRowAsNames]
+     * Defines row as names.
+     *
+     * @param {Array<string>} [columnIds]
+     * Column ids to retrieve.
+     *
+     * @return {DataTable.BasicColumn[]}
+     * Parsed columns.
+     */
+    parseRowsOrientation(columnsArray, data, firstRowAsNames, columnIds) {
+        const converter = this;
+        if (firstRowAsNames) {
+            converter.headers = data.shift();
+        }
+        else if (columnIds) {
+            converter.headerColumnIds = columnIds;
+        }
+        for (let rowIndex = 0, iEnd = data.length; rowIndex < iEnd; rowIndex++) {
+            let row = data[rowIndex];
+            if (!JSONConverter_isArray(row)) {
+                row = this.convertItemToRow(row, columnIds);
+            }
+            for (let columnIndex = 0, jEnd = row.length; columnIndex < jEnd; columnIndex++) {
+                if (columnsArray.length < columnIndex + 1) {
+                    columnsArray.push([]);
+                }
+                columnsArray[columnIndex].push(row[columnIndex]);
+                // Create headers only once.
+                if (!firstRowAsNames && rowIndex === 0) {
+                    if (Array.isArray(converter.headerColumnIds)) {
+                        converter.headers.push(converter.headerColumnIds[columnIndex] ||
+                            columnIndex.toString());
+                    }
+                    else {
+                        JSONConverter_error('JSONConverter: Invalid `columnIds` option.', false);
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Extracts a row from an object, using columnIds if provided.
+     *
+     * @param {Record<string, string|number>} [rowObj]
+     * Set of props.
+     *
+     * @param {Array<string>} [columnIds]
+     * Column ids to retrieve.
+     *
+     * @return {Array<string | number>}
+     * Row converted to array.
+     */
+    convertItemToRow(rowObj, columnIds) {
+        const converter = this;
+        if (columnIds && !(Array.isArray(columnIds))) {
+            const newRow = [];
+            JSONConverter_objectEach(columnIds, (arrayWithPath, name) => {
+                newRow.push(arrayWithPath.reduce((acc, key) => acc[key], rowObj));
+                if (converter.headers.indexOf(name) < 0) {
+                    converter.headers.push(name);
+                }
+            });
+            return newRow;
+        }
+        converter.headerColumnIds = Object.keys(rowObj);
+        return Object.values(rowObj);
     }
 }
 /* *
@@ -19292,13 +22710,14 @@ Converters_DataConverter.registerType('JSON', JSONConverter);
  *
  *  Authors:
  *  - Pawel Lysy
+ *  - Kamil Kubik
  *
  * */
 
 
 
 
-const { merge: JSONConnector_merge, defined: JSONConnector_defined } = Core_Utilities;
+const { merge: JSONConnector_merge, fireEvent: JSONConnector_fireEvent } = Core_Utilities;
 /* *
  *
  *  Class
@@ -19318,17 +22737,13 @@ class JSONConnector extends Connectors_DataConnector {
     /**
      * Constructs an instance of JSONConnector.
      *
-     * @param {JSONConnector.UserOptions} [options]
+     * @param {Partial<JSONConnectorOptions>} [options]
      * Options for the connector and converter.
-     *
-     * @param {Array<DataTableOptions>} [dataTables]
-     * Multiple connector data tables options.
      */
-    constructor(options, dataTables) {
+    constructor(options) {
         const mergedOptions = JSONConnector_merge(JSONConnector.defaultOptions, options);
-        super(mergedOptions, dataTables);
-        this.options = JSONConnector_defined(dataTables) ?
-            JSONConnector_merge(mergedOptions, { dataTables }) : mergedOptions;
+        super(mergedOptions);
+        this.options = mergedOptions;
         if (mergedOptions.enablePolling) {
             this.startPolling(Math.max(mergedOptions.dataRefreshRate || 0, 1) * 1000);
         }
@@ -19339,6 +22754,16 @@ class JSONConnector extends Connectors_DataConnector {
      *
      * */
     /**
+     * Overrides the DataConnector method. Emits an event on the connector to
+     * all registered callbacks of this event.
+     *
+     * @param {JSONConnector.Event} e
+     * Event object containing additional event information.
+     */
+    emit(e) {
+        JSONConnector_fireEvent(this, e.type, e);
+    }
+    /**
      * Initiates the loading of the JSON source to the connector
      *
      * @param {DataEvent.Detail} [eventDetail]
@@ -19348,12 +22773,13 @@ class JSONConnector extends Connectors_DataConnector {
      * @emits JSONConnector#afterLoad
      */
     load(eventDetail) {
-        const connector = this, tables = connector.dataTables, { data, dataUrl, dataModifier, dataTables } = connector.options;
+        const connector = this;
+        const options = connector.options;
+        const { data, dataUrl, dataTables } = options;
         connector.emit({
             type: 'load',
-            data,
             detail: eventDetail,
-            tables
+            data
         });
         return Promise
             .resolve(dataUrl ?
@@ -19363,51 +22789,42 @@ class JSONConnector extends Connectors_DataConnector {
                 connector.emit({
                     type: 'loadError',
                     detail: eventDetail,
-                    error,
-                    tables
+                    error
                 });
                 console.warn(`Unable to fetch data from ${dataUrl}.`); // eslint-disable-line no-console
             }) :
             data || [])
-            .then((data) => {
+            .then(async (data) => {
             if (data) {
                 this.initConverters(data, (key) => {
-                    const options = this.options;
                     const tableOptions = dataTables?.find((dataTable) => dataTable.key === key);
-                    // Takes over the connector default options.
-                    const mergedTableOptions = {
-                        dataTableKey: key,
-                        columnNames: tableOptions?.columnNames ??
-                            options.columnNames,
-                        firstRowAsNames: tableOptions?.firstRowAsNames ??
-                            options.firstRowAsNames,
-                        orientation: tableOptions?.orientation ??
-                            options.orientation,
-                        beforeParse: tableOptions?.beforeParse ??
-                            options.beforeParse
+                    // The data table options takes precedence over the
+                    // connector options.
+                    const { columnIds = options.columnIds, firstRowAsNames = options.firstRowAsNames, orientation = options.orientation, beforeParse = options.beforeParse } = tableOptions || {};
+                    const converterOptions = {
+                        data,
+                        columnIds,
+                        firstRowAsNames,
+                        orientation,
+                        beforeParse
                     };
-                    return new Converters_JSONConverter(JSONConnector_merge(this.options, mergedTableOptions));
-                }, (converter, data) => {
-                    converter.parse({ data });
-                });
+                    return new Converters_JSONConverter(converterOptions);
+                }, (converter, data) => converter.parse({ data }));
             }
-            return connector.setModifierOptions(dataModifier, dataTables)
-                .then(() => data);
+            return connector.applyTableModifiers().then(() => data ?? []);
         })
             .then((data) => {
             connector.emit({
                 type: 'afterLoad',
-                data,
                 detail: eventDetail,
-                tables
+                data
             });
             return connector;
         })['catch']((error) => {
             connector.emit({
                 type: 'loadError',
                 detail: eventDetail,
-                error,
-                tables
+                error
             });
             throw error;
         });
@@ -19419,11 +22836,19 @@ class JSONConnector extends Connectors_DataConnector {
  *
  * */
 JSONConnector.defaultOptions = {
+    type: 'JSON',
+    id: 'json-connector',
+    data: [],
     enablePolling: false,
     dataRefreshRate: 0,
     firstRowAsNames: true,
     orientation: 'rows'
 };
+/* *
+ *
+ *  Registry
+ *
+ * */
 Connectors_DataConnector.registerType('JSON', JSONConnector);
 /* *
  *
@@ -19482,130 +22907,9 @@ class InvertModifier extends Modifiers_DataModifier {
      *
      * */
     /**
-     * Applies partial modifications of a cell change to the property `modified`
-     * of the given modified table.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {string} columnName
-     * Column name of changed cell.
-     *
-     * @param {number|undefined} rowIndex
-     * Row index of changed cell.
-     *
-     * @param {Highcharts.DataTableCellType} cellValue
-     * Changed cell value.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyCell(table, columnName, rowIndex, cellValue, eventDetail) {
-        const modified = table.modified, modifiedRowIndex = modified.getRowIndexBy('columnNames', columnName);
-        if (typeof modifiedRowIndex === 'undefined') {
-            modified.setColumns(this.modifyTable(table.clone()).getColumns(), void 0, eventDetail);
-        }
-        else {
-            modified.setCell(`${rowIndex}`, modifiedRowIndex, cellValue, eventDetail);
-        }
-        return table;
-    }
-    /**
-     * Applies partial modifications of column changes to the property
-     * `modified` of the given table.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {Highcharts.DataTableColumnCollection} columns
-     * Changed columns as a collection, where the keys are the column names.
-     *
-     * @param {number} [rowIndex=0]
-     * Index of the first changed row.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyColumns(table, columns, rowIndex, eventDetail) {
-        const modified = table.modified, modifiedColumnNames = (modified.getColumn('columnNames') || []);
-        let columnNames = table.getColumnNames(), reset = (table.getRowCount() !== modifiedColumnNames.length);
-        if (!reset) {
-            for (let i = 0, iEnd = columnNames.length; i < iEnd; ++i) {
-                if (columnNames[i] !== modifiedColumnNames[i]) {
-                    reset = true;
-                    break;
-                }
-            }
-        }
-        if (reset) {
-            return this.modifyTable(table, eventDetail);
-        }
-        columnNames = Object.keys(columns);
-        for (let i = 0, iEnd = columnNames.length, column, columnName, modifiedRowIndex; i < iEnd; ++i) {
-            columnName = columnNames[i];
-            column = columns[columnName];
-            modifiedRowIndex = (modified.getRowIndexBy('columnNames', columnName) ||
-                modified.getRowCount());
-            for (let j = 0, j2 = rowIndex, jEnd = column.length; j < jEnd; ++j, ++j2) {
-                modified.setCell(`${j2}`, modifiedRowIndex, column[j], eventDetail);
-            }
-        }
-        return table;
-    }
-    /**
-     * Applies partial modifications of row changes to the property `modified`
-     * of the given table.
-     *
-     * @param {Highcharts.DataTable} table
-     * Modified table.
-     *
-     * @param {Array<(Highcharts.DataTableRow|Highcharts.DataTableRowObject)>} rows
-     * Changed rows.
-     *
-     * @param {number} [rowIndex]
-     * Index of the first changed row.
-     *
-     * @param {Highcharts.DataTableEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {Highcharts.DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyRows(table, rows, rowIndex, eventDetail) {
-        const columnNames = table.getColumnNames(), modified = table.modified, modifiedColumnNames = (modified.getColumn('columnNames') || []);
-        let reset = (table.getRowCount() !== modifiedColumnNames.length);
-        if (!reset) {
-            for (let i = 0, iEnd = columnNames.length; i < iEnd; ++i) {
-                if (columnNames[i] !== modifiedColumnNames[i]) {
-                    reset = true;
-                    break;
-                }
-            }
-        }
-        if (reset) {
-            return this.modifyTable(table, eventDetail);
-        }
-        for (let i = 0, i2 = rowIndex, iEnd = rows.length, row; i < iEnd; ++i, ++i2) {
-            row = rows[i];
-            if (row instanceof Array) {
-                modified.setColumn(`${i2}`, row);
-            }
-            else {
-                for (let j = 0, jEnd = columnNames.length; j < jEnd; ++j) {
-                    modified.setCell(`${i2}`, j, row[columnNames[j]], eventDetail);
-                }
-            }
-        }
-        return table;
-    }
-    /**
-     * Inverts rows and columns in the table.
+     * Inverts rows and columns in the table. If the given table does not have
+     * defined a `modified` property, the filtering is applied in-place on the
+     * original table rather than on a `modified` copy.
      *
      * @param {DataTable} table
      * Table to invert.
@@ -19614,22 +22918,23 @@ class InvertModifier extends Modifiers_DataModifier {
      * Custom information for pending events.
      *
      * @return {DataTable}
-     * Table with inverted `modified` property as a reference.
+     * Table with inverted `modified` property as a reference or modified table,
+     * if `modified` property of the original table is undefined.
      */
     modifyTable(table, eventDetail) {
         const modifier = this;
         modifier.emit({ type: 'modify', detail: eventDetail, table });
-        const modified = table.modified;
-        if (table.hasColumns(['columnNames'])) { // Inverted table
-            const columnNamesColumn = ((table.deleteColumns(['columnNames']) || {})
-                .columnNames || []), columns = {}, columnNames = [];
-            for (let i = 0, iEnd = columnNamesColumn.length; i < iEnd; ++i) {
-                columnNames.push('' + columnNamesColumn[i]);
+        const modified = table.getModified();
+        if (table.hasColumns(['columnIds'])) { // Inverted table
+            const columnIdsColumn = ((table.deleteColumns(['columnIds']) || {})
+                .columnIds || []), columns = {}, columnIds = [];
+            for (let i = 0, iEnd = columnIdsColumn.length; i < iEnd; ++i) {
+                columnIds.push('' + columnIdsColumn[i]);
             }
             for (let i = 0, iEnd = table.getRowCount(), row; i < iEnd; ++i) {
                 row = table.getRow(i);
                 if (row) {
-                    columns[columnNames[i]] = row;
+                    columns[columnIds[i]] = row;
                 }
             }
             modified.deleteColumns();
@@ -19643,7 +22948,7 @@ class InvertModifier extends Modifiers_DataModifier {
                     columns[`${i}`] = row;
                 }
             }
-            columns.columnNames = table.getColumnNames();
+            columns.columnIds = table.getColumnIds();
             modified.deleteColumns();
             modified.setColumns(columns);
         }
@@ -19670,149 +22975,9 @@ Modifiers_DataModifier.registerType('Invert', InvertModifier);
  * */
 /* harmony default export */ const Modifiers_InvertModifier = ((/* unused pure expression or super */ null && (InvertModifier)));
 
-;// ./code/grid/es-modules/Data/Modifiers/RangeModifier.js
-/* *
- *
- *  (c) 2009-2025 Highsoft AS
- *
- *  License: www.highcharts.com/license
- *
- *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
- *
- *  Authors:
- *  - Sophie Bremer
- *  - Dawid Dragula
- *
- * */
-
-
-
-const { merge: RangeModifier_merge } = Core_Utilities;
-/* *
- *
- *  Class
- *
- * */
-/**
- * Filters out table rows with a specific value range.
- *
- */
-class RangeModifier extends Modifiers_DataModifier {
-    /* *
-     *
-     *  Constructor
-     *
-     * */
-    /**
-     * Constructs an instance of the range modifier.
-     *
-     * @param {Partial<RangeModifier.Options>} [options]
-     * Options to configure the range modifier.
-     */
-    constructor(options) {
-        super();
-        this.options = RangeModifier_merge(RangeModifier.defaultOptions, options);
-    }
-    /* *
-     *
-     *  Functions
-     *
-     * */
-    /**
-     * Replaces table rows with filtered rows.
-     *
-     * @param {DataTable} table
-     * Table to modify.
-     *
-     * @param {DataEvent.Detail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {DataTable}
-     * Table with `modified` property as a reference.
-     */
-    modifyTable(table, eventDetail) {
-        const modifier = this;
-        modifier.emit({ type: 'modify', detail: eventDetail, table });
-        let indexes = [];
-        const { additive, ranges, strict } = modifier.options;
-        if (ranges.length) {
-            const modified = table.modified;
-            let columns = table.getColumns(), rows = [];
-            for (let i = 0, iEnd = ranges.length, range, rangeColumn; i < iEnd; ++i) {
-                range = ranges[i];
-                if (strict &&
-                    typeof range.minValue !== typeof range.maxValue) {
-                    continue;
-                }
-                if (i > 0 && !additive) {
-                    modified.deleteRows();
-                    modified.setRows(rows);
-                    modified.setOriginalRowIndexes(indexes, true);
-                    columns = modified.getColumns();
-                    rows = [];
-                    indexes = [];
-                }
-                rangeColumn = (columns[range.column] || []);
-                for (let j = 0, jEnd = rangeColumn.length, cell, row, originalRowIndex; j < jEnd; ++j) {
-                    cell = rangeColumn[j];
-                    switch (typeof cell) {
-                        default:
-                            continue;
-                        case 'boolean':
-                        case 'number':
-                        case 'string':
-                            break;
-                    }
-                    if (strict &&
-                        typeof cell !== typeof range.minValue) {
-                        continue;
-                    }
-                    if (cell >= range.minValue &&
-                        cell <= range.maxValue) {
-                        if (additive) {
-                            row = table.getRow(j);
-                            originalRowIndex = table.getOriginalRowIndex(j);
-                        }
-                        else {
-                            row = modified.getRow(j);
-                            originalRowIndex = modified.getOriginalRowIndex(j);
-                        }
-                        if (row) {
-                            rows.push(row);
-                            indexes.push(originalRowIndex);
-                        }
-                    }
-                }
-            }
-            modified.deleteRows();
-            modified.setRows(rows);
-            modified.setOriginalRowIndexes(indexes);
-        }
-        modifier.emit({ type: 'afterModify', detail: eventDetail, table });
-        return table;
-    }
-}
-/* *
- *
- *  Static Properties
- *
- * */
-/**
- * Default options for the range modifier.
- */
-RangeModifier.defaultOptions = {
-    type: 'Range',
-    ranges: []
-};
-Modifiers_DataModifier.registerType('Range', RangeModifier);
-/* *
- *
- *  Default Export
- *
- * */
-/* harmony default export */ const Modifiers_RangeModifier = ((/* unused pure expression or super */ null && (RangeModifier)));
-
 ;// ./code/grid/es-modules/masters/grid-lite.src.js
+
+
 
 
 
@@ -19840,6 +23005,7 @@ Modifiers_DataModifier.registerType('Range', RangeModifier);
 
 
 
+
 /* *
  *
  *  Namespace
@@ -19853,7 +23019,7 @@ G.DataConverter = Converters_DataConverter;
 G.Grid = Core_Grid;
 G.grid = Core_Grid.grid;
 G.grids = Core_Grid.grids;
-G.ColumnDistribution = ColumnDistribution_ColumnDistribution;
+G.ColumnResizing = ColumnResizing_ColumnResizing;
 G.DataModifier = Modifiers_DataModifier;
 G.DataPool = Data_DataPool;
 G.DataTable = Data_DataTable;
@@ -19863,7 +23029,9 @@ G.Templating = Core_Templating;
 G.product = 'Grid Lite';
 G.setOptions = Core_Defaults.setOptions;
 G.merge = Core_Utilities.merge;
+G.SvgIcons = UI_SvgIcons;
 G.Table = G.Table || Table_Table;
+G.Pagination = G.Pagination || Pagination_Pagination;
 Credits_CreditsLiteComposition.compose(G.Grid, G.Table);
 /* *
  *

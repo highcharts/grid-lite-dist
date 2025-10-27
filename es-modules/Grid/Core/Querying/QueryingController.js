@@ -13,13 +13,10 @@
  *
  * */
 'use strict';
-/* *
- *
- *  Imports
- *
- * */
 import ChainModifier from '../../../Data/Modifiers/ChainModifier.js';
 import SortingController from './SortingController.js';
+import FilteringController from './FilteringController.js';
+import PaginationController from './PaginationController.js';
 /* *
  *
  *  Class
@@ -42,7 +39,9 @@ class QueryingController {
          */
         this.shouldBeUpdated = false;
         this.grid = grid;
+        this.filtering = new FilteringController(this);
         this.sorting = new SortingController(this);
+        this.pagination = new PaginationController(this);
     }
     /* *
     *
@@ -65,15 +64,27 @@ class QueryingController {
      * Load all options needed to generate the modifiers.
      */
     loadOptions() {
+        this.filtering.loadOptions();
         this.sorting.loadOptions();
+        this.pagination.loadOptions();
     }
     /**
      * Creates a list of modifiers that should be applied to the data table.
      */
-    getModifiers() {
+    willNotModify() {
+        return (!this.sorting.modifier &&
+            !this.filtering.modifier);
+    }
+    /**
+     * Returns a list of modifiers that should be applied to the data table.
+     */
+    getGroupedModifiers() {
         const modifiers = [];
         if (this.sorting.modifier) {
             modifiers.push(this.sorting.modifier);
+        }
+        if (this.filtering.modifier) {
+            modifiers.push(this.filtering.modifier);
         }
         return modifiers;
     }
@@ -85,16 +96,26 @@ class QueryingController {
         if (!originalDataTable) {
             return;
         }
-        const modifiers = this.getModifiers();
-        if (modifiers.length > 0) {
-            const chainModifier = new ChainModifier({}, ...modifiers);
+        const groupedModifiers = this.getGroupedModifiers();
+        let interTable;
+        // Grouped modifiers
+        if (groupedModifiers.length > 0) {
+            const chainModifier = new ChainModifier({}, ...groupedModifiers);
             const dataTableCopy = originalDataTable.clone();
-            await chainModifier.modify(dataTableCopy.modified);
-            this.grid.presentationTable = dataTableCopy.modified;
+            await chainModifier.modify(dataTableCopy.getModified());
+            interTable = dataTableCopy.getModified();
         }
         else {
-            this.grid.presentationTable = originalDataTable.modified;
+            interTable = originalDataTable.getModified();
         }
+        // Pagination modifier
+        const paginationModifier = this.pagination.createModifier(interTable.rowCount);
+        if (paginationModifier) {
+            interTable = interTable.clone();
+            await paginationModifier.modify(interTable);
+            interTable = interTable.getModified();
+        }
+        this.grid.presentationTable = interTable;
         this.shouldBeUpdated = false;
     }
 }

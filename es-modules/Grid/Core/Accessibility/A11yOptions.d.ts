@@ -37,6 +37,10 @@ export interface LangAccessibilityOptions {
      * Language options for the accessibility descriptions in sorting.
      */
     sorting?: SortingLangA11yOptions;
+    /**
+     * Language options for the accessibility descriptions in pagination.
+     */
+    pagination?: PaginationLangA11yOptions;
 }
 /**
  * Accessibility options for the Grid sorting functionality.
@@ -71,6 +75,28 @@ export interface SortingLangA11yOptions {
          * @default 'Not sorted.'
          */
         none?: string;
+    };
+}
+/**
+ * Accessibility options for the Grid pagination functionality.
+ */
+export interface PaginationLangA11yOptions {
+    /**
+     * Language options for the accessibility descriptions in pagination.
+     */
+    announcements?: {
+        /**
+         * The message when the page size was changed.
+         *
+         * @default 'Page size changed to.'
+         */
+        pageSizeChange?: string;
+        /**
+         * The message when the page was changed.
+         *
+         * @default 'Page changed to.'
+         */
+        pageChange?: string;
     };
 }
 /**

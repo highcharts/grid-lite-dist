@@ -60,19 +60,21 @@ class HeaderRow extends Row {
      *
      * @param level
      * The current level in the header tree
+     *
+     * @internal
      */
-    renderMultipleLevel(level) {
-        const header = this.viewport.grid.options?.header;
+    renderContent(level) {
+        const headerOpt = this.viewport.grid.options?.header;
         const vp = this.viewport;
-        const enabledColumns = vp.grid.enabledColumns;
+        const enabledColumns = vp.grid.enabledColumns || [];
         // Render element
         vp.theadElement?.appendChild(this.htmlElement);
         this.htmlElement.classList.add(Globals.getClassName('headerRow'));
-        if (!header) {
+        if (!headerOpt) {
             super.render();
         }
         else {
-            const columnsOnLevel = this.getColumnsAtLevel(header, level);
+            const columnsOnLevel = this.getColumnsAtLevel(headerOpt, level);
             for (let i = 0, iEnd = columnsOnLevel.length; i < iEnd; i++) {
                 const columnOnLevel = columnsOnLevel[i];
                 const colIsString = typeof columnOnLevel === 'string';
@@ -96,13 +98,13 @@ class HeaderRow extends Row {
                     vp.grid.accessibility?.addHeaderCellDescription(headerCell.htmlElement, columnOnLevel.accessibility?.description);
                 }
                 if (isString(headerFormat)) {
-                    if (!headerCell.options.header) {
-                        headerCell.options.header = {};
+                    if (!headerCell.superColumnOptions.header) {
+                        headerCell.superColumnOptions.header = {};
                     }
-                    headerCell.options.header.format = headerFormat;
+                    headerCell.superColumnOptions.header.format = headerFormat;
                 }
                 if (className) {
-                    headerCell.options.className = className;
+                    headerCell.superColumnOptions.className = className;
                 }
                 // Add class to disable left border on first column
                 if (dataColumn?.index === 0 && i === 0) {
@@ -119,16 +121,22 @@ class HeaderRow extends Row {
                 }
             }
         }
-        const lastCell = this.cells[this.cells.length - 1];
-        if (lastCell.isLastColumn()) {
-            lastCell.htmlElement.classList.add(Globals.getClassName('lastHeaderCellInRow'));
-        }
+        this.setLastCellClass();
     }
     reflow() {
         const row = this;
         for (let i = 0, iEnd = row.cells.length; i < iEnd; i++) {
             const cell = row.cells[i];
             cell.reflow();
+        }
+    }
+    /**
+     * Sets a specific class to the last cell in the row.
+     */
+    setLastCellClass() {
+        const lastCell = this.cells[this.cells.length - 1];
+        if (lastCell.isLastColumn()) {
+            lastCell.htmlElement.classList.add(Globals.getClassName('lastHeaderCellInRow'));
         }
     }
     /**
@@ -162,8 +170,8 @@ class HeaderRow extends Row {
      * Sets the row HTML element attributes and additional classes.
      */
     setRowAttributes() {
-        const a11y = this.viewport.grid.accessibility;
-        a11y?.setRowIndex(this.htmlElement, this.level);
+        this.viewport.grid.accessibility?.setRowIndex(this.htmlElement, this.level // Level (1-based)
+        );
     }
 }
 /* *

@@ -1,10 +1,11 @@
 import type { Options, GroupedHeaderOptions } from './Options';
 import type Column from './Table/Column';
+import type Popup from './UI/Popup.js';
 import Accessibility from './Accessibility/Accessibility.js';
 import DataTable from '../../Data/DataTable.js';
 import Table from './Table/Table.js';
-import QueryingController from './Querying/QueryingController.js';
 import TimeBase from '../../Shared/TimeBase.js';
+import Pagination from './Pagination/Pagination.js';
 /**
  * A base class for the Grid.
  */
@@ -45,7 +46,7 @@ declare class Grid {
     static grid(renderTo: string | HTMLElement, options: Options, async: true): Promise<Grid>;
     /**
      * An array containing the current Grid objects in the page.
-     * @internal
+     * @private
      */
     static readonly grids: Array<(Grid | undefined)>;
     /**
@@ -53,15 +54,13 @@ declare class Grid {
      */
     accessibility?: Accessibility;
     /**
+     * The Pagination controller.
+     */
+    pagination?: Pagination;
+    /**
      * The caption element of the Grid.
      */
     captionElement?: HTMLElement;
-    /**
-     * The user options declared for the columns as an object of column ID to
-     * column options.
-     * @internal
-     */
-    columnOptionsMap: Record<string, Grid.ColumnOptionsMapItem>;
     /**
      * The container of the grid.
      */
@@ -108,36 +107,6 @@ declare class Grid {
      */
     viewport?: Table;
     /**
-     * The list of columns that are displayed in the Grid.
-     * @internal
-     */
-    enabledColumns?: string[];
-    /**
-     * The hovered row index.
-     * @internal
-     */
-    hoveredRowIndex?: number;
-    /**
-     * The hovered column ID.
-     * @internal
-     */
-    hoveredColumnId?: string;
-    /**
-     * The synced row index.
-     * @internal
-     */
-    syncedRowIndex?: number;
-    /**
-     * The synced column ID.
-     * @internal
-     */
-    syncedColumnId?: string;
-    /**
-     * The querying controller.
-     * @internal
-     */
-    querying: QueryingController;
-    /**
      * The time instance.
      */
     time: TimeBase;
@@ -146,14 +115,13 @@ declare class Grid {
      */
     locale?: string | string[];
     /**
-     * The initial height of the container. Can be 0 also if not set.
-     * @internal
-     */
-    initialContainerHeight: number;
-    /**
      * The unique ID of the Grid.
      */
     id: string;
+    /**
+     * The list of currently shown popups.
+     */
+    popups: Set<Popup>;
     /**
      * Functions that unregister events attached to the grid's data table,
      * that need to be removed when the grid is destroyed.
@@ -171,8 +139,9 @@ declare class Grid {
      * @param afterLoadCallback
      * The callback that is called after the Grid is loaded.
      */
-    constructor(renderTo: string | HTMLElement, options: Options, afterLoadCallback?: Grid.AfterLoadCallback);
+    constructor(renderTo: string | HTMLElement, options: Options, afterLoadCallback?: (grid: Grid) => void);
     private initAccessibility;
+    private initPagination;
     /**
      * Initializes the container of the Grid.
      *
@@ -251,29 +220,6 @@ declare class Grid {
      */
     syncColumn(columnId?: string): void;
     /**
-     * Render caption above the grid.
-     * @internal
-     */
-    renderCaption(): void;
-    /**
-     * Render description under the grid.
-     *
-     * @internal
-     */
-    renderDescription(): void;
-    /**
-     * Resets the content wrapper of the Grid. It clears the content and
-     * resets the class names.
-     * @internal
-     */
-    resetContentWrapper(): void;
-    /**
-     * Renders the viewport of the Grid. If the Grid is already
-     * rendered, it will be destroyed and re-rendered with the new data.
-     * @internal
-     */
-    renderViewport(): void;
-    /**
      * Renders the table (viewport) of the Grid.
      *
      * @returns
@@ -292,10 +238,6 @@ declare class Grid {
     /**
      * Loads the data table of the Grid. If the data table is passed as a
      * reference, it should be used instead of creating a new one.
-     *
-     * @param tableOptions
-     * The data table to load. If not provided, a new data table will be
-     * created.
      */
     private loadDataTable;
     /**
@@ -326,21 +268,16 @@ declare class Grid {
      */
     hideLoading(): void;
     /**
-     * Returns the current grid data as a JSON string.
+     * Returns the grid data as a JSON string.
+     *
+     * @param modified
+     * Whether to return the modified data table (after filtering/sorting/etc.)
+     * or the unmodified, original one. Default value is set to `true`.
      *
      * @return
      * JSON representation of the data
      */
-    getData(): string;
-    /**
-     * Returns the current grid data as a JSON string.
-     *
-     * @return
-     * JSON representation of the data
-     *
-     * @deprecated
-     */
-    getJSON(): string;
+    getData(modified?: boolean): string;
     /**
      * Returns the current Grid options.
      *
@@ -352,39 +289,7 @@ declare class Grid {
      * Grid options.
      */
     getOptions(onlyUserOptions?: boolean): Partial<Options>;
-    /**
-     * Returns the current Grid options.
-     *
-     * @param onlyUserOptions
-     * Whether to return only the user options or all options (user options
-     * merged with the default ones). Default is `true`.
-     *
-     * @returns
-     * Options as a JSON string
-     *
-     * @deprecated
-     */
-    getOptionsJSON(onlyUserOptions?: boolean): string;
-    /**
-     * Enables virtualization if the row count is greater than or equal to the
-     * threshold or virtualization is enabled externally. Should be fired after
-     * the data table is loaded.
-     */
-    private initVirtualization;
 }
 declare namespace Grid {
-    /**
-     * @internal
-     * Callback that is called after the Grid is loaded.
-     */
-    type AfterLoadCallback = (grid: Grid) => void;
-    /**
-     * @internal
-     * An item in the column options map.
-     */
-    interface ColumnOptionsMapItem {
-        index: number;
-        options: Column.Options;
-    }
 }
 export default Grid;

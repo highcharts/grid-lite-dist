@@ -73,6 +73,4 @@ declare abstract class Row {
      */
     unregisterCell(cell: Cell): void;
 }
-declare namespace Row {
-}
 export default Row;

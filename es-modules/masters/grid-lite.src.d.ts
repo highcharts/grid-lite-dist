@@ -9,7 +9,7 @@
 import type _Options from '../Grid/Core/Options.ts';
 import AST from '../Core/Renderer/HTML/AST.js';
 import Templating from '../Core/Templating.js';
-import ColumnDistribution from '../Grid/Core/Table/ColumnDistribution/ColumnDistribution.js';
+import ColumnResizing from '../Grid/Core/Table/ColumnResizing/ColumnResizing.js';
 import DataConnector from '../Data/Connectors/DataConnector.js';
 import DataConverter from '../Data/Converters/DataConverter.js';
 import DataCursor from '../Data/DataCursor.js';
@@ -22,6 +22,8 @@ import Globals from '../Grid/Core/Globals.js';
 import whcm from '../Accessibility/HighContrastMode.js';
 import Table from '../Grid/Core/Table/Table.js';
 import Utilities from '../Core/Utilities.js';
+import SvgIcons from '../Grid/Core/UI/SvgIcons.js';
+import Pagination from '../Grid/Core/Pagination/Pagination.js';
 import '../Data/Connectors/CSVConnector.js';
 import '../Data/Connectors/GoogleSheetsConnector.js';
 import '../Data/Connectors/HTMLTableConnector.js';
@@ -30,15 +32,16 @@ import '../Data/Modifiers/ChainModifier.js';
 import '../Data/Modifiers/InvertModifier.js';
 import '../Data/Modifiers/RangeModifier.js';
 import '../Data/Modifiers/SortModifier.js';
+import '../Data/Modifiers/FilterModifier.js';
 declare global {
     interface GridNamespace {
         win: typeof Globals.win;
-        product: 'Grid Lite';
+        product: 'Grid Lite' | 'Grid Pro';
         AST: typeof AST;
         Grid: typeof _Grid;
         grid: typeof _Grid.grid;
         grids: Array<(_Grid | undefined)>;
-        ColumnDistribution: typeof ColumnDistribution;
+        ColumnResizing: typeof ColumnResizing;
         DataConverter: typeof DataConverter;
         DataCursor: typeof DataCursor;
         DataModifier: typeof DataModifier;
@@ -46,11 +49,13 @@ declare global {
         DataPool: typeof DataPool;
         DataTable: typeof DataTable;
         Table: typeof Table;
+        Pagination: typeof Pagination;
         isHighContrastModeActive: typeof whcm.isHighContrastModeActive;
         defaultOptions: typeof Defaults.defaultOptions;
         setOptions: typeof Defaults.setOptions;
         Templating: typeof Templating;
         merge: typeof Utilities.merge;
+        SvgIcons: typeof SvgIcons;
     }
     interface Window {
         Grid: GridNamespace;
