@@ -27,6 +27,13 @@ declare class ColumnSorting {
      */
     private addHeaderElementAttributes;
     /**
+     * Updates the column options with the new sorting state.
+     *
+     * @param col
+     * The column to update.
+     */
+    private updateColumnOptions;
+    /**
      * Set sorting order for the column. It will modify the presentation data
      * and rerender the rows.
      *
@@ -39,5 +46,11 @@ declare class ColumnSorting {
      * Toggle sorting order for the column in the order: asc -> desc -> none
      */
     toggle: () => void;
+}
+declare namespace ColumnSorting {
+    interface Event {
+        target: Column;
+        order: ColumnSortingOrder;
+    }
 }
 export default ColumnSorting;

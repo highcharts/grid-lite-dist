@@ -20,6 +20,7 @@ declare class TableHeader {
     viewport: Table;
     /**
      * Amount of levels in the header, that is used in creating correct rows.
+     * Excludes any extra levels, like filtering row.
      */
     levels: number;
     /**
@@ -54,6 +55,10 @@ declare class TableHeader {
      * The left scroll position.
      */
     scrollHorizontally(scrollLeft: number): void;
+    /**
+     * Destroys the table header and all its associated components.
+     */
+    destroy(): void;
 }
 declare namespace TableHeader {
 }

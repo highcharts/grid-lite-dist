@@ -48,6 +48,7 @@ class Row {
         this.cells = [];
         this.viewport = viewport;
         this.htmlElement = makeHTMLElement('tr', {});
+        this.htmlElement.setAttribute('role', 'row');
     }
     /**
      * Renders the row's content. It does not attach the row element to the
@@ -60,7 +61,7 @@ class Row {
             cell.render();
         }
         this.rendered = true;
-        if (this.viewport.grid.options?.rendering?.rows?.virtualization) {
+        if (this.viewport.virtualRows) {
             this.reflow();
         }
     }

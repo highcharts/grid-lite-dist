@@ -2,6 +2,8 @@ import type { GroupedHeaderOptions } from '../../Options';
 import Cell from '../Cell.js';
 import Column from '../Column';
 import Row from '../Row';
+import TableHeader from './TableHeader.js';
+import ColumnToolbar from './ColumnToolbar/ColumnToolbar.js';
 /**
  * Represents a cell in the data grid header.
  */
@@ -11,9 +13,9 @@ declare class HeaderCell extends Cell {
      */
     headerContent?: HTMLElement;
     /**
-     * Reference to options in settings header.
+     * The container element of the header cell.
      */
-    readonly options: Partial<Column.Options>;
+    container?: HTMLDivElement;
     /**
      * List of columns that are subordinated to the header cell.
      */
@@ -22,6 +24,14 @@ declare class HeaderCell extends Cell {
      * Content value of the header cell.
      */
     value: string;
+    /**
+     * The table header that this header cell belongs to.
+     */
+    tableHeader: TableHeader;
+    /**
+     * The toolbar of the header cell.
+     */
+    toolbar?: ColumnToolbar;
     /**
      * Constructs a cell in the data grid header.
      *
@@ -55,7 +65,6 @@ declare class HeaderCell extends Cell {
      * Check if the cell is part of the last cell in the header.
      */
     isLastColumn(): boolean;
-}
-declare namespace HeaderCell {
+    destroy(): void;
 }
 export default HeaderCell;

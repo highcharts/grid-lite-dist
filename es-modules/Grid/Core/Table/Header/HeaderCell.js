@@ -19,8 +19,9 @@ import GridUtils from '../../GridUtils.js';
 import ColumnSorting from '../Actions/ColumnSorting.js';
 import Globals from '../../Globals.js';
 import Utilities from '../../../../Core/Utilities.js';
-const { makeHTMLElement, setHTMLContent } = GridUtils;
-const { fireEvent, merge, isString } = Utilities;
+import ColumnToolbar from './ColumnToolbar/ColumnToolbar.js';
+const { makeHTMLElement, setHTMLContent, createOptionsProxy } = GridUtils;
+const { fireEvent, isString } = Utilities;
 /* *
  *
  *  Class
@@ -51,9 +52,11 @@ class HeaderCell extends Cell {
     constructor(row, column, columnsTree) {
         super(row, column);
         /**
-         * Reference to options in settings header.
+         * Reference to options taken from the header settings, that will override
+         * the column options.
+         * @internal
          */
-        this.options = {};
+        this.superColumnOptions = {};
         /**
          * List of columns that are subordinated to the header cell.
          */
@@ -62,6 +65,11 @@ class HeaderCell extends Cell {
          * Content value of the header cell.
          */
         this.value = '';
+        const header = this.row.viewport.header;
+        if (!header) {
+            throw new Error('No header found.');
+        }
+        this.tableHeader = header;
         if (column) {
             column.header = this;
             this.columns.push(column);
@@ -88,6 +96,7 @@ class HeaderCell extends Cell {
     init() {
         const elem = document.createElement('th', {});
         elem.classList.add(Globals.getClassName('headerCell'));
+        elem.setAttribute('role', 'columnheader');
         return elem;
     }
     /**
@@ -95,9 +104,8 @@ class HeaderCell extends Cell {
      */
     render() {
         const { column } = this;
-        const options = merge(column?.options || {}, this.options);
+        const options = createOptionsProxy(this.superColumnOptions, column?.options);
         const headerCellOptions = options.header || {};
-        const isSortableData = options.sorting?.sortable && column?.data;
         if (headerCellOptions.formatter) {
             this.value = headerCellOptions.formatter.call(this).toString();
         }
@@ -111,30 +119,39 @@ class HeaderCell extends Cell {
         }
         // Render content of th element
         this.row.htmlElement.appendChild(this.htmlElement);
+        // Create flex container for header content and icons
+        const container = this.container = makeHTMLElement('div', {
+            className: Globals.getClassName('headerCellContainer')
+        }, this.htmlElement);
         this.headerContent = makeHTMLElement('span', {
             className: Globals.getClassName('headerCellContent')
-        }, this.htmlElement);
+        }, container);
         // Render the header cell element content.
         setHTMLContent(this.headerContent, this.value);
         this.htmlElement.setAttribute('scope', 'col');
-        if (this.options.className) {
-            this.htmlElement.classList.add(...this.options.className.split(/\s+/g));
+        if (this.superColumnOptions.className) {
+            this.htmlElement.classList.add(...this.superColumnOptions.className.split(/\s+/g));
         }
         if (column) {
             this.htmlElement.setAttribute('data-column-id', column.id);
-            if (isSortableData) {
-                column.viewport.grid.accessibility?.addSortableColumnHint(this.headerContent);
-            }
+            this.htmlElement.setAttribute('aria-label', column.id);
             // Add user column classname
             if (column.options.className) {
                 this.htmlElement.classList.add(...column.options.className.split(/\s+/g));
             }
             // Add resizing
             column.viewport.columnsResizer?.renderColumnDragHandles(column, this);
+            // Add toolbar
+            this.toolbar = new ColumnToolbar(column);
+            this.toolbar.add();
             // Add sorting
             this.initColumnSorting();
         }
         this.setCustomClassName(options.header?.className);
+        // Add alignment to number column
+        if (column?.dataType === 'number') {
+            this.setCustomClassName(Globals.getClassName('rightAlign'));
+        }
         fireEvent(this, 'afterRender', { column });
     }
     reflow() {
@@ -149,15 +166,15 @@ class HeaderCell extends Cell {
         // Set the width of the column. Max width is needed for the
         // overflow: hidden to work.
         th.style.width = th.style.maxWidth = width + 'px';
+        this.toolbar?.reflow();
     }
     onKeyDown(e) {
         if (!this.column || e.target !== this.htmlElement) {
             return;
         }
         if (e.key === 'Enter') {
-            if (this.column.options.sorting?.sortable) {
-                this.column.sorting?.toggle();
-            }
+            this.toolbar?.focus();
+            e.preventDefault();
             return;
         }
         super.onKeyDown(e);
@@ -194,6 +211,10 @@ class HeaderCell extends Cell {
         const lastViewportColumn = vp.columns[vp.columns.length - 1];
         const lastCellColumn = this.columns?.[this.columns.length - 1];
         return lastViewportColumn === lastCellColumn;
+    }
+    destroy() {
+        this.toolbar?.destroy();
+        super.destroy();
     }
 }
 /* *

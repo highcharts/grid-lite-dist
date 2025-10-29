@@ -28,6 +28,12 @@ export interface A11yAnnouncementsOptions {
      * @default true
      */
     sorting?: boolean;
+    /**
+     * Enable accessibility announcements for the filtering.
+     *
+     * @default true
+     */
+    filtering?: boolean;
 }
 /**
  * Accessibility language options for the Grid.
@@ -37,6 +43,14 @@ export interface LangAccessibilityOptions {
      * Language options for the accessibility descriptions in sorting.
      */
     sorting?: SortingLangA11yOptions;
+    /**
+     * Language options for the accessibility descriptions in pagination.
+     */
+    pagination?: PaginationLangA11yOptions;
+    /**
+     * Language options for the accessibility descriptions in filtering.
+     */
+    filtering?: FilteringLangA11yOptions;
 }
 /**
  * Accessibility options for the Grid sorting functionality.
@@ -71,6 +85,56 @@ export interface SortingLangA11yOptions {
          * @default 'Not sorted.'
          */
         none?: string;
+    };
+}
+/**
+ * Accessibility options for the Grid pagination functionality.
+ */
+export interface PaginationLangA11yOptions {
+    /**
+     * Language options for the accessibility descriptions in pagination.
+     */
+    announcements?: {
+        /**
+         * The message when the page size was changed.
+         *
+         * @default 'Page size changed to.'
+         */
+        pageSizeChange?: string;
+        /**
+         * The message when the page was changed.
+         *
+         * @default 'Page changed to.'
+         */
+        pageChange?: string;
+    };
+}
+/**
+ * Accessibility options for the Grid filtering functionality.
+ */
+export interface FilteringLangA11yOptions {
+    /**
+     * Language options for the accessibility descriptions in filtering.
+     */
+    announcements?: {
+        /**
+         * The message when the filter was applied.
+         *
+         * @default 'Filter applied for {columnId}, {condition} {value}. {rowsCount} results found.'
+         */
+        filterApplied?: string;
+        /**
+         * The message when the filter was applied for empty-like conditions.
+         *
+         * @default 'Filter applied for {columnId}, {condition} values. {rowsCount} results found.'
+         */
+        emptyFilterApplied?: string;
+        /**
+         * The message when the filter was cleared.
+         *
+         * @default 'Filter cleared for {columnId}. {rowsCount} results found.'
+         */
+        filterCleared?: string;
     };
 }
 /**

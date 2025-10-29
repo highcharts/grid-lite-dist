@@ -22,14 +22,11 @@ declare class HeaderRow extends Row {
      */
     constructor(viewport: Table, level: number);
     createCell(column?: Column, columnsTree?: GroupedHeaderOptions[]): HeaderCell;
-    /**
-     * Renders the row's content in the header.
-     *
-     * @param level
-     * The current level in the header tree
-     */
-    renderMultipleLevel(level: number): void;
     reflow(): void;
+    /**
+     * Sets a specific class to the last cell in the row.
+     */
+    protected setLastCellClass(): void;
     /**
      * Get all headers that should be rendered in a level.
      *
@@ -49,7 +46,7 @@ declare class HeaderRow extends Row {
     /**
      * Sets the row HTML element attributes and additional classes.
      */
-    setRowAttributes(): void;
+    private setRowAttributes;
 }
 declare namespace HeaderRow {
 }

@@ -56,7 +56,7 @@ class ColumnsResizer {
             }
             const diff = e.pageX - (this.dragStartX || 0);
             const vp = this.viewport;
-            vp.columnDistribution.resize(this, diff);
+            vp.columnResizing.resize(this, diff);
             vp.reflow();
             vp.rowsVirtualizer.adjustRowHeights();
             fireEvent(this.draggedColumn, 'afterResize', {
@@ -69,6 +69,9 @@ class ColumnsResizer {
          */
         this.onDocumentMouseUp = () => {
             this.draggedColumn?.header?.htmlElement?.classList.remove(Globals.getClassName('resizedColumn'));
+            if (!this.draggedResizeHandle?.matches(':hover')) {
+                this.draggedResizeHandle?.classList.remove('hovered');
+            }
             this.dragStartX = void 0;
             this.draggedColumn = void 0;
             this.draggedResizeHandle = void 0;
@@ -98,9 +101,7 @@ class ColumnsResizer {
      */
     renderColumnDragHandles(column, cell) {
         const vp = column.viewport;
-        if (vp.columnsResizer && (vp.columnDistribution.type !== 'full' ||
-            (vp.grid.enabledColumns &&
-                column.index < vp.grid.enabledColumns.length - 1))) {
+        if (vp.columnsResizer) {
             const handle = makeHTMLElement('div', {
                 className: Globals.getClassName('resizerHandles')
             }, cell.htmlElement);
@@ -121,6 +122,7 @@ class ColumnsResizer {
         const onHandleMouseDown = (e) => {
             const vp = column.viewport;
             this.isResizing = true;
+            handle.classList.add('hovered');
             vp.reflow();
             this.dragStartX = e.pageX;
             this.draggedColumn = column;
@@ -130,8 +132,32 @@ class ColumnsResizer {
                 vp.columns[column.index + 1]?.getWidth();
             column.header?.htmlElement.classList.add(Globals.getClassName('resizedColumn'));
         };
-        this.handles.push([handle, onHandleMouseDown]);
-        handle.addEventListener('mousedown', onHandleMouseDown);
+        const onHandleMouseOver = () => {
+            if (this.draggedResizeHandle) {
+                return;
+            }
+            handle.classList.add('hovered');
+        };
+        const onHandleMouseOut = () => {
+            if (this.draggedResizeHandle) {
+                return;
+            }
+            handle.classList.remove('hovered');
+        };
+        const handleListeners = [{
+                eventName: 'mousedown',
+                listener: onHandleMouseDown
+            }, {
+                eventName: 'mouseover',
+                listener: onHandleMouseOver
+            }, {
+                eventName: 'mouseout',
+                listener: onHandleMouseOut
+            }];
+        for (const { eventName, listener } of handleListeners) {
+            handle.addEventListener(eventName, listener);
+        }
+        this.handles.push([handle, handleListeners]);
     }
     /**
      * Removes all added event listeners from the document and handles. This
@@ -141,8 +167,10 @@ class ColumnsResizer {
         document.removeEventListener('mousemove', this.onDocumentMouseMove);
         document.removeEventListener('mouseup', this.onDocumentMouseUp);
         for (let i = 0, iEnd = this.handles.length; i < iEnd; i++) {
-            const [handle, listener] = this.handles[i];
-            handle.removeEventListener('mousedown', listener);
+            const [handle, listeners] = this.handles[i];
+            for (const { eventName, listener } of listeners) {
+                handle.removeEventListener(eventName, listener);
+            }
         }
     }
 }

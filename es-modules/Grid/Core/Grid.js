@@ -24,8 +24,9 @@ import U from '../../Core/Utilities.js';
 import QueryingController from './Querying/QueryingController.js';
 import Globals from './Globals.js';
 import TimeBase from '../../Shared/TimeBase.js';
+import Pagination from './Pagination/Pagination.js';
 const { makeHTMLElement, setHTMLContent } = GridUtils;
-const { fireEvent, extend, getStyle, merge, pick, defined } = U;
+const { extend, fireEvent, getStyle, merge, pick, isObject } = U;
 /* *
  *
  *  Class
@@ -81,25 +82,31 @@ class Grid {
          */
         this.initialContainerHeight = 0;
         /**
+         * The list of currently shown popups.
+         */
+        this.popups = new Set();
+        /**
          * Functions that unregister events attached to the grid's data table,
          * that need to be removed when the grid is destroyed.
          */
         this.dataTableEventDestructors = [];
         this.loadUserOptions(options);
-        this.querying = new QueryingController(this);
         this.id = this.options?.id || U.uniqueKey();
-        this.initContainers(renderTo);
-        this.initAccessibility();
-        this.loadDataTable(this.options?.dataTable);
-        this.initVirtualization();
+        this.querying = new QueryingController(this);
         this.locale = this.options?.lang?.locale || (this.container?.closest('[lang]')?.lang);
         this.time = new TimeBase(extend(this.options?.time, { locale: this.locale }), this.options?.lang);
+        fireEvent(this, 'beforeLoad');
+        Grid.grids.push(this);
+        this.initContainers(renderTo);
+        this.initAccessibility();
+        this.initPagination();
+        this.loadDataTable();
         this.querying.loadOptions();
         void this.querying.proceed().then(() => {
             this.renderViewport();
             afterLoadCallback?.(this);
+            fireEvent(this, 'afterLoad');
         });
-        Grid.grids.push(this);
     }
     /* *
      *
@@ -114,6 +121,28 @@ class Grid {
         delete this.accessibility;
         if (this.options?.accessibility?.enabled) {
             this.accessibility = new Accessibility(this);
+        }
+    }
+    /*
+     * Initializes the pagination.
+     */
+    initPagination() {
+        let state;
+        if (this.pagination) {
+            const { currentPageSize, currentPage } = this.pagination || {};
+            state = {
+                currentPageSize,
+                currentPage
+            };
+        }
+        this.pagination?.destroy();
+        delete this.pagination;
+        const rawOptions = this.options?.pagination;
+        const options = isObject(rawOptions) ? rawOptions : {
+            enabled: rawOptions
+        };
+        if (options?.enabled) {
+            this.pagination = new Pagination(this, options, state);
         }
     }
     /**
@@ -194,7 +223,7 @@ class Grid {
      */
     setColumnOptions(newColumnOptions, overwrite = false) {
         if (!this.userOptions.columns) {
-            this.userOptions.columns = [];
+            this.userOptions.columns = this.options?.columns ?? [];
         }
         const columnOptions = this.userOptions.columns;
         for (let i = 0, iEnd = newColumnOptions.length; i < iEnd; ++i) {
@@ -264,15 +293,17 @@ class Grid {
      */
     async update(options = {}, render = true, oneToOne = false) {
         this.loadUserOptions(options, oneToOne);
-        this.initAccessibility();
-        let newDataTable = false;
         if (!this.dataTable || options.dataTable) {
             this.userOptions.dataTable = options.dataTable;
             (this.options ?? {}).dataTable = options.dataTable;
-            this.loadDataTable(this.options?.dataTable);
-            newDataTable = true;
-            this.initVirtualization();
+            this.loadDataTable();
+            this.querying.shouldBeUpdated = true;
         }
+        if (!render) {
+            return;
+        }
+        this.initAccessibility();
+        this.initPagination();
         this.querying.loadOptions();
         // Update locale.
         const locale = options.lang?.locale;
@@ -280,10 +311,8 @@ class Grid {
             this.locale = locale;
             this.time.update(extend(options.time || {}, { locale: this.locale }));
         }
-        if (render) {
-            await this.querying.proceed(newDataTable);
-            this.renderViewport();
-        }
+        await this.querying.proceed();
+        this.renderViewport();
     }
     /**
      * Updates the column of the Grid with new options.
@@ -455,12 +484,19 @@ class Grid {
      */
     renderViewport() {
         const viewportMeta = this.viewport?.getStateMeta();
+        const pagination = this.pagination;
+        const paginationPosition = pagination?.options.position;
         this.enabledColumns = this.getEnabledColumnIDs();
         this.credits?.destroy();
         this.viewport?.destroy();
         delete this.viewport;
         this.resetContentWrapper();
+        fireEvent(this, 'beforeRenderViewport');
         this.renderCaption();
+        // Render top pagination if enabled (before table)
+        if (paginationPosition === 'top') {
+            pagination?.render();
+        }
         if (this.enabledColumns.length > 0) {
             this.viewport = this.renderTable();
             if (viewportMeta && this.viewport) {
@@ -470,8 +506,13 @@ class Grid {
         else {
             this.renderNoData();
         }
-        this.renderDescription();
         this.accessibility?.setA11yOptions();
+        // Render bottom pagination, footer pagination,
+        // or custom container pagination (after table).
+        if (paginationPosition !== 'top') {
+            pagination?.render();
+        }
+        this.renderDescription();
         fireEvent(this, 'afterRenderViewport');
         this.viewport?.reflow();
     }
@@ -485,6 +526,7 @@ class Grid {
         this.tableElement = makeHTMLElement('table', {
             className: Globals.getClassName('tableElement')
         }, this.contentWrapper);
+        this.tableElement.setAttribute('role', 'grid');
         return new Table(this, this.tableElement);
     }
     /**
@@ -505,19 +547,19 @@ class Grid {
         const header = this.options?.header;
         const headerColumns = this.getColumnIds(header || [], false);
         const columnsIncluded = this.options?.rendering?.columns?.included || (headerColumns && headerColumns.length > 0 ?
-            headerColumns : this.dataTable?.getColumnNames());
+            headerColumns : this.dataTable?.getColumnIds());
         if (!columnsIncluded?.length) {
             return [];
         }
         if (!columnOptionsMap) {
             return columnsIncluded;
         }
-        let columnName;
+        let columnId;
         const result = [];
         for (let i = 0, iEnd = columnsIncluded.length; i < iEnd; ++i) {
-            columnName = columnsIncluded[i];
-            if (columnOptionsMap?.[columnName]?.options?.enabled !== false) {
-                result.push(columnName);
+            columnId = columnsIncluded[i];
+            if (columnOptionsMap?.[columnId]?.options?.enabled !== false) {
+                result.push(columnId);
             }
         }
         return result;
@@ -525,19 +567,16 @@ class Grid {
     /**
      * Loads the data table of the Grid. If the data table is passed as a
      * reference, it should be used instead of creating a new one.
-     *
-     * @param tableOptions
-     * The data table to load. If not provided, a new data table will be
-     * created.
      */
-    loadDataTable(tableOptions) {
+    loadDataTable() {
         // Unregister all events attached to the previous data table.
         this.dataTableEventDestructors.forEach((fn) => fn());
+        const tableOptions = this.options?.dataTable;
         // If the table is passed as a reference, it should be used instead of
         // creating a new one.
         if (tableOptions?.clone) {
             this.dataTable = tableOptions;
-            this.presentationTable = this.dataTable.modified;
+            this.presentationTable = this.dataTable.getModified();
             return;
         }
         const dt = this.dataTable = this.presentationTable =
@@ -631,33 +670,27 @@ class Grid {
         delete this.loadingWrapper;
     }
     /**
-     * Returns the current grid data as a JSON string.
+     * Returns the grid data as a JSON string.
+     *
+     * @param modified
+     * Whether to return the modified data table (after filtering/sorting/etc.)
+     * or the unmodified, original one. Default value is set to `true`.
      *
      * @return
      * JSON representation of the data
      */
-    getData() {
-        const json = this.viewport?.dataTable.modified.columns;
-        if (!this.enabledColumns || !json) {
+    getData(modified = true) {
+        const dataTable = modified ? this.viewport?.dataTable : this.dataTable;
+        const columns = dataTable?.columns;
+        if (!this.enabledColumns || !columns) {
             return '{}';
         }
-        for (const key of Object.keys(json)) {
+        for (const key of Object.keys(columns)) {
             if (this.enabledColumns.indexOf(key) === -1) {
-                delete json[key];
+                delete columns[key];
             }
         }
-        return JSON.stringify(json);
-    }
-    /**
-     * Returns the current grid data as a JSON string.
-     *
-     * @return
-     * JSON representation of the data
-     *
-     * @deprecated
-     */
-    getJSON() {
-        return this.getData();
+        return JSON.stringify(columns, null, 2);
     }
     /**
      * Returns the current Grid options.
@@ -678,38 +711,6 @@ class Grid {
         }
         return options;
     }
-    /**
-     * Returns the current Grid options.
-     *
-     * @param onlyUserOptions
-     * Whether to return only the user options or all options (user options
-     * merged with the default ones). Default is `true`.
-     *
-     * @returns
-     * Options as a JSON string
-     *
-     * @deprecated
-     */
-    getOptionsJSON(onlyUserOptions = true) {
-        return JSON.stringify(this.getOptions(onlyUserOptions));
-    }
-    /**
-     * Enables virtualization if the row count is greater than or equal to the
-     * threshold or virtualization is enabled externally. Should be fired after
-     * the data table is loaded.
-     */
-    initVirtualization() {
-        var _a, _b;
-        const rows = this.userOptions.rendering?.rows;
-        const virtualization = rows?.virtualization;
-        const threshold = Number(rows?.virtualizationThreshold ||
-            Defaults.defaultOptions.rendering?.rows?.virtualizationThreshold);
-        const rowCount = Number(this.dataTable?.rowCount);
-        // Makes sure all nested options are defined.
-        (_b = ((_a = (this.options ?? (this.options = {}))).rendering ?? (_a.rendering = {}))).rows ?? (_b.rows = {});
-        this.options.rendering.rows.virtualization =
-            defined(virtualization) ? virtualization : rowCount >= threshold;
-    }
 }
 /* *
 *
@@ -718,7 +719,7 @@ class Grid {
 * */
 /**
  * An array containing the current Grid objects in the page.
- * @internal
+ * @private
  */
 Grid.grids = [];
 /* *

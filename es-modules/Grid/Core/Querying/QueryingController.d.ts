@@ -1,6 +1,8 @@
-import DataModifier from '../../../Data/Modifiers/DataModifier.js';
-import Grid from '../Grid.js';
+import type DataModifier from '../../../Data/Modifiers/DataModifier.js';
+import type Grid from '../Grid.js';
 import SortingController from './SortingController.js';
+import FilteringController from './FilteringController.js';
+import PaginationController from './PaginationController.js';
 /**
  * Class that manage data modification of the visible data in the data grid.
  * It manages the modifiers that are applied to the data table.
@@ -11,9 +13,17 @@ declare class QueryingController {
      */
     grid: Grid;
     /**
-     * Sorting controller instance
+     * Sorting controller instance.
      */
     sorting: SortingController;
+    /**
+     * Filtering controller instance.
+     */
+    filtering: FilteringController;
+    /**
+     * Pagination controller instance
+     */
+    pagination: PaginationController;
     /**
      * This flag should be set to `true` if the modifiers should reapply to the
      * data table due to some data change or other important reason.
@@ -35,7 +45,11 @@ declare class QueryingController {
     /**
      * Creates a list of modifiers that should be applied to the data table.
      */
-    getModifiers(): DataModifier[];
+    willNotModify(): boolean;
+    /**
+     * Returns a list of modifiers that should be applied to the data table.
+     */
+    getGroupedModifiers(): DataModifier[];
     /**
      * Apply all modifiers to the data table.
      */

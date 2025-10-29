@@ -45,6 +45,9 @@ class Cell {
         this.row.registerCell(this);
         this.htmlElement = this.init();
         this.htmlElement.setAttribute('tabindex', '-1');
+        if (!this.column?.options.cells?.editMode?.enabled) {
+            this.htmlElement.setAttribute('aria-readonly', 'true');
+        }
         this.initEvents();
     }
     /* *
@@ -57,7 +60,9 @@ class Cell {
      * @internal
      */
     init() {
-        return document.createElement('td', {});
+        const cell = document.createElement('td', {});
+        cell.setAttribute('role', 'gridcell');
+        return cell;
     }
     /**
      * Initialize event listeners. Events added to the `cellEvents` array will
@@ -100,6 +105,17 @@ class Cell {
             return;
         }
         const vp = row.viewport;
+        const { header } = vp;
+        const getVerticalPos = () => {
+            if (row.index !== void 0) {
+                return row.index - vp.rows[0].index;
+            }
+            const level = row.level;
+            if (!header || level === void 0) {
+                return 0;
+            }
+            return Math.max(level, header.levels) - header.rows.length - 1;
+        };
         const changeFocusKeys = {
             ArrowDown: [1, 0],
             ArrowUp: [-1, 0],
@@ -107,13 +123,25 @@ class Cell {
             ArrowRight: [0, 1]
         };
         const dir = changeFocusKeys[e.key];
+        if (e.key === 'Enter') {
+            this.onClick(e);
+        }
         if (dir) {
             e.preventDefault();
             e.stopPropagation();
-            const localRowIndex = row.index === void 0 ? -1 : (row.index - vp.rows[0].index);
+            const { header } = vp;
+            const localRowIndex = getVerticalPos();
             const nextVerticalDir = localRowIndex + dir[0];
-            if (nextVerticalDir < 0 && vp.header) {
-                vp.columns[column.index + dir[1]]?.header?.htmlElement.focus();
+            if (nextVerticalDir < 0 && header) {
+                const extraRowIdx = header.rows.length + nextVerticalDir;
+                if (extraRowIdx + 1 > header.levels) {
+                    header.rows[extraRowIdx]
+                        .cells[column.index + dir[1]]?.htmlElement.focus();
+                }
+                else {
+                    vp.columns[column.index + dir[1]]
+                        ?.header?.htmlElement.focus();
+                }
                 return;
             }
             const nextRow = vp.rows[nextVerticalDir];

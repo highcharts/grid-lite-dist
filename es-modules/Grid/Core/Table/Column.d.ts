@@ -5,6 +5,7 @@ import type HeaderCell from './Header/HeaderCell';
 import Table from './Table.js';
 import DataTable from '../../../Data/DataTable.js';
 import ColumnSorting from './Actions/ColumnSorting';
+import ColumnFiltering from './Actions/ColumnFiltering/ColumnFiltering.js';
 import TableCell from './Body/TableCell';
 /**
  * Represents a column in the data grid.
@@ -31,7 +32,8 @@ declare class Column {
      */
     data?: DataTable.Column;
     /**
-     * The options of the column.
+     * The options of the column as a proxy that provides merged access to
+     * original options and defaults if not defined in the individual options.
      */
     readonly options: Column.Options;
     /**
@@ -46,6 +48,10 @@ declare class Column {
      * Sorting column module.
      */
     sorting?: ColumnSorting;
+    /**
+     * Filtering column module.
+     */
+    filtering?: ColumnFiltering;
     /**
      * Constructs a column in the data grid.
      *

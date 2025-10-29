@@ -1,5 +1,5 @@
 import type Grid from '../Grid';
-import type { ColumnSortingOrder } from '../Options';
+import type { ColumnSortingOrder, FilteringCondition } from '../Options';
 /**
  *  Representing the accessibility functionalities for the Data Grid.
  */
@@ -27,13 +27,6 @@ declare class Accessibility {
      * The Grid Table instance which the accessibility controller belong to.
      */
     constructor(grid: Grid);
-    /**
-     * Add the 'sortable' hint span element for the sortable column.
-     *
-     * @param element
-     * The element to add the description to.
-     */
-    addSortableColumnHint(element: HTMLElement): void;
     /**
      * Add the description to the header cell.
      *
@@ -73,6 +66,17 @@ declare class Accessibility {
      */
     setColumnSortState(thElement: HTMLElement, state: Accessibility.AriaSortState): void;
     /**
+     * Announce the message to the screen reader that the user filtered the
+     * column.
+     *
+     * @param filteredColumnValues
+     * The values of the filtered column.
+     *
+     * @param filteringApplied
+     * Whether the filtering was applied or cleared.
+     */
+    userFilteredColumn(filteredColumnValues: Accessibility.FilteredColumnValues, filteringApplied: boolean): void;
+    /**
      * Adds high contrast CSS class, if the browser is in High Contrast mode.
      */
     addHighContrast(): void;
@@ -100,5 +104,12 @@ declare namespace Accessibility {
      * The possible states of the aria-sort attribute.
      */
     type AriaSortState = 'ascending' | 'descending' | 'none';
+    /**
+     * The values of the filtered column.
+     */
+    type FilteredColumnValues = FilteringCondition & {
+        columnId: string;
+        rowsCount: number;
+    };
 }
 export default Accessibility;

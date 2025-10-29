@@ -40,24 +40,10 @@ declare abstract class Cell {
      */
     constructor(row: Row, column?: Column);
     /**
-     * Init element.
-     * @internal
-     */
-    protected init(): HTMLTableCellElement;
-    /**
      * Initialize event listeners. Events added to the `cellEvents` array will
      * be registered now and unregistered when the cell is destroyed.
      */
     protected initEvents(): void;
-    /**
-     * Handles user click on the cell.
-     *
-     * @param e
-     * Mouse event object.
-     *
-     * @internal
-     */
-    protected abstract onClick(e: MouseEvent): void;
     /**
      * Handles the focus event on the cell.
      */
@@ -102,7 +88,5 @@ declare abstract class Cell {
      * Destroys the cell.
      */
     destroy(): void;
-}
-declare namespace Cell {
 }
 export default Cell;

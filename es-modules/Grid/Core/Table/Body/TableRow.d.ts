@@ -73,11 +73,6 @@ declare class TableRow extends Row {
      * The vertical translation of the row.
      */
     setTranslateY(value: number): void;
-    /**
-     * Returns the default top offset of the row (before adjusting row heights).
-     * @internal
-     */
-    getDefaultTopOffset(): number;
 }
 declare namespace TableRow {
 }

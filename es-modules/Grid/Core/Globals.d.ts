@@ -2,9 +2,6 @@
  * Globals Grid namespace.
  */
 declare namespace Globals {
-    type DeepPartial<T> = {
-        [K in keyof T]?: (T[K] | DeepPartial<T[K]>);
-    };
     type DeepRequired<T> = {
         [K in keyof T]-?: DeepRequired<T[K]>;
     };
@@ -33,7 +30,12 @@ declare namespace Globals {
         readonly virtualization: "virtualization";
         readonly scrollableContent: "scrollable-content";
         readonly headerCell: "header-cell";
+        readonly headerCellContainer: "header-cell-container";
         readonly headerCellContent: "header-cell-content";
+        readonly headerCellFilterIcon: "header-cell-filter-icon";
+        readonly headerCellIcons: "header-cell-icons";
+        readonly headerCellSortIcon: "header-cell-sort-icon";
+        readonly headerCellMenuIcon: "header-cell-menu-icon";
         readonly headerRow: "head-row-content";
         readonly noData: "no-data";
         readonly noPadding: "no-padding";
@@ -53,6 +55,43 @@ declare namespace Globals {
         readonly loadingWrapper: "loading-wrapper";
         readonly loadingSpinner: "spinner";
         readonly loadingMessage: "loading-message";
+        readonly popup: "popup";
+        readonly button: "button";
+        readonly icon: "icon";
+        readonly iconSearch: "icon-search";
+        readonly popupContent: "popup-content";
+        readonly columnFilterWrapper: "column-filter-wrapper";
+        readonly toolbarButtonActiveIndicator: "active-indicator";
+        readonly menuContainer: "menu-container";
+        readonly menuItem: "menu-item";
+        readonly menuHeader: "menu-header";
+        readonly menuHeaderCategory: "menu-header-category";
+        readonly menuHeaderName: "menu-header-name";
+        readonly menuItemIcon: "menu-item-icon";
+        readonly menuItemLabel: "menu-item-label";
+        readonly menuDivider: "menu-divider";
+        readonly clearFilterButton: "clear-filter-button";
+        readonly paginationWrapper: "pagination-wrapper";
+        readonly paginationContainer: "pagination-container";
+        readonly paginationPageInfo: "pagination-info";
+        readonly paginationControls: "pagination-controls";
+        readonly paginationButton: "pagination-btn";
+        readonly paginationButtonDisabled: "pagination-btn-disabled";
+        readonly paginationFirstButton: "pagination-first";
+        readonly paginationPrevButton: "pagination-prev";
+        readonly paginationNextButton: "pagination-next";
+        readonly paginationLastButton: "pagination-last";
+        readonly paginationPageButton: "pagination-page";
+        readonly paginationPageButtonActive: "pagination-page-active";
+        readonly paginationEllipsis: "pagination-ellipsis";
+        readonly paginationMobileSelector: "pagination-mobile-selector";
+        readonly paginationMobilePageSizeSelector: "pagination-mobile-page-size-selector";
+        readonly paginationPageSizeContainer: "pagination-page-size-container";
+        readonly paginationPageSizeSelect: "pagination-page-size-select";
+        readonly noWidth: "no-width";
+        readonly rightAlign: "right";
+        readonly centerAlign: "center";
+        readonly leftAlign: "left";
     };
     const win: Window & typeof globalThis;
     const composed: Array<string>;

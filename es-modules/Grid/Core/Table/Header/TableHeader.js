@@ -15,6 +15,7 @@
  * */
 'use strict';
 import HeaderRow from './HeaderRow.js';
+import FilterRow from '../Actions/ColumnFiltering/FilterRow.js';
 /* *
  *
  *  Class
@@ -52,6 +53,7 @@ class TableHeader {
         this.rows = [];
         /**
          * Amount of levels in the header, that is used in creating correct rows.
+         * Excludes any extra levels, like filtering row.
          */
         this.levels = 1;
         this.viewport = viewport;
@@ -73,9 +75,17 @@ class TableHeader {
         if (!vp.grid.enabledColumns) {
             return;
         }
+        // Render regular, multiple level rows.
         for (let i = 0, iEnd = this.levels; i < iEnd; i++) {
             const row = new HeaderRow(vp, i + 1); // Avoid indexing from 0
-            row.renderMultipleLevel(i);
+            row.renderContent(i);
+            this.rows.push(row);
+        }
+        // Render an extra row for inline filtering.
+        if (vp.columns.some((column) => (column.options.filtering?.enabled &&
+            column.options.filtering.inline) || false)) {
+            const row = new FilterRow(vp);
+            row.renderContent();
             this.rows.push(row);
         }
     }
@@ -88,7 +98,6 @@ class TableHeader {
             return;
         }
         const { clientWidth, offsetWidth } = vp.tbodyElement;
-        const header = vp.header;
         const rows = this.rows;
         const bordersWidth = offsetWidth - clientWidth;
         for (const row of rows) {
@@ -97,16 +106,6 @@ class TableHeader {
         if (vp.rowsWidth) {
             vp.theadElement.style.width =
                 Math.max(vp.rowsWidth, clientWidth) + bordersWidth + 'px';
-        }
-        if (header &&
-            bordersWidth > 0 &&
-            this.viewport.columnDistribution.type === 'full') {
-            const row = this.columns[this.columns.length - 1].header?.row;
-            const lastCellEl = row?.cells[row.cells.length - 1]?.htmlElement;
-            if (lastCellEl) {
-                lastCellEl.style.width = lastCellEl.style.maxWidth =
-                    lastCellEl.offsetWidth + bordersWidth + 'px';
-            }
         }
     }
     /**
@@ -142,6 +141,14 @@ class TableHeader {
             return;
         }
         el.style.transform = `translateX(${-scrollLeft}px)`;
+    }
+    /**
+     * Destroys the table header and all its associated components.
+     */
+    destroy() {
+        for (const row of this.rows) {
+            row.destroy();
+        }
     }
 }
 /* *

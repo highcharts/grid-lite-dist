@@ -9,12 +9,6 @@ declare class TextContent extends CellContent {
     protected add(): void;
     destroy(): void;
     update(): void;
-    /**
-     * Returns the formatted value of the cell.
-     *
-     * @internal
-     */
-    private format;
 }
 declare namespace TextContent {
     /**
