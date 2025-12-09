@@ -1,12 +1,11 @@
 /**
- * @license Highcharts Grid v@product.version@ (@product.date@)
+ * @license Highcharts Grid v2.1.0 (2025-12-09)
  * @module grid/grid-lite
  *
  * (c) 2009-2025 Highsoft AS
  *
  * License: www.highcharts.com/license
  */
-'use strict';
 import AST from '../Core/Renderer/HTML/AST.js';
 import Templating from '../Core/Templating.js';
 import ColumnResizing from '../Grid/Core/Table/ColumnResizing/ColumnResizing.js';
@@ -40,39 +39,36 @@ import '../Data/Modifiers/FilterModifier.js';
  *  Namespace
  *
  * */
-const G = Globals;
-G.AST = AST;
-G.DataConnector = DataConnector;
-G.DataCursor = DataCursor;
-G.DataConverter = DataConverter;
-G.Grid = _Grid;
-G.grid = _Grid.grid;
-G.grids = _Grid.grids;
-G.ColumnResizing = ColumnResizing;
-G.DataModifier = DataModifier;
-G.DataPool = DataPool;
-G.DataTable = DataTable;
-G.defaultOptions = Defaults.defaultOptions;
-G.isHighContrastModeActive = whcm.isHighContrastModeActive;
-G.Templating = Templating;
-G.product = 'Grid Lite';
-G.setOptions = Defaults.setOptions;
-G.merge = Utilities.merge;
-G.SvgIcons = SvgIcons;
-G.Table = G.Table || Table;
-G.Pagination = G.Pagination || Pagination;
+const G = {
+    AST,
+    ColumnResizing,
+    DataConnector,
+    DataConverter,
+    DataCursor,
+    DataModifier,
+    DataPool,
+    DataTable,
+    defaultOptions: Defaults.defaultOptions,
+    Grid: _Grid,
+    grid: _Grid.grid,
+    grids: _Grid.grids,
+    isHighContrastModeActive: whcm.isHighContrastModeActive,
+    merge: Utilities.merge,
+    Pagination,
+    product: 'Grid Lite',
+    setOptions: Defaults.setOptions,
+    SvgIcons,
+    Table,
+    Templating,
+    version: Globals.version,
+    win: Globals.win
+};
 CreditsLiteComposition.compose(G.Grid, G.Table);
 /* *
  *
- *  Classic Export
+ * Named Exports
  *
  * */
-if (!G.win.Grid) {
-    G.win.Grid = G;
-}
-/* *
- *
- *  Default Export
- *
- * */
+export { AST, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataTable, Pagination, SvgIcons, Table, Templating };
+export const { defaultOptions, Grid, grid, grids, isHighContrastModeActive, merge, product, setOptions, version, win } = G;
 export default G;
