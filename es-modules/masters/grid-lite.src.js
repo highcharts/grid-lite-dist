@@ -1,5 +1,5 @@
 /**
- * @license Highcharts Grid v2.1.0 (2025-12-09)
+ * @license Highcharts Grid v2.1.1 (2025-12-10)
  * @module grid/grid-lite
  *
  * (c) 2009-2025 Highsoft AS
