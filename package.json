@@ -7,14 +7,6 @@
   "main": "grid-lite.js",
   "module": "./es-modules/masters/grid-lite.src.js",
   "types": "./es-modules/masters/grid-lite.src.d.ts",
-  "exports": {
-    ".": {
-      "import": "./es-modules/masters/grid-lite.src.js",
-      "types": "./es-modules/masters/grid-lite.src.d.ts",
-      "require": "./grid-lite.js"
-    },
-    "./*": "./*"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/highcharts/grid-lite-dist"
