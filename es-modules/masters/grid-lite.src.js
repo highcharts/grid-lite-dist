@@ -1,10 +1,12 @@
+// SPDX-License-Identifier: LicenseRef-Highcharts
 /**
- * @license Highcharts Grid v2.1.1 (2025-12-10)
+ * @license Highcharts Grid v2.2.0 (2026-01-13)
  * @module grid/grid-lite
  *
- * (c) 2009-2025 Highsoft AS
+ * (c) 2009-2026 Highsoft AS
  *
- * License: www.highcharts.com/license
+ * A commercial license may be required depending on use.
+ * See www.highcharts.com/license
  */
 import AST from '../Core/Renderer/HTML/AST.js';
 import Templating from '../Core/Templating.js';
@@ -69,6 +71,6 @@ CreditsLiteComposition.compose(G.Grid, G.Table);
  * Named Exports
  *
  * */
-export { AST, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataTable, Pagination, SvgIcons, Table, Templating };
-export const { defaultOptions, Grid, grid, grids, isHighContrastModeActive, merge, product, setOptions, version, win } = G;
+export { AST, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataTable, _Grid as Grid, Pagination, SvgIcons, Table, Templating };
+export const { defaultOptions, grid, grids, isHighContrastModeActive, merge, product, setOptions, version, win } = G;
 export default G;
