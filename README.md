@@ -4,13 +4,13 @@ Highcharts Grid Lite is the free version of [Highcharts Grid](https://www.highch
 
 - Official website: [highcharts.com](http://www.highcharts.com)
 - Product page: [highcharts.com/products/grid](https://www.highcharts.com/products/grid/)
-- Documentation: [highcharts.com/docs/grid](https://www.highcharts.com/docs/grid/installation)
 - Demos: [highcharts.com/demo](https://www.highcharts.com/demo#highcharts-grid-demo-general)
-- Download page: [highcharts.com/download](http://www.highcharts.com/download)
-- Licensing: [LICENSE.txt](LICENSE.txt)
-- Shop: [shop.highcharts.com](https://shop.highcharts.com/)
+- Download: [highcharts.com/download](http://www.highcharts.com/download)
+- License: [wwww.highcharts.com/license-grid-lite](https://shop.highcharts.com/license-grid-lite)
+- Documentation: [highcharts.com/docs/grid](https://www.highcharts.com/docs/grid/installation)
 - Support: [highcharts.com/support](http://www.highcharts.com/support)
 - Issues: [github.com/highcharts](https://github.com/highcharts/highcharts/issues)
+- Shop: [shop.highcharts.com](https://shop.highcharts.com/)
 
 Highcharts Grid Lite is a [source available](https://en.wikipedia.org/wiki/Source-available_software) product.
 
