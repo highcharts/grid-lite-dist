@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-Highcharts
 /**
- * @license Highcharts Grid v2.2.0 (2026-01-13)
+ * @license Highcharts Grid v2.3.0 (2026-03-12)
  * @module grid/grid-lite
  *
  * (c) 2009-2026 Highsoft AS
@@ -23,9 +23,11 @@ import Globals from '../Grid/Core/Globals.js';
 import whcm from '../Accessibility/HighContrastMode.js';
 import Table from '../Grid/Core/Table/Table.js';
 import CreditsLiteComposition from '../Grid/Lite/Credits/CreditsLiteComposition.js';
-import Utilities from '../Core/Utilities.js';
 import SvgIcons from '../Grid/Core/UI/SvgIcons.js';
 import Pagination from '../Grid/Core/Pagination/Pagination.js';
+import DataProviderRegistry from '../Grid/Core/Data/DataProviderRegistry.js';
+import ResponsiveComposition from '../Grid/Core/Responsive/ResponsiveComposition.js';
+import { merge } from '../Shared/Utilities.js';
 // Fill registries
 import '../Data/Connectors/CSVConnector.js';
 import '../Data/Connectors/GoogleSheetsConnector.js';
@@ -36,6 +38,8 @@ import '../Data/Modifiers/InvertModifier.js';
 import '../Data/Modifiers/RangeModifier.js';
 import '../Data/Modifiers/SortModifier.js';
 import '../Data/Modifiers/FilterModifier.js';
+import '../Grid/Core/Data/LocalDataProvider.js';
+import '../Grid/Core/Responsive/ResponsiveComposition.js';
 /* *
  *
  *  Namespace
@@ -49,13 +53,14 @@ const G = {
     DataCursor,
     DataModifier,
     DataPool,
+    DataProviderRegistry,
     DataTable,
     defaultOptions: Defaults.defaultOptions,
     Grid: _Grid,
     grid: _Grid.grid,
     grids: _Grid.grids,
     isHighContrastModeActive: whcm.isHighContrastModeActive,
-    merge: Utilities.merge,
+    merge: merge,
     Pagination,
     product: 'Grid Lite',
     setOptions: Defaults.setOptions,
@@ -66,11 +71,12 @@ const G = {
     win: Globals.win
 };
 CreditsLiteComposition.compose(G.Grid, G.Table);
+ResponsiveComposition.compose(G.Grid);
 /* *
  *
  * Named Exports
  *
  * */
-export { AST, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataTable, _Grid as Grid, Pagination, SvgIcons, Table, Templating };
-export const { defaultOptions, grid, grids, isHighContrastModeActive, merge, product, setOptions, version, win } = G;
+export { AST, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataProviderRegistry, DataTable, _Grid as Grid, Pagination, SvgIcons, Table, Templating };
+export const { defaultOptions, grid, grids, isHighContrastModeActive, product, setOptions, version, win } = G;
 export default G;

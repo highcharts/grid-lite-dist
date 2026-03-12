@@ -14,8 +14,7 @@
  * */
 import Globals from '../../../Core/Globals.js';
 import Credits from '../../Core/Credits.js';
-import U from '../../../Core/Utilities.js';
-const { addEvent, pushUnique } = U;
+import { addEvent, pushUnique } from '../../../Shared/Utilities.js';
 /* *
  *
  *  Definitions

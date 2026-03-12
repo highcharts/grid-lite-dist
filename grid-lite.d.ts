@@ -1,5 +1,5 @@
 /**
- * @license Highcharts Grid v2.2.0 (2026-01-13)
+ * @license Highcharts Grid v2.3.0 (2026-03-12)
  * @module grid/grid-lite
  *
  * (c) 2009-2026 Highsoft AS
@@ -21,6 +21,8 @@ import DataTable from './es-modules/Data/DataTable.js';
 import Table from './es-modules/Grid/Core/Table/Table.js';
 import SvgIcons from './es-modules/Grid/Core/UI/SvgIcons.js';
 import Pagination from './es-modules/Grid/Core/Pagination/Pagination.js';
+import DataProviderRegistry from './es-modules/Grid/Core/Data/DataProviderRegistry.js';
+import { merge } from './es-modules/Shared/Utilities.js';
 import './es-modules/Data/Connectors/CSVConnector.js';
 import './es-modules/Data/Connectors/GoogleSheetsConnector.js';
 import './es-modules/Data/Connectors/HTMLTableConnector.js';
@@ -30,6 +32,8 @@ import './es-modules/Data/Modifiers/InvertModifier.js';
 import './es-modules/Data/Modifiers/RangeModifier.js';
 import './es-modules/Data/Modifiers/SortModifier.js';
 import './es-modules/Data/Modifiers/FilterModifier.js';
+import './es-modules/Grid/Core/Data/LocalDataProvider.js';
+import './es-modules/Grid/Core/Responsive/ResponsiveComposition.js';
 declare const G: {
     AST: typeof AST;
     ColumnResizing: {
@@ -46,21 +50,23 @@ declare const G: {
     DataCursor: typeof DataCursor;
     DataModifier: typeof DataModifier;
     DataPool: typeof DataPool;
+    DataProviderRegistry: {
+        readonly registerDataProvider: typeof import("./es-modules/Grid/Core/Data/DataProviderRegistry.js").registerDataProvider;
+        readonly types: import("./es-modules/Grid/Core/Data/DataProviderType.js").DataProviderTypeRegistry;
+    };
     DataTable: typeof DataTable;
     defaultOptions: import("./es-modules/Shared/Types.js").DeepPartial<_Options>;
     Grid: typeof _Grid;
     grid: typeof _Grid.grid;
     grids: (_Grid | undefined)[];
     isHighContrastModeActive: () => boolean;
-    merge: {
-        <T = object>(extend: true, a?: T, ...n: Array<import("./es-modules/Shared/Types.js").DeepPartial<T> | undefined>): (T);
-        <T1 extends object = object, T2 = unknown, T3 = unknown, T4 = unknown, T5 = unknown, T6 = unknown, T7 = unknown, T8 = unknown, T9 = unknown>(a?: T1, b?: T2, c?: T3, d?: T4, e?: T5, f?: T6, g?: T7, h?: T8, i?: T9): (T1 & T2 & T3 & T4 & T5 & T6 & T7 & T8 & T9);
-    };
+    merge: typeof merge;
     Pagination: typeof Pagination;
     product: string;
     setOptions: typeof import("./es-modules/Grid/Core/Defaults.js").setOptions;
     SvgIcons: {
         readonly createGridIcon: typeof import("./es-modules/Grid/Core/UI/SvgIcons.js").createGridIcon;
+        readonly getIconFromRegistry: typeof import("./es-modules/Grid/Core/UI/SvgIcons.js").getIconFromRegistry;
         readonly icons: Record<import("./es-modules/Grid/Core/UI/SvgIcons.js").GridIconName, import("./es-modules/Grid/Core/UI/SvgIcons.js").SVGDefinition>;
         readonly pathDefaults: Partial<import("./es-modules/Grid/Core/UI/SvgIcons.js").PathDefinition>;
     };
@@ -71,14 +77,11 @@ declare const G: {
         helpers: Record<string, Function>;
         numberFormat: (this: Templating.Owner | void, number: number, decimals: number, decimalPoint?: string, thousandsSep?: string) => string;
     };
-    version: "2.2.0";
+    version: "2.3.0";
     win: Window & typeof globalThis;
 };
-export { AST, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataTable, _Grid as Grid, _Options as Options, Pagination, SvgIcons, Table, Templating };
-export declare const defaultOptions: import("./es-modules/Shared/Types.js").DeepPartial<_Options>, grid: typeof _Grid.grid, grids: (_Grid | undefined)[], isHighContrastModeActive: () => boolean, merge: {
-    <T = object>(extend: true, a?: T, ...n: Array<import("./es-modules/Shared/Types.js").DeepPartial<T> | undefined>): (T);
-    <T1 extends object = object, T2 = unknown, T3 = unknown, T4 = unknown, T5 = unknown, T6 = unknown, T7 = unknown, T8 = unknown, T9 = unknown>(a?: T1, b?: T2, c?: T3, d?: T4, e?: T5, f?: T6, g?: T7, h?: T8, i?: T9): (T1 & T2 & T3 & T4 & T5 & T6 & T7 & T8 & T9);
-}, product: string, setOptions: typeof import("./es-modules/Grid/Core/Defaults.js").setOptions, version: "2.2.0", win: Window & typeof globalThis;
+export { AST, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataProviderRegistry, DataTable, _Grid as Grid, _Options as Options, Pagination, SvgIcons, Table, Templating };
+export declare const defaultOptions: import("./es-modules/Shared/Types.js").DeepPartial<_Options>, grid: typeof _Grid.grid, grids: (_Grid | undefined)[], isHighContrastModeActive: () => boolean, product: string, setOptions: typeof import("./es-modules/Grid/Core/Defaults.js").setOptions, version: "2.3.0", win: Window & typeof globalThis;
 declare namespace G {
     type Options = _Options;
 }
