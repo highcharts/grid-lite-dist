@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-Highcharts
 /**
- * @license Highcharts Grid v2.3.0 (2026-03-12)
+ * @license Highcharts Grid v2.3.1 (2026-03-24)
  * @module grid/grid-lite
  *
  * (c) 2009-2026 Highsoft AS
