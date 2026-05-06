@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-Highcharts
 /**
- * @license Highcharts Grid v2.3.1 (2026-03-24)
+ * @license Highcharts Grid v3.0.0 (2026-05-06)
  * @module grid/grid-lite
  *
  * (c) 2009-2026 Highsoft AS
@@ -55,7 +55,7 @@ __webpack_require__.d(__webpack_exports__, {
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -79,7 +79,7 @@ var Globals;
      *  Constants
      *
      * */
-    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '2.3.1', Globals.win = (typeof window !== 'undefined' ?
+    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '3.0.0', Globals.win = (typeof window !== 'undefined' ?
         window :
         {}), // eslint-disable-line node/no-unsupported-features/es-builtins
     Globals.doc = Globals.win.document, Globals.svg = !!Globals.doc?.createElementNS?.(Globals.SVG_NS, 'svg')?.createSVGRect, Globals.pageLang = Globals.doc?.documentElement?.closest('[lang]')?.lang, Globals.userAgent = Globals.win.navigator?.userAgent || '', Globals.isChrome = Globals.win.chrome, Globals.isFirefox = Globals.userAgent.indexOf('Firefox') !== -1, Globals.isMS = /(edge|msie|trident)/i.test(Globals.userAgent) && !Globals.win.opera, Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1, Globals.isTouchDevice = /(Mobile|Android|Windows Phone)/.test(Globals.userAgent), Globals.isWebKit = Globals.userAgent.indexOf('AppleWebKit') !== -1, Globals.deg2rad = Math.PI * 2 / 360, Globals.marginNames = [
@@ -427,8 +427,8 @@ function createElement(tag, attribs, styles, parent, nopad) {
     return el;
 }
 /**
- * Utility for crisping a line position to the nearest full pixel depening on
- * the line width
+ * Utility for crisping a line position to the nearest full pixel depending on
+ * the line width.
  *
  * @internal
  * @param {number} value       The raw pixel position
@@ -578,7 +578,7 @@ function diffObjects(newer, older, keepOlder, collectionsWithUpdate) {
     return ret;
 }
 /**
- * Remove the last occurence of an item from an array.
+ * Remove the last occurrence of an item from an array.
  *
  * @function Highcharts.erase
  *
@@ -1449,7 +1449,7 @@ function splat(obj) {
 }
 /**
  * Sort an object array and keep the order of equal items. The ECMAScript
- * standard does not specify the behaviour when items are equal.
+ * standard does not specify the behavior when items are equal.
  *
  * @function Highcharts.stableSort
  *
@@ -1545,7 +1545,7 @@ function wrap(obj, method, func) {
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -1606,7 +1606,7 @@ function error(code, stop, chart, params) {
         }
         // Else ...
         if (Utilities_win.console &&
-            error.messages.indexOf(message) === -1 // Prevent console flooting
+            error.messages.indexOf(message) === -1 // Prevent console floating
         ) {
             console.warn(message); // eslint-disable-line no-console
         }
@@ -1907,7 +1907,7 @@ if (Utilities_win.jQuery) {
 * @name Highcharts.CSSObject#padding
 * @type {string|undefined}
 */ /**
-* Behaviour of the element when the mouse cursor rests over it.
+* Behavior of the element when the mouse cursor rests over it.
 * @name Highcharts.CSSObject#pointerEvents
 * @type {string|undefined}
 */ /**
@@ -1983,7 +1983,7 @@ if (Utilities_win.jQuery) {
  *        Event arguments.
  *
  * @param {T} [ctx]
- *        Since v12.5.0, the callback context is passed as the last argument,
+ *        Since v12.6.0, the callback context is passed as the last argument,
  *        so arrow functions can access the same context as regular functions
  *        using `this`.
  *
@@ -2016,7 +2016,7 @@ if (Utilities_win.jQuery) {
  *        Context to format
  *
  * @param {T} [ctx]
- *        Since v12.5.0, the callback context is passed as an extra argument,
+ *        Since v12.6.0, the callback context is passed as an extra argument,
  *        so arrow functions can access the same context as regular functions
  *        using `this`.
  *
@@ -2123,7 +2123,7 @@ if (Utilities_win.jQuery) {
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -2458,6 +2458,7 @@ AST.allowedAttributes = [
     'aria-readonly',
     'aria-roledescription',
     'aria-selected',
+    'aria-sort',
     'class',
     'clip-path',
     'color',
@@ -2696,7 +2697,7 @@ AST.bypassHTMLFiltering = false;
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -3081,7 +3082,7 @@ const ChartDefaults = {
     /**
      * Callback function to override the default function that formats all
      * the numbers in the chart. Returns a string with the formatted number.
-     * Since v12.5.0, the callback also receives `ctx` as the last argument,
+     * Since v12.6.0, the callback also receives `ctx` as the last argument,
      * so that arrow functions can access the same context as regular
      * functions using `this`.
      *
@@ -3480,7 +3481,7 @@ const ChartDefaults = {
      * @see In styled mode, the selection marker fill is set with the
      *      `.highcharts-selection-marker` class.
      *
-     * @type      {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+     * @type      {Highcharts.ColorType}
      * @default   rgba(51,92,173,0.25)
      * @since     2.1.7
      * @apioption chart.selectionMarkerFill
@@ -3805,6 +3806,7 @@ const ChartDefaults = {
              * @sample {highstock} highcharts/chart/resetzoombutton-theme/
              *         Theming the button
              *
+             * @default { zIndex: 6 }
              * @type  {Highcharts.SVGAttributes}
              * @since 10.2.1
              */
@@ -3830,18 +3832,15 @@ const ChartDefaults = {
              * @since 10.2.1
              */
             position: {
-                /** @internal */
                 align: 'right',
-                /** @internal */
-                x: -10,
                 /**
                  * The vertical alignment of the button.
                  *
-                 * @type       {Highcharts.VerticalAlignValue}
-                 * @default    top
-                 * @apioption  chart.zooming.resetButton.position.verticalAlign
+                 * @type      {Highcharts.VerticalAlignValue}
+                 * @default   top
+                 * @apioption chart.zooming.resetButton.position.verticalAlign
                  */
-                /** @internal */
+                x: -10,
                 y: 10
             }
         }
@@ -3898,7 +3897,7 @@ const ChartDefaults = {
      * @sample {highmaps} maps/chart/border/
      *         Border options
      *
-     * @type {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+     * @type {Highcharts.ColorType}
      */
     borderColor: "#334eff" /* Palette.highlightColor80 */,
     /**
@@ -3937,7 +3936,7 @@ const ChartDefaults = {
      * @sample {highmaps} maps/chart/backgroundcolor-gradient/
      *         Gradient
      *
-     * @type {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+     * @type {Highcharts.ColorType}
      */
     backgroundColor: "#ffffff" /* Palette.backgroundColor */,
     /**
@@ -3959,7 +3958,7 @@ const ChartDefaults = {
      * @sample {highmaps} maps/chart/plotbackgroundcolor-gradient/
      *         Gradient
      *
-     * @type      {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+     * @type      {Highcharts.ColorType}
      * @apioption chart.plotBackgroundColor
      */
     /**
@@ -3993,7 +3992,7 @@ const ChartDefaults = {
      * @sample {highmaps} maps/chart/plotborder/
      *         Plot border options
      *
-     * @type {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+     * @type {Highcharts.ColorType}
      */
     plotBorderColor: "#cccccc" /* Palette.neutralColor20 */
 };
@@ -4034,7 +4033,7 @@ const SeriesPalettes = {
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -4461,8 +4460,8 @@ class TimeBase {
      * | `%o` | Month number, 1 through 12                   |       |
      * | `%y` | Two digits year, like 24 for 2024            |       |
      * | `%Y` | Four digits year, like 2024                  |       |
-     * | `%H` | Two digits hours in 24h format, 00 through 23 | Depending on the locale, 12h format may be instered. |
-     * | `%k` | Hours in 24h format, 0 through 23            | Depending on the locale, 12h format may be instered. |
+     * | `%H` | Two digits hours in 24h format, 00 through 23 | Depending on the locale, 12h format may be inserted. |
+     * | `%k` | Hours in 24h format, 0 through 23            | Depending on the locale, 12h format may be inserted. |
      * | `%I` | Two digits hours in 12h format, 00 through 11 | N/A. The locale determines the hour format. |
      * | `%l` | Hours in 12h format, 1 through 12            | N/A. The locale determines the hour format. |
      * | `%M` | Two digits minutes, 00 through 59            |       |
@@ -4867,7 +4866,7 @@ class TimeBase {
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -5042,7 +5041,7 @@ class Time extends Shared_TimeBase {
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -5088,7 +5087,7 @@ const defaultOptions = {
      * @sample highcharts/members/theme-v10/
      *         Latest release styled like version 10
      *
-     * @type    {Array<(Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject)>}
+     * @type    {Array<Highcharts.ColorType>}
      * @default [
      *     "#2caffe",
      *     "#544fc5",
@@ -5366,6 +5365,9 @@ const defaultOptions = {
              * CSS styling for the buttons' text
              */
             style: {
+                /**
+                 * @type {Highcharts.ColorType}
+                 */
                 color: "#333333" /* Palette.neutralColor80 */,
                 cursor: 'pointer',
                 fontSize: '0.8em',
@@ -5387,8 +5389,14 @@ const defaultOptions = {
                  * addition to the normal state options
                  */
                 select: {
+                    /**
+                     * @type {Highcharts.ColorType}
+                     */
                     fill: "#e6e9ff" /* Palette.highlightColor10 */,
                     style: {
+                        /**
+                         * @type {Highcharts.ColorType}
+                         */
                         color: "#000000" /* Palette.neutralColor100 */,
                         fontWeight: 'bold'
                     }
@@ -5638,6 +5646,9 @@ const defaultOptions = {
          * @default   {highstock} { "color": "#333333", "fontSize": "16px" }
          */
         style: {
+            /**
+             * @type {Highcharts.ColorType}
+             */
             color: "#333333" /* Palette.neutralColor80 */,
             fontWeight: 'bold'
         },
@@ -5825,6 +5836,9 @@ const defaultOptions = {
          * @default   {"color": "#666666"}
          */
         style: {
+            /**
+             * @type {Highcharts.ColorType}
+             */
             color: "#666666" /* Palette.neutralColor60 */,
             /**
              * @type {number|string}
@@ -5900,6 +5914,9 @@ const defaultOptions = {
          * @default   {"color": "#666666"}
          */
         style: {
+            /**
+             * @type {Highcharts.ColorType}
+             */
             color: "#666666" /* Palette.neutralColor60 */,
             /**
              * @type {number|string}
@@ -5969,7 +5986,7 @@ const defaultOptions = {
          * @sample {highmaps} maps/legend/border-background/
          *         Border and background options
          *
-         * @type      {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+         * @type      {Highcharts.ColorType}
          * @apioption legend.backgroundColor
          */
         /**
@@ -6046,15 +6063,13 @@ const defaultOptions = {
          * `Highcharts.addEvent` function.
          *
          * @declare Highcharts.LegendEventsOptionsObject
-         *
-         * @internal
          */
-        events: {},
+        events: {
         /**
-         * Fires when the legend item belonging to the series is clicked. One
-         * parameter, `event`, is passed to the function. The default action
-         * is to toggle the visibility of the series, point or data class. This
-         * can be prevented by returning `false` or calling
+         * Fires when the legend item belonging to the series is clicked.
+         * One parameter, `event`, is passed to the function. The default
+         * action is to toggle the visibility of the series, point or data
+         * class. This can be prevented by returning `false` or calling
          * `event.preventDefault()`.
          *
          * @sample {highcharts} highcharts/legend/itemclick/
@@ -6066,6 +6081,7 @@ const defaultOptions = {
          * @context   Highcharts.Legend
          * @apioption legend.events.itemClick
          */
+        },
         /**
          * When the legend is floating, the plot area ignores it and is allowed
          * to be placed below it.
@@ -6188,7 +6204,7 @@ const defaultOptions = {
          * @sample {highmaps} maps/legend/labelformatter/
          *         Data classes with label formatter
          *
-         * @type {Highcharts.FormatterCallbackFunction<Point|Series>}
+         * @type {Highcharts.FormatterCallbackFunction<Highcharts.Point|Highcharts.Series>}
          */
         labelFormatter: function () {
             // eslint-enable valid-jsdoc
@@ -6257,7 +6273,7 @@ const defaultOptions = {
          * @sample {highmaps} maps/legend/border-background/
          *         Border and background options
          *
-         * @type {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+         * @type {Highcharts.ColorType}
          */
         borderColor: "#999999" /* Palette.neutralColor40 */,
         /**
@@ -6362,7 +6378,7 @@ const defaultOptions = {
              * @sample  {highstock} highcharts/legend/navigation/
              *          Legend page navigation demonstrated
              *
-             * @type  {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+             * @type  {Highcharts.ColorType}
              * @since 2.2.4
              */
             activeColor: "#0022ff" /* Palette.highlightColor100 */,
@@ -6378,7 +6394,7 @@ const defaultOptions = {
              * @sample {highstock} highcharts/legend/navigation/
              *         Legend page navigation demonstrated
              *
-             * @type  {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+             * @type  {Highcharts.ColorType}
              * @since 2.2.4
              */
             inactiveColor: "#cccccc" /* Palette.neutralColor20 */
@@ -6900,7 +6916,7 @@ const defaultOptions = {
          * @sample {highmaps} maps/tooltip/background-border/ Background and
          *         border demo
          *
-         * @type {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+         * @type {Highcharts.ColorType}
          * @apioption tooltip.borderColor
          */
         /**
@@ -7073,7 +7089,7 @@ const defaultOptions = {
          * @sample {highmaps} maps/tooltip/formatter/
          *         String formatting
          *
-         * Since v12.5.0, the callback also receives `ctx` as the second
+         * Since v12.6.0, the callback also receives `ctx` as the second
          * argument, so that arrow functions can access the same context as
          * regular functions using `this`.
          *
@@ -7118,7 +7134,7 @@ const defaultOptions = {
         /**
          * A callback function for formatting the HTML output for a single point
          * in the tooltip. Like the `pointFormat` string, but with more
-         * flexibility. Since v12.5.0, the callback also receives `ctx` as the
+         * flexibility. Since v12.6.0, the callback also receives `ctx` as the
          * first argument, so that arrow functions can access the same context
          * as regular functions using `this`.
          *
@@ -7135,7 +7151,7 @@ const defaultOptions = {
          * `ctx` is the tooltip context (so that arrow-functions can access the
          * same context as a normal function using `this`). Add
          * `chart.plotLeft` and `chart.plotTop` to get the full coordinates.
-         * Since v12.5.0, the callback receives `ctx`.
+         * Since v12.6.0, the callback receives `ctx`.
          *
          * To find the actual hovered `Point` instance, use
          * `this.chart.hoverPoint`. For shared or split tooltips, all the hover
@@ -7305,21 +7321,13 @@ const defaultOptions = {
          * @product highcharts highstock gantt
          */
         dateTimeLabelFormats: {
-            /** @internal */
             millisecond: '%[AebHMSL]',
-            /** @internal */
             second: '%[AebHMS]',
-            /** @internal */
             minute: '%[AebHM]',
-            /** @internal */
             hour: '%[AebHM]',
-            /** @internal */
             day: '%[AebY]',
-            /** @internal */
             week: '%v %[AebY]',
-            /** @internal */
             month: '%[BY]',
-            /** @internal */
             year: '%Y'
         },
         /**
@@ -7364,8 +7372,9 @@ const defaultOptions = {
          * mouse over a point. Works on initial hover.
          *
          * @sample {highcharts|highstock} highcharts/tooltip/showdelay/
+         *         Show tooltip after 2 seconds
          *
-         * @since next
+         * @since 12.6.0
          */
         showDelay: 0,
         /**
@@ -7601,7 +7610,7 @@ const defaultOptions = {
          * @sample {highmaps} highcharts/css/tooltip-border-background/
          *         Tooltip in styled mode
          *
-         * @type {Highcharts.ColorString|Highcharts.GradientColorObject|Highcharts.PatternObject}
+         * @type {Highcharts.ColorType}
          */
         backgroundColor: "#ffffff" /* Palette.backgroundColor */,
         /**
@@ -7650,6 +7659,8 @@ const defaultOptions = {
          *
          * @sample highcharts/tooltip/stickoncontact/
          *         Tooltip sticks on pointer contact
+         * @sample highcharts/tooltip/stickoncontact-anchor-link/
+         *         Tooltip with clickable links
          *
          * @type      {boolean}
          * @since     8.0.1
@@ -7669,13 +7680,10 @@ const defaultOptions = {
          * @type {Highcharts.CSSObject}
          */
         style: {
-            /** @internal */
+            /** @type {Highcharts.ColorType} */
             color: "#333333" /* Palette.neutralColor80 */,
-            /** @internal */
             cursor: 'default',
-            /**
-             * @type {number|string}
-             */
+            /** @type {number|string} */
             fontSize: '0.8em'
         },
         /**
@@ -7696,7 +7704,7 @@ const defaultOptions = {
         useHTML: false
     },
     /**
-     * Highchart by default puts a credits label in the lower right corner
+     * Highcharts by default puts a credits label in the lower right corner
      * of the chart. This can be changed using these options.
      */
     credits: {
@@ -7729,6 +7737,30 @@ const defaultOptions = {
          * @apioption credits.mapTextFull
          */
         /**
+         * Events for the credits label.
+         *
+         * @type     {object}
+         * @since    12.6.0
+         * @apioption credits.events
+         */
+        /**
+         * Callback function to handle click events on the credits label.
+         * The callback can call `event.preventDefault()` to prevent the
+         * default navigation behavior. Alternatively, you can add a general
+         * event handler using `Highcharts.addEvent(Chart, 'creditsClick',
+         * callback)` instead of providing it in the options tree.
+         *
+         * @sample {highcharts} highcharts/credits/events-click/
+         *         Custom click handler
+         *
+         * @param {Event} event
+         *        The click event object.
+         *
+         * @type  {Function}
+         * @since 12.6.0
+         * @apioption credits.events.click
+         */
+        /**
          * Whether to show the credits text.
          *
          * @sample {highcharts} highcharts/credits/enabled-false/
@@ -7753,24 +7785,16 @@ const defaultOptions = {
          *
          * @sample {highcharts} highcharts/credits/position-left/
          *         Left aligned
-         * @sample {highcharts} highcharts/credits/position-left/
-         *         Left aligned
-         * @sample {highmaps} maps/credits/customized/
-         *         Left aligned
          * @sample {highmaps} maps/credits/customized/
          *         Left aligned
          *
-         * @type    {Highcharts.AlignObject}
-         * @since   2.1
+         * @type  {Highcharts.AlignObject}
+         * @since 2.1
          */
         position: {
-            /** @internal */
             align: 'right',
-            /** @internal */
-            x: -10,
-            /** @internal */
             verticalAlign: 'bottom',
-            /** @internal */
+            x: -10,
             y: -5
         },
         /**
@@ -7782,9 +7806,10 @@ const defaultOptions = {
          * @type {Highcharts.CSSObject}
          */
         style: {
-            /** @internal */
             cursor: 'pointer',
-            /** @internal */
+            /**
+             * @type {Highcharts.ColorType}
+             */
             color: "#999999" /* Palette.neutralColor40 */,
             /**
              * @type {number|string}
@@ -7898,7 +7923,7 @@ const DefaultOptions = {
 * @name Highcharts.ChartAddSeriesEventObject#options
 * @type {Highcharts.SeriesOptionsType}
 */ /**
-* Prevents the default behaviour of the event.
+* Prevents the default behavior of the event.
 * @name Highcharts.ChartAddSeriesEventObject#preventDefault
 * @type {Function}
 */ /**
@@ -8000,7 +8025,7 @@ const DefaultOptions = {
  *        The chart on which the event occurred.
  *
  * @param {Highcharts.SelectEventObject} event
- *        Event informations
+ *        Event information
  *
  * @return {boolean|undefined}
  *         Return false to prevent the default action, usually zoom.
@@ -8011,7 +8036,7 @@ const DefaultOptions = {
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
- *  Author: Torstein Honsi
+ *  Author: Torstein Hønsi
  *
  *  A commercial license may be required depending on use.
  *  See www.highcharts.com/license
@@ -8452,7 +8477,7 @@ const Templating = {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -8557,7 +8582,7 @@ class ResizingMode {
         }
     }
     /**
-     * Recaulculates the changing dimentions of the table.
+     * Recalculates the changing dimensions of the table.
      */
     reflow() {
         const vp = this.viewport;
@@ -8649,7 +8674,7 @@ ResizingMode.MIN_COLUMN_WIDTH = 20;
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -8713,7 +8738,7 @@ class AdjacentResizingMode extends ColumnResizing_ResizingMode {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -8779,7 +8804,7 @@ class IndependentResizingMode extends ColumnResizing_ResizingMode {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -8834,7 +8859,7 @@ class DistributedResizingMode extends ColumnResizing_ResizingMode {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -8904,7 +8929,7 @@ function initMode(viewport) {
  *  Authors:
  *  - Sophie Bremer
  *  - Gøran Slettemark
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -9003,7 +9028,7 @@ class DataModifier {
      * Emits an event on the modifier to all registered callbacks of this event.
      *
      * @param {DataModifierEvent} [e]
-     * Event object containing additonal event information.
+     * Event object containing additional event information.
      */
     emit(e) {
         fireEvent(this, e.type, e);
@@ -9084,7 +9109,7 @@ DataModifier.types = {};
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 /* *
@@ -9546,7 +9571,7 @@ class DataTableCore {
  *  - Sophie Bremer
  *  - Gøran Slettemark
  *  - Jomar Hønsi
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -10335,6 +10360,11 @@ class DataTable extends Data_DataTableCore {
      */
     setModifier(modifier, eventDetail) {
         const table = this;
+        // Avoid emitting modifier events when unchanged. This prevents extra
+        // rerenders when polling calls `applyTableModifiers()`.
+        if (modifier === table.modifier) {
+            return Promise.resolve(table);
+        }
         let promise;
         table.emit({
             type: 'setModifier',
@@ -10513,7 +10543,7 @@ class DataTable extends Data_DataTableCore {
  *  - Sophie Bremer
  *  - Wojciech Chmiel
  *  - Gøran Slettemark
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Kamil Kubik
  *
  * */
@@ -10737,7 +10767,7 @@ class DataConnector {
     async applyTableModifiers() {
         const tableOptionsArray = this.options?.dataTables;
         for (const [key, table] of Object.entries(this.dataTables)) {
-            // Take data modifier options from the corresponsing data table
+            // Take data modifier options from the corresponding data table
             // options, otherwise take the data modifier options from the
             // connector options.
             const dataModifierOptions = tableOptionsArray?.find((dataTable) => dataTable.key === key)?.dataModifier ?? this.options?.dataModifier;
@@ -11016,12 +11046,12 @@ function guessType(value, converter) {
  * Remove all spaces between numbers.
  *
  * @return {string}
- * Trimed string
+ * Trimmed string
  */
 function trim(str, inside) {
     if (typeof str === 'string') {
         str = str.replace(/^\s+|\s+$/g, '');
-        // Clear white space insdie the string, like thousands separators
+        // Clear white space inside the string, like thousands separators
         if (inside && /^[\d\s]+$/.test(str)) {
             str = str.replace(/\s/g, '');
         }
@@ -11312,7 +11342,7 @@ class DataConverter {
                 guessedFormat[2] = 'YY';
             }
             format = guessedFormat.join('/');
-            // If the caculated format is not valid, we need to present an
+            // If the calculated format is not valid, we need to present an
             // error.
         }
         // Save the deduced format in the converter options.
@@ -11845,40 +11875,47 @@ function setHighContrastTheme(chart) {
     // We might want to add additional functionality here in the future for
     // storing the old state so that we can reset the theme if HC mode is
     // disabled. For now, the user will have to reload the page.
-    chart.highContrastModeActive = true;
-    // Apply theme to chart
-    const theme = (chart.options.accessibility.highContrastTheme);
-    chart.update(theme, false);
-    const hasCustomColors = theme.colors?.length > 1;
-    // Force series colors (plotOptions is not enough)
-    chart.series.forEach(function (s) {
-        const plotOpts = theme.plotOptions[s.type] || {};
-        const fillColor = hasCustomColors && s.colorIndex !== void 0 ?
-            theme.colors[s.colorIndex] :
-            plotOpts.color || 'window';
-        const seriesOptions = {
-            color: plotOpts.color || 'windowText',
-            colors: hasCustomColors ?
-                theme.colors : [plotOpts.color || 'windowText'],
-            borderColor: plotOpts.borderColor || 'window',
-            fillColor
-        };
-        s.update(seriesOptions, false);
-        if (s.points) {
-            // Force point colors if existing
-            s.points.forEach(function (p) {
-                if (p.options && p.options.color) {
-                    p.update({
-                        color: plotOpts.color || 'windowText',
-                        borderColor: plotOpts.borderColor || 'window'
-                    }, false);
-                }
-            });
-        }
-    });
-    // The redraw for each series and after is required for 3D pie
-    // (workaround)
-    chart.redraw();
+    const highContrastState = chart.highContrastState || (chart.highContrastState = {});
+    highContrastState.active = true;
+    highContrastState.applying = true;
+    try {
+        // Apply theme to chart
+        const theme = (chart.options.accessibility.highContrastTheme);
+        chart.update(theme, false);
+        const hasCustomColors = theme.colors?.length > 1;
+        // Force series colors (plotOptions is not enough)
+        chart.series.forEach(function (s) {
+            const plotOpts = theme.plotOptions[s.type] || {};
+            const fillColor = hasCustomColors && s.colorIndex !== void 0 ?
+                theme.colors[s.colorIndex] :
+                plotOpts.color || 'window';
+            const seriesOptions = {
+                color: plotOpts.color || 'windowText',
+                colors: hasCustomColors ?
+                    theme.colors : [plotOpts.color || 'windowText'],
+                borderColor: plotOpts.borderColor || 'window',
+                fillColor
+            };
+            s.update(seriesOptions, false);
+            if (s.points) {
+                // Force point colors if existing
+                s.points.forEach(function (p) {
+                    if (p.options && p.options.color) {
+                        p.update({
+                            color: plotOpts.color || 'windowText',
+                            borderColor: plotOpts.borderColor || 'window'
+                        }, false);
+                    }
+                });
+            }
+        });
+        // The redraw for each series and after is required for 3D pie
+        // (workaround)
+        chart.redraw();
+    }
+    finally {
+        delete highContrastState.applying;
+    }
 }
 /* *
  *
@@ -11891,6 +11928,110 @@ const whcm = {
 };
 /* harmony default export */ const HighContrastMode = (whcm);
 
+;// ./code/grid/es-modules/Grid/Core/Data/DataProvider.js
+/* *
+ *
+ *  Data Provider abstract class
+ *
+ *  (c) 2020-2025 Highsoft AS
+ *
+ *  License: www.highcharts.com/license
+ *
+ *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
+ *
+ *  Authors:
+ *  - Dawid Draguła
+ *
+ * */
+
+
+/**
+ * Base class for Grid data providers.
+ *
+ * Data providers are responsible for serving data to the grid, applying query
+ * modifiers and persisting edits.
+ */
+class DataProvider {
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    constructor(queryingController, options) {
+        this.querying = queryingController;
+        this.options = options;
+    }
+    /* *
+     *
+     *  Methods
+     *
+     * */
+    /**
+     * Initializes the data provider.
+     */
+    init() {
+        return Promise.resolve();
+    }
+    /**
+     * Returns the number of items before pagination has been applied.
+     */
+    async getPrePaginationRowCount() {
+        return await this.getRowCount();
+    }
+    /**
+     * Helper method to assume the data type of a column based on the sample
+     * of the column data.
+     *
+     * @param columnSample
+     * The sample of the column data to determine the data type from.
+     *
+     * @param columnId
+     * The id of the column to determine the data type for.
+     */
+    static assumeColumnDataType(columnSample, columnId) {
+        for (let i = 0, iEnd = columnSample.length; i < iEnd; ++i) {
+            if (!defined(columnSample[i])) {
+                // If the data is null or undefined, we should look
+                // at the next value to determine the type.
+                continue;
+            }
+            switch (typeof columnSample[i]) {
+                case 'number':
+                    return 'number';
+                case 'boolean':
+                    return 'boolean';
+                default:
+                    return 'string';
+            }
+        }
+        // eslint-disable-next-line no-console
+        console.warn(`Column "${columnId}" sample does not contain any defined ` +
+            'values; defaulting dataType to "string". Set `dataType` option ' +
+            'for the column to determine the data type and avoid unnecessary ' +
+            'column scanning.');
+        return 'string';
+    }
+}
+/**
+ * Returns whether the provider exposes `getDataTable`.
+ *
+ * @param provider
+ * Data provider instance to test.
+ *
+ * @returns
+ * `true` when provider exposes `getDataTable`.
+ */
+function hasDataTableProvider(provider) {
+    return !!(provider &&
+        typeof provider.getDataTable === 'function');
+}
+/* *
+ *
+ * Default Export
+ *
+ * */
+/* harmony default export */ const Data_DataProvider = ((/* unused pure expression or super */ null && (DataProvider)));
+
 ;// ./code/grid/es-modules/Grid/Core/Globals.js
 /* *
  *
@@ -11901,7 +12042,7 @@ const whcm = {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -11912,7 +12053,8 @@ const whcm = {
  *
  * */
 const classNamePrefix = 'hcg-';
-const version = '2.3.1';
+const version = '3.0.0';
+const buildDate = '2026-05-06';
 const rawClassNames = {
     container: 'container',
     tableElement: 'table',
@@ -11920,6 +12062,7 @@ const rawClassNames = {
     descriptionElement: 'description',
     theadElement: 'thead',
     tbodyElement: 'tbody',
+    cell: 'cell',
     rowElement: 'row',
     rowEven: 'row-even',
     rowOdd: 'row-odd',
@@ -11963,9 +12106,10 @@ const rawClassNames = {
     popup: 'popup',
     button: 'button',
     buttonSelected: 'button-selected',
-    buttonHighlighted: 'button-highlighted',
     input: 'input',
     icon: 'icon',
+    iconSelected: 'icon-selected',
+    iconHighlighted: 'icon-highlighted',
     iconSearch: 'icon-search',
     popupContent: 'popup-content',
     columnFilterWrapper: 'column-filter-wrapper',
@@ -11993,7 +12137,9 @@ const rawClassNames = {
     centerAlign: 'center',
     leftAlign: 'left'
 };
-const Globals_win = window;
+const Globals_win = (typeof window !== 'undefined' ?
+    window :
+    {});
 const composed = [];
 const userAgent = (Globals_win.navigator && Globals_win.navigator.userAgent) || '';
 const isChrome = userAgent.indexOf('Chrome') !== -1;
@@ -12007,6 +12153,7 @@ const getClassName = (classNameKey) => classNamePrefix + rawClassNames[className
 /* harmony default export */ const Grid_Core_Globals = ({
     classNamePrefix,
     version,
+    buildDate,
     rawClassNames,
     win: Globals_win,
     composed,
@@ -12028,7 +12175,7 @@ const getClassName = (classNameKey) => classNamePrefix + rawClassNames[className
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -12182,6 +12329,67 @@ function formatText(template, values) {
     return template.replace(/\{(\w+)\}/g, (match, key) => (values[key] !== void 0 ? String(values[key]) : match));
 }
 /**
+ * Checks whether two objects have the same own keys and values.
+ *
+ * Supports nested plain objects and arrays. Functions are compared by
+ * reference.
+ *
+ * @param left
+ * The first object to compare.
+ *
+ * @param right
+ * The second object to compare.
+ *
+ * @returns
+ * `true` when both objects are equal, otherwise `false`.
+ */
+function isDeepEqual(left, right) {
+    if (left === right) {
+        return true;
+    }
+    if (left instanceof RegExp || right instanceof RegExp) {
+        return (left instanceof RegExp &&
+            right instanceof RegExp &&
+            left.source === right.source &&
+            left.flags === right.flags);
+    }
+    if (!isObject(left) || !isObject(right)) {
+        return false;
+    }
+    const leftRecord = left;
+    const rightRecord = right;
+    if ('nodeType' in leftRecord || 'nodeType' in rightRecord) {
+        return false;
+    }
+    if (Array.isArray(left) || Array.isArray(right)) {
+        if (!Array.isArray(left) || !Array.isArray(right)) {
+            return false;
+        }
+        if (left.length !== right.length) {
+            return false;
+        }
+    }
+    const leftKeys = Object.keys(left).filter(function (key) {
+        return key !== '__proto__' && key !== 'constructor';
+    });
+    const rightKeys = Object.keys(right).filter(function (key) {
+        return key !== '__proto__' && key !== 'constructor';
+    });
+    if (leftKeys.length !== rightKeys.length) {
+        return false;
+    }
+    for (let i = 0, iEnd = leftKeys.length; i < iEnd; ++i) {
+        const key = leftKeys[i];
+        if (!(key in rightRecord)) {
+            return false;
+        }
+        if (!isDeepEqual(leftRecord[key], rightRecord[key])) {
+            return false;
+        }
+    }
+    return true;
+}
+/**
  * Resolves a style value that can be static or callback based.
  *
  * @param style
@@ -12227,6 +12435,14 @@ function mergeStyleValues(target, ...styleValues) {
     }
     return mergedStyle;
 }
+/**
+ * Waits for the next animation frame.
+ */
+function waitForAnimationFrame() {
+    return new Promise((resolve) => {
+        requestAnimationFrame(() => resolve());
+    });
+}
 /* *
  *
  *  Default Export
@@ -12240,9 +12456,492 @@ function mergeStyleValues(target, ...styleValues) {
     setHTMLContent,
     createOptionsProxy,
     formatText,
+    isDeepEqual,
     resolveStyleValue,
-    mergeStyleValues
+    mergeStyleValues,
+    waitForAnimationFrame
 });
+
+;// ./code/grid/es-modules/Data/Modifiers/FilterModifier.js
+/* *
+ *
+ *  (c) 2009-2026 Highsoft AS
+ *
+ *  A commercial license may be required depending on use.
+ *  See www.highcharts.com/license
+ *
+ *
+ *  Authors:
+ *  - Dawid Draguła
+ *
+ * */
+
+
+
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Filters out table rows matching a given condition.
+ */
+class FilterModifier extends Modifiers_DataModifier {
+    /* *
+     *
+     *  Static Functions
+     *
+     * */
+    /**
+     * Compiles a filter condition into a callback function.
+     *
+     * @param {FilterCondition} condition
+     * Condition to compile.
+     */
+    static compile(condition) {
+        if (isFunction(condition)) {
+            return condition;
+        }
+        const op = condition.operator;
+        switch (op) {
+            case 'and': {
+                const subs = condition.conditions.map((c) => this.compile(c));
+                return (row, table, i) => subs.every((cond) => cond(row, table, i));
+            }
+            case 'or': {
+                const subs = condition.conditions.map((c) => this.compile(c));
+                return (row, table, i) => subs.some((cond) => cond(row, table, i));
+            }
+            case 'not': {
+                const sub = this.compile(condition.condition);
+                return (row, table, i) => !sub(row, table, i);
+            }
+        }
+        const { columnId: col, value } = condition;
+        switch (op) {
+            case '==':
+                // eslint-disable-next-line eqeqeq
+                return (row) => row[col] == value;
+            case '===':
+                return (row) => row[col] === value;
+            case '!=':
+                // eslint-disable-next-line eqeqeq
+                return (row) => row[col] != value;
+            case '!==':
+                return (row) => row[col] !== value;
+            case '>':
+                return (row) => (row[col] || 0) > (value || 0);
+            case '>=':
+                return (row) => (row[col] || 0) >= (value || 0);
+            case '<':
+                return (row) => (row[col] || 0) < (value || 0);
+            case '<=':
+                return (row) => (row[col] || 0) <= (value || 0);
+            case 'empty':
+                return (row) => row[col] === null || row[col] === '';
+        }
+        const { ignoreCase } = condition;
+        const str = (val) => {
+            const s = '' + val;
+            return (ignoreCase ?? true) ? s.toLowerCase() : s;
+        };
+        switch (op) {
+            case 'contains':
+                return (row) => str(row[col]).includes(str(value));
+            default:
+                return (row) => str(row[col])[op](str(value));
+        }
+    }
+    /* *
+     *
+     *  Constructor
+     *
+     * */
+    /**
+     * Constructs an instance of the filter modifier.
+     *
+     * @param {Partial<FilterModifierOptions>} [options]
+     * Options to configure the filter modifier.
+     */
+    constructor(options) {
+        super();
+        this.options = merge(FilterModifier.defaultOptions, options);
+    }
+    /* *
+     *
+     *  Functions
+     *
+     * */
+    /**
+     * Filters out table rows matching a given condition. If the given table
+     * does not have defined a `modified` property, the filtering is applied
+     * in-place on the original table rather than on a `modified` copy.
+     *
+     * @param {DataTable} table
+     * Table to modify.
+     *
+     * @param {DataEventDetail} [eventDetail]
+     * Custom information for pending events.
+     *
+     * @return {DataTable}
+     * Table with `modified` property as a reference or modified table, if
+     * `modified` property of the original table is undefined.
+     */
+    modifyTable(table, eventDetail) {
+        const modifier = this;
+        modifier.emit({ type: 'modify', detail: eventDetail, table });
+        const { condition } = modifier.options;
+        if (!condition) {
+            // If no condition is set, return the unmodified table.
+            return table;
+        }
+        const matchRow = FilterModifier.compile(condition);
+        const modified = table.getModified();
+        const rows = [];
+        const indexes = [];
+        for (let i = 0, iEnd = table.getRowCount(); i < iEnd; ++i) {
+            const row = table.getRowObject(i);
+            if (!row) {
+                continue;
+            }
+            if (matchRow(row, table, i)) {
+                rows.push(row);
+                indexes.push(table.getOriginalRowIndex(i));
+            }
+        }
+        modified.deleteRows();
+        modified.setRows(rows);
+        modified.setOriginalRowIndexes(indexes);
+        modifier.emit({ type: 'afterModify', detail: eventDetail, table });
+        return table;
+    }
+}
+/* *
+ *
+ *  Static Properties
+ *
+ * */
+/**
+ * Default options for the filter modifier.
+ */
+FilterModifier.defaultOptions = {
+    type: 'Filter'
+};
+Modifiers_DataModifier.registerType('Filter', FilterModifier);
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Modifiers_FilterModifier = (FilterModifier);
+
+;// ./code/grid/es-modules/Grid/Core/Querying/FilteringController.js
+/* *
+ *
+ *  Grid Filtering Controller class
+ *
+ *  (c) 2020-2026 Highsoft AS
+ *
+ *  A commercial license may be required depending on use.
+ *  See www.highcharts.com/license
+ *
+ *
+ *  Authors:
+ *  - Dawid Draguła
+ *
+ * */
+
+
+
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Class that manages one of the data grid querying types - filtering.
+ */
+class FilteringController {
+    /* *
+    *
+    *  Constructor
+    *
+    * */
+    /**
+     * Constructs the FilteringController instance.
+     *
+     * @param querying
+     * The querying controller instance.
+     */
+    constructor(querying) {
+        /**
+         * A map of the filtering conditions for each column.
+         */
+        this.columnConditions = {};
+        this.querying = querying;
+    }
+    /* *
+    *
+    *  Functions
+    *
+    * */
+    /**
+     * Maps filtering options to the filtering condition.
+     *
+     * @param columnId
+     * Id of the column to filter.
+     *
+     * @param options
+     * Filtering options.
+     */
+    static mapOptionsToFilter(columnId, options) {
+        const { condition, value } = options;
+        const isStringValue = isString(value);
+        const stringifiedValue = isStringValue ? value : '';
+        const nonValueConditions = ['empty', 'notEmpty', 'true', 'false'];
+        if ((typeof value === 'undefined' ||
+            (isStringValue && !stringifiedValue)) && !nonValueConditions.includes(condition ?? '')) {
+            return;
+        }
+        switch (condition) {
+            case 'contains':
+                return {
+                    columnId,
+                    operator: 'contains',
+                    value: stringifiedValue
+                };
+            case 'doesNotContain':
+                return {
+                    operator: 'not',
+                    condition: {
+                        columnId,
+                        operator: 'contains',
+                        value: stringifiedValue
+                    }
+                };
+            case 'equals':
+                return {
+                    columnId,
+                    operator: '===',
+                    value
+                };
+            case 'doesNotEqual':
+                return {
+                    columnId,
+                    operator: '!==',
+                    value
+                };
+            case 'beginsWith':
+                return {
+                    columnId,
+                    operator: 'startsWith',
+                    value: stringifiedValue
+                };
+            case 'endsWith':
+                return {
+                    columnId,
+                    operator: 'endsWith',
+                    value: stringifiedValue
+                };
+            case 'greaterThan':
+                return {
+                    columnId,
+                    operator: '>',
+                    value
+                };
+            case 'greaterThanOrEqualTo':
+                return {
+                    columnId,
+                    operator: '>=',
+                    value
+                };
+            case 'lessThan':
+                return {
+                    columnId,
+                    operator: '<',
+                    value
+                };
+            case 'lessThanOrEqualTo':
+                return {
+                    columnId,
+                    operator: '<=',
+                    value
+                };
+            case 'before':
+                return {
+                    columnId,
+                    operator: '<',
+                    value
+                };
+            case 'after':
+                return {
+                    columnId,
+                    operator: '>',
+                    value
+                };
+            case 'empty':
+                return {
+                    columnId,
+                    operator: 'empty',
+                    value
+                };
+            case 'notEmpty':
+                return {
+                    operator: 'not',
+                    condition: {
+                        columnId,
+                        operator: 'empty',
+                        value
+                    }
+                };
+            case 'true':
+                return {
+                    columnId,
+                    operator: '===',
+                    value: true
+                };
+            case 'false':
+                return {
+                    columnId,
+                    operator: '===',
+                    value: false
+                };
+        }
+    }
+    /**
+     * Compares two serializable filter conditions produced from Grid options.
+     *
+     * @param left
+     * The current filter condition.
+     *
+     * @param right
+     * The next filter condition.
+     */
+    static filterConditionsEqual(left, right) {
+        if (left === right) {
+            return true;
+        }
+        if (!left || !right) {
+            return false;
+        }
+        if (typeof left === 'function' ||
+            typeof right === 'function' ||
+            left.operator !== right.operator) {
+            return false;
+        }
+        if ('condition' in left || 'condition' in right) {
+            return ('condition' in left &&
+                'condition' in right &&
+                FilteringController.filterConditionsEqual(left.condition, right.condition));
+        }
+        if ('conditions' in left || 'conditions' in right) {
+            return ('conditions' in left &&
+                'conditions' in right &&
+                left.conditions.length === right.conditions.length &&
+                left.conditions.every((condition, index) => FilteringController.filterConditionsEqual(condition, right.conditions[index])));
+        }
+        return ('columnId' in left &&
+            'columnId' in right &&
+            left.columnId === right.columnId &&
+            left.value === right.value &&
+            (('ignoreCase' in left ? left.ignoreCase : void 0) ===
+                ('ignoreCase' in right ? right.ignoreCase : void 0)));
+    }
+    /**
+     * Loads filtering options from the data grid options.
+     */
+    loadOptions() {
+        const columnPolicy = this.querying.grid.columnPolicy;
+        const newConditions = {};
+        const columnIds = columnPolicy.getColumnIds();
+        for (let i = 0, iEnd = columnIds.length; i < iEnd; ++i) {
+            const columnId = columnIds[i];
+            if (columnPolicy.isColumnUnbound(columnId)) {
+                continue;
+            }
+            const sourceColumnId = columnPolicy.getColumnSourceId(columnId);
+            const filteringOptions = columnPolicy
+                .getIndividualColumnOptions(columnId)
+                ?.filtering;
+            if (!filteringOptions || !sourceColumnId) {
+                continue;
+            }
+            const condition = FilteringController.mapOptionsToFilter(sourceColumnId, filteringOptions);
+            if (condition) {
+                newConditions[columnId] = condition;
+            }
+        }
+        this.columnConditions = newConditions;
+        this.updateModifier();
+    }
+    /**
+     * Adds a new filtering condition to the specified column.
+     *
+     * @param columnId
+     * The column ID to filter in.
+     *
+     * @param options
+     * The filtering options.
+     */
+    addColumnFilterCondition(columnId, options) {
+        if (this.querying.grid.columnPolicy.isColumnUnbound(columnId)) {
+            return;
+        }
+        const sourceColumnId = this.querying.grid
+            .columnPolicy.getColumnSourceId(columnId);
+        if (!sourceColumnId) {
+            return;
+        }
+        const condition = FilteringController.mapOptionsToFilter(sourceColumnId, options);
+        if (condition) {
+            this.columnConditions[columnId] = condition;
+        }
+        else {
+            delete this.columnConditions[columnId];
+        }
+        this.updateModifier();
+    }
+    /**
+     * Clears the filtering condition for the specified column. If no column ID
+     * is provided, clears all the column filtering conditions.
+     *
+     * @param columnId
+     * The column ID to clear or `undefined` to clear all the column filtering
+     * conditions.
+     */
+    clearColumnFiltering(columnId) {
+        if (!columnId) {
+            this.columnConditions = {};
+        }
+        else {
+            delete this.columnConditions[columnId];
+        }
+        this.updateModifier();
+    }
+    /**
+     * Updates the modifier based on the current column conditions.
+     */
+    updateModifier() {
+        const columnConditions = Object.values(this.columnConditions);
+        this.querying.shouldBeUpdated = true;
+        if (columnConditions.length < 1) {
+            delete this.modifier;
+            return;
+        }
+        this.modifier = new Modifiers_FilterModifier({
+            condition: {
+                operator: 'and',
+                conditions: columnConditions
+            }
+        });
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Querying_FilteringController = (FilteringController);
 
 ;// ./code/grid/es-modules/Grid/Core/Table/Actions/ColumnFiltering/FilteringTypes.js
 /* *
@@ -12256,7 +12955,7 @@ function mergeStyleValues(target, ...styleValues) {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *  - Kamil Kubik
  *
@@ -12339,11 +13038,12 @@ const conditionsMap = {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *  - Kamil Kubik
  *
  * */
+
 
 
 
@@ -12416,7 +13116,7 @@ class ColumnFiltering {
                 'ArrowDown': 1,
                 'ArrowUp': -1
             }[e.key];
-            if (direction) {
+            if (direction && contentOrder.length) {
                 e.preventDefault();
                 const currentIndex = contentOrder.indexOf(e.target);
                 const n = contentOrder.length;
@@ -12487,7 +13187,7 @@ class ColumnFiltering {
     renderFilteringContent(container) {
         const column = this.column;
         const columnType = column.dataType;
-        if (!column.options.filtering?.enabled) {
+        if (!column.viewport.grid.columnPolicy.isColumnFilteringEnabled(column.id)) {
             return;
         }
         // Render the input wrapper.
@@ -12547,6 +13247,9 @@ class ColumnFiltering {
                     break;
             }
         }
+        if (this.hasSameFilterCondition(columnId, condition)) {
+            return;
+        }
         this.column.setOptions({
             filtering: {
                 condition: condition.condition,
@@ -12565,6 +13268,21 @@ class ColumnFiltering {
         fireEvent(this.column, 'afterFilter', {
             target: this.column
         });
+    }
+    /**
+     * Returns whether the next filtering options would produce the same
+     * semantic filter condition as the current one.
+     *
+     * @param columnId
+     * The column ID to compare filtering state for.
+     *
+     * @param options
+     * The next filtering options to compare.
+     */
+    hasSameFilterCondition(columnId, options) {
+        const currentCondition = Querying_FilteringController.mapOptionsToFilter(columnId, this.column.options.filtering ?? {});
+        const nextCondition = Querying_FilteringController.mapOptionsToFilter(columnId, options);
+        return Querying_FilteringController.filterConditionsEqual(currentCondition, nextCondition);
     }
     /**
      * Render the filtering input element, based on the column type.
@@ -12592,7 +13310,7 @@ class ColumnFiltering {
         }
         else {
             this.filterInput.type = 'text';
-            this.filterInput.classList.add(Grid_Core_Globals.getClassName('icon'), Grid_Core_Globals.getClassName('iconSearch'));
+            this.filterInput.classList.add(Grid_Core_Globals.getClassName('iconSearch'));
         }
         // Assign the default input value.
         const { value } = this.column.options.filtering ?? {};
@@ -13039,11 +13757,12 @@ const HTMLUtilities = {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *  - Kamil Kubik
  *
  * */
+
 
 
 
@@ -13329,7 +14048,7 @@ class Accessibility {
      */
     defaultBeforeFormatter() {
         const grid = this.grid;
-        const { container, dataTable, options } = grid;
+        const { container, options } = grid;
         const format = options?.accessibility?.screenReaderSection?.beforeGridFormat;
         if (!format || !container) {
             return '';
@@ -13346,6 +14065,9 @@ class Accessibility {
                     `<${headingTag}>${gridTitle}</${headingTag}>`;
             }
         }
+        const dataTable = hasDataTableProvider(grid.dataProvider) ?
+            grid.dataProvider.getDataTable() :
+            void 0;
         const context = {
             gridTitle: formattedGridTitle,
             gridDescription: options?.description?.text || '',
@@ -13432,6 +14154,342 @@ class Accessibility {
  * */
 /* harmony default export */ const Accessibility_Accessibility = (Accessibility);
 
+;// ./code/grid/es-modules/Grid/Core/ColumnPolicyResolver.js
+/* *
+ *
+ *  Grid Column Policy Resolver class
+ *
+ *  (c) 2020-2026 Highsoft AS
+ *
+ *  A commercial license may be required depending on use.
+ *  See www.highcharts.com/license
+ *
+ *
+ *  Authors:
+ *  - Dawid Dragula
+ *
+ * */
+
+/* *
+ *
+ *  Class
+ *
+ * */
+/**
+ * Represents a column policy resolver.
+ */
+class ColumnPolicyResolver {
+    constructor() {
+        /* *
+         *
+         *  Properties
+         *
+         * */
+        /**
+         * Individual column options map keyed by Grid column id.
+         */
+        this.columnOptionsMap = {};
+        /**
+         * Source column id map keyed by Grid column id.
+         */
+        this.sourceColumnIdMap = {};
+        /**
+         * Column defaults merged into all capability checks.
+         */
+        this.columnDefaults = {};
+    }
+    /* *
+    *
+    *  Methods
+    *
+    * */
+    /**
+     * Sets the current column options map and rebuilds source id mappings.
+     *
+     * @param columnOptionsMap
+     * Column options keyed by Grid column id.
+     */
+    setColumnOptionsMap(columnOptionsMap) {
+        this.columnOptionsMap = columnOptionsMap;
+        this.rebuildSourceColumnIdMap();
+    }
+    /**
+     * Removes all column options from the resolver.
+     */
+    clearColumnOptions() {
+        this.columnOptionsMap = {};
+        this.sourceColumnIdMap = {};
+    }
+    /**
+     * Returns whether options for the given column id exist.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    hasColumnOptions(columnId) {
+        return !!this.columnOptionsMap[columnId];
+    }
+    /**
+     * Returns column ids for all configured column options.
+     */
+    getColumnIds() {
+        return Object.keys(this.columnOptionsMap);
+    }
+    /**
+     * Returns raw options for a Grid column.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    getIndividualColumnOptions(columnId) {
+        return this.columnOptionsMap[columnId]?.options;
+    }
+    /**
+     * Returns the index of a Grid column in `options.columns`.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    getColumnOptionIndex(columnId) {
+        return this.columnOptionsMap[columnId]?.index;
+    }
+    /**
+     * Adds or replaces a single column option entry.
+     *
+     * @param columnId
+     * Grid column id.
+     *
+     * @param columnOption
+     * Column map item to store.
+     */
+    setColumnOption(columnId, columnOption) {
+        this.columnOptionsMap[columnId] = columnOption;
+        this.sourceColumnIdMap[columnId] = this.resolveSourceColumnId(columnId);
+    }
+    /**
+     * Removes a single column option entry.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    removeColumnOption(columnId) {
+        delete this.columnOptionsMap[columnId];
+        delete this.sourceColumnIdMap[columnId];
+    }
+    /**
+     * Sets column defaults used for capability checks.
+     *
+     * @param columnDefaults
+     * Grid column defaults.
+     */
+    setColumnDefaults(columnDefaults) {
+        this.columnDefaults = columnDefaults || {};
+    }
+    /**
+     * Sets available source column ids from the current data provider.
+     *
+     * @param columnIds
+     * List of source column ids. If omitted, the cache is cleared.
+     */
+    setAvailableSourceColumnIds(columnIds) {
+        this.availableSourceColumnIds = columnIds ?
+            new Set(columnIds) :
+            void 0;
+    }
+    /**
+     * Returns cached source column ids from the data provider.
+     */
+    getAvailableSourceColumnIds() {
+        return this.availableSourceColumnIds ?
+            Array.from(this.availableSourceColumnIds) :
+            void 0;
+    }
+    /**
+     * Resolves source column id for a Grid column id.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    getColumnSourceId(columnId) {
+        if (columnId in this.sourceColumnIdMap) {
+            return this.sourceColumnIdMap[columnId];
+        }
+        return columnId;
+    }
+    /**
+     * Returns whether the column is unbound to provider data.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    isColumnUnbound(columnId) {
+        const sourceColumnId = this.getColumnSourceId(columnId);
+        if (!sourceColumnId) {
+            return true;
+        }
+        if (!this.availableSourceColumnIds) {
+            return false;
+        }
+        return !this.availableSourceColumnIds.has(sourceColumnId);
+    }
+    /**
+     * Returns whether the column should be included in exports.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    isColumnExportable(columnId) {
+        const exportable = this.getIndividualColumnOptions(columnId)?.exportable ??
+            this.columnDefaults.exportable;
+        return !this.isColumnUnbound(columnId) &&
+            exportable !== false;
+    }
+    /**
+     * Returns whether sorting should be enabled for the column.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    isColumnSortingEnabled(columnId) {
+        const sortingOptions = this.getIndividualColumnOptions(columnId)?.sorting;
+        const defaultSortingOptions = this.columnDefaults.sorting;
+        const sortingEnabled = (sortingOptions?.enabled ??
+            defaultSortingOptions?.enabled);
+        return !this.isColumnUnbound(columnId) &&
+            !!sortingEnabled;
+    }
+    /**
+     * Returns whether filtering should be enabled for the column.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    isColumnFilteringEnabled(columnId) {
+        const filteringEnabled = (this.getIndividualColumnOptions(columnId)?.filtering?.enabled ??
+            this.columnDefaults.filtering?.enabled);
+        return !this.isColumnUnbound(columnId) &&
+            !!filteringEnabled;
+    }
+    /**
+     * Returns whether inline filtering should be enabled for the column.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    isColumnInlineFilteringEnabled(columnId) {
+        const inlineFilteringEnabled = (this.getIndividualColumnOptions(columnId)?.filtering?.inline ??
+            this.columnDefaults.filtering?.inline);
+        return this.isColumnFilteringEnabled(columnId) &&
+            !!inlineFilteringEnabled;
+    }
+    /**
+     * Returns whether editing should be enabled for the column.
+     *
+     * @param columnId
+     * Grid column id.
+     */
+    isColumnEditable(columnId) {
+        const editable = (this.getIndividualColumnOptions(columnId)
+            ?.cells?.editMode?.enabled ??
+            this.columnDefaults.cells?.editMode?.enabled);
+        return !this.isColumnUnbound(columnId) &&
+            !!editable;
+    }
+    /**
+     * Resolves ordered column ids that should be rendered.
+     *
+     * @param headerColumns
+     * Column ids resolved from header.
+     *
+     * @param autogenerateColumns
+     * Whether columns should be autogenerated from the provider.
+     *
+     * @param autoColumns
+     * Available column ids from the data provider.
+     *
+     * @param configuredColumns
+     * Column ids from `options.columns`.
+     */
+    getColumnsForRender(headerColumns, autogenerateColumns, autoColumns, configuredColumns) {
+        const columnsIncluded = (headerColumns.length > 0 ?
+            headerColumns :
+            autogenerateColumns ?
+                ColumnPolicyResolver.getColumnsForAutogeneration(autoColumns, configuredColumns) : configuredColumns);
+        if (!columnsIncluded?.length) {
+            return [];
+        }
+        return this.filterEnabledColumns(columnsIncluded);
+    }
+    /**
+     * Returns column ids for autogeneration mode:
+     * `autoColumns` followed by configured-only columns.
+     *
+     * Relative order from `configuredColumns` is preserved.
+     *
+     * @param autoColumns
+     * Column ids from the data provider.
+     *
+     * @param configuredColumns
+     * Column ids from `options.columns`.
+     */
+    static getColumnsForAutogeneration(autoColumns, configuredColumns) {
+        const autoColumnIds = new Set(autoColumns);
+        const customConfiguredColumns = (configuredColumns || []).filter((columnId) => !autoColumnIds.has(columnId));
+        return autoColumns.concat(customConfiguredColumns);
+    }
+    /**
+     * Filters out duplicate and disabled columns while preserving order.
+     *
+     * @param columnIds
+     * Candidate column ids.
+     */
+    filterEnabledColumns(columnIds) {
+        const seen = new Set();
+        const result = [];
+        for (const columnId of columnIds) {
+            const columnEnabled = this.columnOptionsMap?.[columnId]?.options?.enabled;
+            if (seen.has(columnId) ||
+                columnEnabled === false) {
+                continue;
+            }
+            seen.add(columnId);
+            result.push(columnId);
+        }
+        return result;
+    }
+    /**
+     * Rebuilds source column id cache from current column options.
+     */
+    rebuildSourceColumnIdMap() {
+        const sourceColumnIdMap = {};
+        const columnIds = Object.keys(this.columnOptionsMap);
+        for (let i = 0, iEnd = columnIds.length; i < iEnd; ++i) {
+            const columnId = columnIds[i];
+            sourceColumnIdMap[columnId] = this.resolveSourceColumnId(columnId);
+        }
+        this.sourceColumnIdMap = sourceColumnIdMap;
+    }
+    /**
+     * Resolves source column id based on map item options.
+     *
+     * @param columnId
+     * Grid column id.
+     *
+     */
+    resolveSourceColumnId(columnId) {
+        const dataId = this.columnOptionsMap[columnId]?.options?.dataId;
+        return dataId === null ?
+            void 0 :
+            (typeof dataId === 'string' ? dataId : columnId);
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Core_ColumnPolicyResolver = (ColumnPolicyResolver);
+
 ;// ./code/grid/es-modules/Grid/Core/Data/DataProviderRegistry.js
 /* *
  *
@@ -13444,7 +14502,7 @@ class Accessibility {
  *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -13499,7 +14557,7 @@ function registerDataProvider(key, DataProviderClass) {
  *
  *  Authors:
  *  - Mikkel Espolin Birkeland
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -13509,7 +14567,6 @@ function registerDataProvider(key, DataProviderClass) {
  *  Imports
  *
  * */
-
 
 
 /**
@@ -13674,6 +14731,24 @@ const icons = {
                 d: 'M7.049 22.654V1m6.048 21.654V1m6.143 0H6.807c-2.033 0-3.05 0-3.825.393a3.62 3.62 0 0 0-1.586 1.578C1 3.743 1 4.753 1 6.774V16.88c0 2.021 0 3.032.396 3.804.348.68.903 1.231 1.586 1.577.776.394 1.792.394 3.825.394H19.24m.24-14.068v6.462m3.226-3.226h-6.462',
                 'stroke-width': 1.34
             }]
+    },
+    pin: {
+        width: 16,
+        height: 16,
+        viewBox: '0 0 24 24',
+        children: [{
+                d: 'M12.0004 15L12.0004 22M8.00043 7.30813V9.43875C8.00043 9.64677 8.00043 9.75078 7.98001 9.85026C7.9619 9.93852 7.93194 10.0239 7.89095 10.1042C7.84474 10.1946 7.77977 10.2758 7.64982 10.4383L6.08004 12.4005C5.4143 13.2327 5.08143 13.6487 5.08106 13.9989C5.08073 14.3035 5.21919 14.5916 5.4572 14.7815C5.73088 15 6.26373 15 7.32943 15H16.6714C17.7371 15 18.27 15 18.5437 14.7815C18.7817 14.5916 18.9201 14.3035 18.9198 13.9989C18.9194 13.6487 18.5866 13.2327 17.9208 12.4005L16.351 10.4383C16.2211 10.2758 16.1561 10.1946 16.1099 10.1042C16.0689 10.0239 16.039 9.93852 16.0208 9.85026C16.0004 9.75078 16.0004 9.64677 16.0004 9.43875V7.30813C16.0004 7.19301 16.0004 7.13544 16.0069 7.07868C16.0127 7.02825 16.0223 6.97833 16.0357 6.92937C16.0507 6.87424 16.0721 6.8208 16.1149 6.71391L17.1227 4.19423C17.4168 3.45914 17.5638 3.09159 17.5025 2.79655C17.4489 2.53853 17.2956 2.31211 17.0759 2.1665C16.8247 2 16.4289 2 15.6372 2H8.36368C7.57197 2 7.17611 2 6.92494 2.1665C6.70529 2.31211 6.55199 2.53853 6.49838 2.79655C6.43707 3.09159 6.58408 3.45914 6.87812 4.19423L7.88599 6.71391C7.92875 6.8208 7.95013 6.87424 7.96517 6.92937C7.97853 6.97833 7.98814 7.02825 7.99392 7.07868C8.00043 7.13544 8.00043 7.19301 8.00043 7.30813Z',
+                'stroke-width': 2
+            }]
+    },
+    unpin: {
+        width: 16,
+        height: 16,
+        viewBox: '0 0 24 24',
+        children: [{
+                d: 'M8.3767 15.6163L2.71985 21.2732M11.6944 6.64181L10.1335 8.2027C10.0062 8.33003 9.94252 8.39369 9.86999 8.44427C9.80561 8.48917 9.73616 8.52634 9.66309 8.555C9.58077 8.58729 9.49249 8.60495 9.31592 8.64026L5.65145 9.37315C4.69915 9.56361 4.223 9.65884 4.00024 9.9099C3.80617 10.1286 3.71755 10.4213 3.75771 10.7109C3.8038 11.0434 4.14715 11.3867 4.83387 12.0735L11.9196 19.1592C12.6063 19.8459 12.9497 20.1893 13.2821 20.2354C13.5718 20.2755 13.8645 20.1869 14.0832 19.9928C14.3342 19.7701 14.4294 19.2939 14.6199 18.3416L15.3528 14.6771C15.3881 14.5006 15.4058 14.4123 15.4381 14.33C15.4667 14.2569 15.5039 14.1875 15.5488 14.1231C15.5994 14.0505 15.663 13.9869 15.7904 13.8596L17.3512 12.2987C17.4326 12.2173 17.4734 12.1766 17.5181 12.141C17.5578 12.1095 17.5999 12.081 17.644 12.0558C17.6936 12.0274 17.7465 12.0048 17.8523 11.9594L20.3467 10.8904C21.0744 10.5785 21.4383 10.4226 21.6035 10.1706C21.7481 9.95025 21.7998 9.68175 21.7474 9.42348C21.6875 9.12813 21.4076 8.84822 20.8478 8.28839L15.7047 3.14526C15.1448 2.58543 14.8649 2.30552 14.5696 2.24565C14.3113 2.19329 14.0428 2.245 13.8225 2.38953C13.5705 2.55481 13.4145 2.91866 13.1027 3.64636L12.0337 6.14071C11.9883 6.24653 11.9656 6.29944 11.9373 6.34905C11.9121 6.39313 11.8836 6.43522 11.852 6.47496C11.8165 6.51971 11.7758 6.56041 11.6944 6.64181Z',
+                'stroke-width': 2
+            }]
     }
 };
 /**
@@ -13691,16 +14766,14 @@ const pathDefaults = {
 *
 * */
 /**
- * Parses a raw SVG markup string into an SVG element and applies a class.
+ * Parses a raw SVG markup string into an SVG element.
  *
  * @param svgString
  * Raw SVG markup
- * @param className
- * CSS class name for the SVG element
  * @returns
  * SVG element, or a fallback empty SVG if parsing fails
  */
-function parseSvgString(svgString, className) {
+function parseSvgString(svgString) {
     const div = document.createElement('div');
     setHTMLContent(div, svgString);
     const svg = div.firstElementChild;
@@ -13708,24 +14781,19 @@ function parseSvgString(svgString, className) {
         const fallback = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         fallback.setAttribute('width', '16');
         fallback.setAttribute('height', '16');
-        fallback.classList.add(className);
         return fallback;
     }
-    const clone = svg.cloneNode(true);
-    clone.classList.add(className);
-    return clone;
+    return svg.cloneNode(true);
 }
 /**
  * Builds an SVG element from an SVG definition object.
  *
  * @param def
  * SVG definition from the registry
- * @param className
- * CSS class name for the SVG element
  * @returns
  * SVG element
  */
-function createSvgFromDefinition(def, className) {
+function createSvgFromDefinition(def) {
     const createElement = (type) => document.createElementNS('http://www.w3.org/2000/svg', type);
     const { width = 16, height = 16, viewBox, fill, children } = def;
     const svg = createElement('svg');
@@ -13747,7 +14815,6 @@ function createSvgFromDefinition(def, className) {
         }
         svg.appendChild(path);
     }
-    svg.classList.add(className);
     return svg;
 }
 /**
@@ -13774,8 +14841,7 @@ function getIconFromRegistry(name, customIcons) {
  * Creates an SVG icon element from the SvgIcons registry or a custom
  * registry. When `customIcons` is provided, `name` can be any registered
  * name (built-in or custom). When omitted, only built-in `GridIconName`
- * values are allowed. The SVG element always receives the default icon
- * class name from `Globals`.
+ * values are allowed.
  *
  * @param name
  * The name of the icon (built-in or from registry)
@@ -13788,15 +14854,14 @@ function getIconFromRegistry(name, customIcons) {
  * SVG element with the specified icon
  */
 function createGridIcon(name, customIcons) {
-    const className = Grid_Core_Globals.getClassName('icon');
     const value = getIconFromRegistry(name, customIcons);
     if (!defined(value)) {
-        return createSvgFromDefinition(icons.filter, className);
+        return createSvgFromDefinition(icons.filter);
     }
-    if (typeof value === 'string') {
-        return parseSvgString(value, className);
+    if (isString(value)) {
+        return parseSvgString(value);
     }
-    return createSvgFromDefinition(value, className);
+    return createSvgFromDefinition(value);
 }
 /* *
  *
@@ -14700,7 +15765,7 @@ Pagination.defaultOptions = {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -14712,6 +15777,7 @@ Pagination.defaultOptions = {
  */
 const defaultLangOptions = {
     accessibility: {
+        columnMenu: 'Open menu for {column}.',
         sorting: {
             sortable: 'Sortable.',
             announcements: {
@@ -14800,7 +15866,8 @@ const Defaults_defaultOptions = {
         }
     },
     data: {
-        providerType: 'local'
+        providerType: 'local',
+        autogenerateColumns: true
     },
     time: {
         timezone: 'UTC'
@@ -14866,7 +15933,7 @@ function Defaults_setOptions(options) {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -14908,7 +15975,7 @@ class CellContent {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -15014,10 +16081,11 @@ TextContent.defaultFormatsForDataTypes = {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
+
 
 
 
@@ -15068,18 +16136,15 @@ class Column {
         this.viewport = viewport;
         // Populate column options map if not exists, to prepare option
         // references for each column.
-        if (grid.options && !grid.columnOptionsMap?.[id]) {
+        if (grid.options && !grid.columnPolicy.hasColumnOptions(id)) {
             const columnOptions = { id };
             ((_a = grid.options).columns ?? (_a.columns = [])).push(columnOptions);
-            grid.columnOptionsMap[id] = {
+            grid.columnPolicy.setColumnOption(id, {
                 index: grid.options.columns.length - 1,
                 options: columnOptions
-            };
+            });
         }
-        this.options = Column_createOptionsProxy(grid.columnOptionsMap?.[id]?.options ?? {}, grid.options?.columnDefaults);
-        if (this.options.filtering?.enabled) {
-            this.filtering = new ColumnFiltering_ColumnFiltering(this);
-        }
+        this.options = Column_createOptionsProxy(grid.columnPolicy.getIndividualColumnOptions(id) ?? {}, grid.options?.columnDefaults);
     }
     /* *
     *
@@ -15092,19 +16157,50 @@ class Column {
     async init() {
         this.loadData();
         this.dataType = await this.assumeDataType();
+        if (this.viewport.grid.columnPolicy.isColumnFilteringEnabled(this.id)) {
+            this.filtering = new ColumnFiltering_ColumnFiltering(this);
+        }
         fireEvent(this, 'afterInit');
     }
     /**
      * Loads the data of the column from the viewport's data table.
      */
     loadData() {
-        const dp = this.viewport.grid.dataProvider;
-        if (dp && 'getDataTable' in dp) {
-            this.data = dp.getDataTable(true)?.getColumn(this.id, true);
+        const grid = this.viewport.grid;
+        const dp = grid.dataProvider;
+        const sourceColumnId = grid.columnPolicy.getColumnSourceId(this.id);
+        const isUnbound = grid.columnPolicy.isColumnUnbound(this.id);
+        if (hasDataTableProvider(dp) &&
+            sourceColumnId && !isUnbound) {
+            this.data = dp.getDataTable(true)?.getColumn(sourceColumnId, true);
         }
         else {
             delete this.data;
         }
+        if (grid.columnPolicy.isColumnFilteringEnabled(this.id)) {
+            this.filtering ?? (this.filtering = new ColumnFiltering_ColumnFiltering(this));
+        }
+        else {
+            delete this.filtering;
+        }
+    }
+    /**
+     * Resolves the raw value for a table cell.
+     *
+     * @param cell
+     * The cell to resolve the value for.
+     */
+    async getCellValue(cell) {
+        const valueGetter = this.options.cells?.valueGetter;
+        if (valueGetter) {
+            return await valueGetter.call(cell, cell);
+        }
+        const sourceColumnId = this.viewport.grid.columnPolicy
+            .getColumnSourceId(this.id);
+        if (!sourceColumnId) {
+            return void 0;
+        }
+        return this.viewport.grid.dataProvider?.getValue(sourceColumnId, cell.row.index);
     }
     /**
      * Creates a cell content instance.
@@ -15123,12 +16219,17 @@ class Column {
     async assumeDataType() {
         const { grid } = this.viewport;
         const dp = grid.dataProvider;
-        const type = grid.columnOptionsMap?.[this.id]?.options.dataType ??
+        const type = grid.columnPolicy
+            .getIndividualColumnOptions(this.id)?.dataType ??
             grid.options?.columnDefaults?.dataType;
         if (type) {
             return type;
         }
-        return (await dp?.getColumnDataType(this.id)) ?? 'string';
+        const sourceColumnId = grid.columnPolicy.getColumnSourceId(this.id);
+        if (grid.columnPolicy.isColumnUnbound(this.id) || !sourceColumnId) {
+            return 'string';
+        }
+        return (await dp?.getColumnDataType(sourceColumnId)) ?? 'string';
     }
     /**
      * Registers a cell in the column.
@@ -15257,7 +16358,7 @@ class Column {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -15390,10 +16491,11 @@ class Row {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
+
 
 
 
@@ -15427,7 +16529,8 @@ class Cell {
         this.row.registerCell(this);
         this.htmlElement = this.init();
         this.htmlElement.setAttribute('tabindex', '-1');
-        if (!this.column?.options.cells?.editMode?.enabled) {
+        if (!this.column ||
+            !this.column.viewport.grid.columnPolicy.isColumnEditable(this.column.id)) {
             this.htmlElement.setAttribute('aria-readonly', 'true');
         }
         this.initEvents();
@@ -15442,8 +16545,16 @@ class Cell {
      * @internal
      */
     init() {
-        const cell = document.createElement('td', {});
-        cell.setAttribute('role', 'gridcell');
+        const isRowHeader = !!this.column?.options.cells?.rowHeader;
+        const cell = document.createElement(isRowHeader ? 'th' : 'td', {});
+        cell.classList.add(Grid_Core_Globals.getClassName('cell'));
+        if (isRowHeader) {
+            cell.setAttribute('scope', 'row');
+            cell.setAttribute('role', 'rowheader');
+        }
+        else {
+            cell.setAttribute('role', 'gridcell');
+        }
         return cell;
     }
     /**
@@ -15498,7 +16609,12 @@ class Cell {
         const { header } = vp;
         const getVerticalPos = () => {
             if (row.index !== void 0) {
-                return row.index - vp.rows[0].index;
+                const renderedRowIndex = vp.getRenderedRows()
+                    .indexOf(row);
+                if (renderedRowIndex !== -1) {
+                    return renderedRowIndex;
+                }
+                return row.index - (vp.rows[0]?.index ?? 0);
             }
             const level = row.level;
             if (!header || level === void 0) {
@@ -15534,7 +16650,7 @@ class Cell {
                 }
                 return;
             }
-            const nextRow = vp.rows[nextVerticalDir];
+            const nextRow = vp.getRenderedRows()[nextVerticalDir];
             if (nextRow) {
                 nextRow.cells[column.index + dir[1]]?.htmlElement.focus();
             }
@@ -15680,7 +16796,7 @@ class Cell {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -15761,9 +16877,8 @@ class ColumnSorting {
         this.column = column;
         this.headerCellElement = headerCellElement;
         this.addHeaderElementAttributes();
-        const sortingOptions = column.options.sorting;
-        const sortingEnabled = sortingOptions?.enabled ??
-            sortingOptions?.sortable;
+        const sortingEnabled = column.viewport.grid.columnPolicy
+            .isColumnSortingEnabled(column.id);
         if (sortingEnabled) {
             headerCellElement.classList.add(Grid_Core_Globals.getClassName('columnSortable'));
         }
@@ -15779,13 +16894,12 @@ class ColumnSorting {
     addHeaderElementAttributes() {
         const col = this.column;
         const a11y = col.viewport.grid.accessibility;
-        const sortingOptions = col.options.sorting;
         const { currentSorting, currentSortings } = col.viewport.grid.querying.sorting;
         const sortedAscClassName = Grid_Core_Globals.getClassName('columnSortedAsc');
         const sortedDescClassName = Grid_Core_Globals.getClassName('columnSortedDesc');
         const el = this.headerCellElement;
-        const sortingEnabled = sortingOptions?.enabled ??
-            sortingOptions?.sortable;
+        const sortingEnabled = col.viewport.grid.columnPolicy
+            .isColumnSortingEnabled(col.id);
         const columnSorting = (currentSortings?.find((sorting) => sorting.columnId === col.id) ||
             (currentSorting?.columnId === col.id ?
                 currentSorting :
@@ -15958,7 +17072,7 @@ class ColumnSorting {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -16008,9 +17122,9 @@ class ToolbarButton {
         }, toolbar.container);
         this.wrapper = wrapper;
         const button = this.buttonEl = ToolbarButton_makeHTMLElement('button', {
-            className: (Grid_Core_Globals.getClassName('button') +
+            className: (Grid_Core_Globals.getClassName('icon') +
                 (this.isActive ?
-                    ' ' + Grid_Core_Globals.getClassName('buttonSelected') :
+                    ' ' + Grid_Core_Globals.getClassName('iconSelected') :
                     ''))
         }, wrapper);
         button.setAttribute('type', 'button');
@@ -16058,10 +17172,10 @@ class ToolbarButton {
     }
     setActive(active) {
         this.isActive = active;
-        this.buttonEl?.classList.toggle(Grid_Core_Globals.getClassName('buttonSelected'), active);
+        this.buttonEl?.classList.toggle(Grid_Core_Globals.getClassName('iconSelected'), active);
     }
     setHighlighted(highlighted) {
-        this.buttonEl?.classList.toggle(Grid_Core_Globals.getClassName('buttonHighlighted'), highlighted);
+        this.buttonEl?.classList.toggle(Grid_Core_Globals.getClassName('iconHighlighted'), highlighted);
         const ariaExpanded = this.options.accessibility?.ariaExpanded;
         if (typeof ariaExpanded === 'boolean') {
             this.buttonEl?.setAttribute('aria-expanded', highlighted);
@@ -16134,7 +17248,7 @@ class ToolbarButton {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -16203,7 +17317,7 @@ function isSorted(column, order) {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -16359,7 +17473,7 @@ class SortToolbarButton extends UI_ToolbarButton {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -16631,7 +17745,7 @@ class Popup {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -16709,7 +17823,7 @@ class FilterPopup extends UI_Popup {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -16791,7 +17905,7 @@ class FilterToolbarButton extends UI_ToolbarButton {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -16880,13 +17994,61 @@ class ContextMenu extends UI_Popup {
         }, this.itemsContainer);
     }
     onClickOutside(event) {
-        const buttons = this.buttons;
-        for (let i = 0, iEnd = buttons.length; i < iEnd; ++i) {
-            if (buttons[i].popup?.container?.contains(event.target)) {
-                return;
-            }
+        const target = event.target;
+        if (this.isInDescendantPopup(target)) {
+            return;
         }
         super.onClickOutside(event);
+    }
+    /**
+     * Checks whether an element is contained in any descendant popup.
+     *
+     * @param target
+     * Target node from click event.
+     *
+     * @returns
+     * True when the target is inside any descendant popup container.
+     */
+    isInDescendantPopup(target) {
+        const queue = [];
+        for (const button of this.buttons) {
+            if (button.popup?.container) {
+                queue.push(button.popup);
+            }
+        }
+        while (queue.length) {
+            const popup = queue.shift();
+            if (!popup?.container) {
+                continue;
+            }
+            if (popup.container.contains(target)) {
+                return true;
+            }
+            const popupButtons = popup.buttons;
+            if (!popupButtons) {
+                continue;
+            }
+            for (const button of popupButtons) {
+                if (button.popup?.container) {
+                    queue.push(button.popup);
+                }
+            }
+        }
+        return false;
+    }
+    addEventListeners() {
+        super.addEventListeners();
+        const container = this.container;
+        if (!container) {
+            return;
+        }
+        const insideMouseDownListener = (event) => {
+            event.stopPropagation();
+        };
+        container.addEventListener('mousedown', insideMouseDownListener);
+        this.eventListenerDestroyers.push(() => {
+            container.removeEventListener('mousedown', insideMouseDownListener);
+        });
     }
     onKeyDown(e) {
         super.onKeyDown(e);
@@ -16925,7 +18087,7 @@ class ContextMenu extends UI_Popup {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -17012,6 +18174,12 @@ class ContextMenuButton {
             cm.focusCursor = cm.buttons.indexOf(this);
         }
     }
+    /**
+     * Triggers button click programmatically.
+     */
+    click() {
+        this.buttonEl?.click();
+    }
     setLabel(label) {
         if (this.spanEl) {
             this.spanEl.innerText = label;
@@ -17047,12 +18215,16 @@ class ContextMenuButton {
      * Destroys the button.
      */
     destroy() {
+        this.popup?.hide();
         this.removeEventListeners();
         this.wrapper?.remove();
         // Unregister from the context menu
         const cm = this.contextMenu;
         if (cm) {
-            cm.buttons.splice(cm.buttons.indexOf(this), 1);
+            const buttonIndex = cm.buttons.indexOf(this);
+            if (buttonIndex !== -1) {
+                cm.buttons.splice(buttonIndex, 1);
+            }
             delete this.contextMenu;
         }
     }
@@ -17112,7 +18284,7 @@ class ContextMenuButton {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -17192,7 +18364,7 @@ class FilterMenuButton_FilterToolbarButton extends UI_ContextMenuButton {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -17293,7 +18465,7 @@ class SortMenuButton extends UI_ContextMenuButton {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -17325,11 +18497,13 @@ class MenuPopup extends UI_ContextMenu {
      * */
     renderContent() {
         const lang = this.grid.options?.lang || {};
-        const columnOptions = this.button.toolbar?.column.options || {};
-        const filteringEnabled = (columnOptions.filtering?.enabled &&
-            !columnOptions.filtering.inline);
-        const sortingEnabled = columnOptions.sorting?.enabled ??
-            columnOptions.sorting?.sortable;
+        const column = this.button.toolbar?.column;
+        const columnOptions = column?.options || {};
+        const filteringEnabled = !!column &&
+            this.grid.columnPolicy.isColumnFilteringEnabled(column.id) &&
+            !columnOptions.filtering?.inline;
+        const sortingEnabled = !!column &&
+            this.grid.columnPolicy.isColumnSortingEnabled(column.id);
         this.addHeader(this.button.toolbar?.column.header?.value || '', lang.column);
         if (sortingEnabled) {
             new MenuButtons_SortMenuButton(lang, 'desc').add(this);
@@ -17362,7 +18536,7 @@ class MenuPopup extends UI_ContextMenu {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -17370,12 +18544,31 @@ class MenuPopup extends UI_ContextMenu {
 
 
 
+
+const { formatText: MenuToolbarButton_formatText } = GridUtils;
 /* *
  *
  *  Class
  *
  * */
 class MenuToolbarButton extends UI_ToolbarButton {
+    getColumnLabel() {
+        const column = this.toolbar?.column;
+        const label = (column?.header?.headerContent?.textContent ||
+            column?.id ||
+            '').trim();
+        return label || column?.id || '';
+    }
+    updateA11yLabel() {
+        const button = this.wrapper?.querySelector('button');
+        const column = this.toolbar?.column;
+        const lang = column?.viewport.grid.options?.lang;
+        const columnLabel = this.getColumnLabel();
+        const menuLabel = MenuToolbarButton_formatText(lang?.accessibility?.columnMenu || 'Open menu for {column}.', { column: columnLabel });
+        if (button && menuLabel) {
+            button.setAttribute('aria-label', menuLabel);
+        }
+    }
     /* *
      *
      *  Constructor
@@ -17384,7 +18577,10 @@ class MenuToolbarButton extends UI_ToolbarButton {
     constructor() {
         super({
             icon: 'menu',
-            classNameKey: 'headerCellMenuIcon'
+            classNameKey: 'headerCellMenuIcon',
+            accessibility: {
+                ariaExpanded: false
+            }
         });
     }
     /* *
@@ -17408,6 +18604,7 @@ class MenuToolbarButton extends UI_ToolbarButton {
         if (!column) {
             return;
         }
+        this.updateA11yLabel();
         this.setActive(StateHelpers.isSorted(column) ||
             StateHelpers.isFiltered(column));
     }
@@ -17443,7 +18640,7 @@ class MenuToolbarButton extends UI_ToolbarButton {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -17490,22 +18687,22 @@ class HeaderCellToolbar {
      */
     renderFull() {
         const columnOptions = this.column.options;
-        const sortingEnabled = columnOptions.sorting?.enabled ??
-            columnOptions.sorting?.sortable;
+        const sortingEnabled = this.column.viewport.grid.columnPolicy
+            .isColumnSortingEnabled(this.column.id);
         if (sortingEnabled) {
             new ToolbarButtons_SortToolbarButton().add(this);
         }
-        if (columnOptions.filtering?.enabled &&
-            !columnOptions.filtering.inline) {
+        if (this.column.viewport.grid.columnPolicy.isColumnFilteringEnabled(this.column.id) &&
+            !columnOptions.filtering?.inline) {
             new ToolbarButtons_FilterToolbarButton().add(this);
         }
     }
     renderMinimized() {
         const columnOptions = this.column.options;
-        const sortingEnabled = columnOptions.sorting?.enabled ??
-            columnOptions.sorting?.sortable;
-        if (sortingEnabled || (columnOptions.filtering?.enabled &&
-            !columnOptions.filtering.inline)) {
+        const sortingEnabled = this.column.viewport.grid.columnPolicy
+            .isColumnSortingEnabled(this.column.id);
+        if (sortingEnabled || (this.column.viewport.grid.columnPolicy.isColumnFilteringEnabled(this.column.id) &&
+            !columnOptions.filtering?.inline)) {
             new ToolbarButtons_MenuToolbarButton().add(this);
         }
     }
@@ -17656,7 +18853,7 @@ HeaderCellToolbar.MINIMIZED_COLUMN_WIDTH = 120;
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -17812,7 +19009,8 @@ class HeaderCell extends Table_Cell {
             return resolveStyleValue(this.superColumnOptions.header?.style);
         }
         const { grid } = this.row.viewport;
-        const rawColumnOptions = grid.columnOptionsMap?.[column.id]?.options;
+        const rawColumnOptions = grid.columnPolicy
+            .getIndividualColumnOptions(column.id);
         return {
             ...mergeStyleValues(column, grid.options?.columnDefaults?.style, rawColumnOptions?.style),
             ...mergeStyleValues(column, grid.options?.columnDefaults?.header?.style, rawColumnOptions?.header?.style)
@@ -17844,20 +19042,21 @@ class HeaderCell extends Table_Cell {
         super.onKeyDown(e);
     }
     onClick(e) {
-        if (!this.column ||
+        const { column } = this;
+        if (!column ||
             !this.htmlElement.contains(e.target) ||
-            this.column.viewport.columnsResizer?.isResizing) {
+            this.toolbar?.container?.contains(e.target) ||
+            column.viewport.columnsResizer?.isResizing) {
             return;
         }
+        const grid = column.viewport.grid;
         // Toggle sort only when clicking header text/area, not toolbar icons
-        if (!this.toolbar?.container?.contains(e.target) &&
-            (this.column.options.sorting?.enabled ??
-                this.column.options.sorting?.sortable)) {
-            this.column.sorting?.toggle(e);
+        if (grid.columnPolicy.isColumnSortingEnabled(column.id)) {
+            column.sorting?.toggle(e);
         }
         fireEvent(this, 'click', {
             originalEvent: e,
-            column: this.column
+            column
         });
     }
     /**
@@ -17903,7 +19102,7 @@ class HeaderCell extends Table_Cell {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -18086,7 +19285,7 @@ class HeaderRow extends Table_Row {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -18133,9 +19332,10 @@ class FilterCell extends Header_HeaderCell {
         fireEvent(this, 'afterRender', { column, filtering: true });
     }
     onKeyDown(e) {
-        this.column.filtering?.onKeyDown(e);
         if (e.target === this.htmlElement) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' &&
+                this.column.viewport.grid.columnPolicy
+                    .isColumnInlineFilteringEnabled(this.column.id)) {
                 this.column.filtering?.filterSelect?.focus();
             }
             else {
@@ -18143,6 +19343,7 @@ class FilterCell extends Header_HeaderCell {
             }
         }
         else {
+            this.column.filtering?.onKeyDown(e);
             if (e.key === 'Escape') {
                 this.htmlElement.focus();
             }
@@ -18173,7 +19374,7 @@ class FilterCell extends Header_HeaderCell {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -18224,7 +19425,7 @@ class FilterRow extends Header_HeaderRow {
             }
             const cell = this.createCell(column);
             await cell.render();
-            if (column.options.filtering?.inline) {
+            if (vp.grid.columnPolicy.isColumnInlineFilteringEnabled(column.id)) {
                 column.filtering?.renderFilteringContent(cell.htmlElement);
             }
         }
@@ -18255,7 +19456,7 @@ class FilterRow extends Header_HeaderRow {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -18324,12 +19525,11 @@ class TableHeader {
         // Render regular, multiple level rows.
         for (let i = 0, iEnd = this.levels; i < iEnd; i++) {
             const row = new Header_HeaderRow(vp, i + 1); // Avoid indexing from 0
-            await row.renderContent(i);
+            await Promise.resolve(row.renderContent(i));
             this.rows.push(row);
         }
         // Render an extra row for inline filtering.
-        if (vp.columns.some((column) => (column.options.filtering?.enabled &&
-            column.options.filtering.inline) || false)) {
+        if (vp.columns.some((column) => vp.grid.columnPolicy.isColumnInlineFilteringEnabled(column.id))) {
             const row = new ColumnFiltering_FilterRow(vp);
             await row.renderContent();
             this.rows.push(row);
@@ -18416,7 +19616,7 @@ class TableHeader {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -18508,7 +19708,7 @@ class TableCell extends Table_Cell {
         // TODO(design): Design a better way to show the cell val being updated.
         this.htmlElement.style.opacity = '0.5';
         if (!defined(value)) {
-            value = await grid.dataProvider?.getValue(this.column.id, this.row.index);
+            value = await this.column.getCellValue(this);
             // Discard stale response if cell was reused for a different row
             if (fetchToken !== this.asyncFetchToken) {
                 this.htmlElement.style.opacity = '';
@@ -18554,7 +19754,7 @@ class TableCell extends Table_Cell {
      */
     getCellStyles() {
         const { grid } = this.column.viewport;
-        const rawColumnOptions = grid.columnOptionsMap?.[this.column.id]?.options;
+        const rawColumnOptions = grid.columnPolicy.getIndividualColumnOptions(this.column.id);
         return {
             ...mergeStyleValues(this.column, grid.options?.columnDefaults?.style, rawColumnOptions?.style),
             ...mergeStyleValues(this, grid.options?.columnDefaults?.cells?.style, rawColumnOptions?.cells?.style)
@@ -18570,7 +19770,12 @@ class TableCell extends Table_Cell {
      * content.
      */
     async updateDataset() {
-        const oldValue = await this.column.viewport.grid.dataProvider?.getValue(this.column.id, this.row.index);
+        const sourceColumnId = this.column.viewport.grid.columnPolicy
+            .getColumnSourceId(this.column.id);
+        if (!sourceColumnId) {
+            return false;
+        }
+        const oldValue = await this.column.viewport.grid.dataProvider?.getValue(sourceColumnId, this.row.index);
         if (oldValue === this.value) {
             // Abort if the value is the same as in the data table.
             return false;
@@ -18582,7 +19787,10 @@ class TableCell extends Table_Cell {
             return false;
         }
         this.row.data[this.column.id] = this.value;
-        await dp.setValue(this.value, this.column.id, rowId);
+        if (sourceColumnId !== this.column.id) {
+            this.row.data[sourceColumnId] = this.value;
+        }
+        await dp.setValue(this.value, sourceColumnId, rowId);
         if (vp.grid.querying.willNotModify()) {
             return false;
         }
@@ -18597,7 +19805,9 @@ class TableCell extends Table_Cell {
      * Only focus/blur remain on individual cells for focus management.
      */
     initEvents() {
-        this.cellEvents.push(['blur', () => this.onBlur()]);
+        this.cellEvents.push(['blur', (e) => {
+                this.onBlur(e);
+            }]);
         this.cellEvents.push(['focus', () => this.onFocus()]);
         this.cellEvents.forEach((pair) => {
             this.htmlElement.addEventListener(pair[0], pair[1]);
@@ -18609,10 +19819,29 @@ class TableCell extends Table_Cell {
     onFocus() {
         super.onFocus();
         const vp = this.row.viewport;
-        vp.focusCursor = [
-            this.row.index,
-            this.column.index
-        ];
+        const rowId = this.row.id;
+        if (rowId === void 0) {
+            return;
+        }
+        delete vp.pendingFocusCursor;
+        vp.clearDetachedFocus();
+        vp.focusCursor = {
+            rowId,
+            columnIndex: this.column.index
+        };
+    }
+    /**
+     * Handles the blur event on the cell.
+     *
+     * @param e
+     * The focus event object.
+     */
+    onBlur(e) {
+        if (e &&
+            this.row.viewport.hasDetachedFocusAt(this.row.id, this.column.index)) {
+            return;
+        }
+        super.onBlur();
     }
     /**
      * Handles the mouse down event on the cell.
@@ -18702,7 +19931,7 @@ class TableCell extends Table_Cell {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -18757,8 +19986,7 @@ class TableRow extends Table_Row {
     *
     * */
     async init() {
-        const dp = this.viewport.grid.dataProvider;
-        this.id = await dp?.getRowId(this.index);
+        this.id = await this.viewport.grid.dataProvider?.getRowId(this.index);
         await this.loadData();
         this.setRowAttributes();
     }
@@ -18775,6 +20003,9 @@ class TableRow extends Table_Row {
             return;
         }
         this.data = data;
+        fireEvent(this, 'afterLoadData', {
+            data
+        });
     }
     /**
      * Updates the row data and its cells with the latest values from the data
@@ -18795,8 +20026,6 @@ class TableRow extends Table_Row {
      *
      * @param index
      * The index of the row in the data table.
-     *
-     * @internal
      */
     async reuse(index) {
         for (let i = 0, iEnd = this.cells.length; i < iEnd; ++i) {
@@ -18807,8 +20036,8 @@ class TableRow extends Table_Row {
             return;
         }
         this.index = index;
-        this.id = await this.viewport.grid.dataProvider?.getRowId(this.index);
-        this.htmlElement.setAttribute('data-row-index', index);
+        this.id = await this.viewport.grid.dataProvider?.getRowId(index);
+        this.htmlElement.setAttribute('data-row-index', index + '');
         this.updateRowAttributes();
         this.updateParityClass();
         this.updateStateClasses();
@@ -18850,8 +20079,7 @@ class TableRow extends Table_Row {
         const idx = this.index;
         const el = this.htmlElement;
         el.classList.add(Grid_Core_Globals.getClassName('rowElement'));
-        // Index of the row in the presentation data table
-        el.setAttribute('data-row-index', idx);
+        el.setAttribute('data-row-index', idx + '');
         this.updateRowAttributes();
         // Indexing from 0, so rows with even index are odd.
         this.updateParityClass();
@@ -18872,6 +20100,7 @@ class TableRow extends Table_Row {
         }
         // Calculate levels of header, 1 to avoid indexing from 0
         a11y?.setRowIndex(el, idx + (vp.header?.rows.length ?? 0) + 1);
+        fireEvent(this, 'afterUpdateAttributes');
     }
     /**
      * Updates the row parity class based on index.
@@ -18932,7 +20161,7 @@ class TableRow extends Table_Row {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -19046,13 +20275,14 @@ class RowsVirtualizer {
          * Used to ensure the final scroll position is rendered.
          */
         this.pendingRowCursor = null;
-        this.rowSettings =
-            viewport.grid.options?.rendering?.rows;
+        const rowSettings = (viewport.grid.options?.rendering?.rows || {});
+        this.rowSettings = rowSettings;
         this.viewport = viewport;
         this.rowCount = 0;
-        this.strictRowHeights = this.rowSettings.strictHeights;
-        this.buffer = Math.max(this.rowSettings.bufferSize, 0);
+        this.strictRowHeights = !!rowSettings.strictHeights;
+        this.buffer = Math.max((rowSettings.bufferSize || 0), 0);
         this.maxElementHeight = RowsVirtualizer.getMaxElementHeight();
+        this.rowCursor = 0;
         if (this.strictRowHeights) {
             viewport.tbodyElement.classList.add(Grid_Core_Globals.getClassName('rowsContentNowrap'));
         }
@@ -19071,7 +20301,7 @@ class RowsVirtualizer {
         if (this.viewport.virtualRows) {
             this.viewport.reflow();
         }
-        await this.updateGridMetrics();
+        await this.beforeInitialRenderRows?.();
         // Load & render rows
         await this.renderRows(this.rowCursor);
         this.adjustRowHeights();
@@ -19084,7 +20314,6 @@ class RowsVirtualizer {
      * re-rendered, e.g., after a sort or filter operation.
      */
     async rerender() {
-        await this.updateGridMetrics();
         const tbody = this.viewport.tbodyElement;
         let rows = this.viewport.rows;
         const oldScrollLeft = tbody.scrollLeft;
@@ -19264,7 +20493,8 @@ class RowsVirtualizer {
      * The index of the first visible row.
      */
     async renderRows(rowCursor) {
-        // Prevent concurrent render operations - queue the latest cursor
+        // Prevent concurrent render operations. Queue the latest cursor and
+        // render it once the current pass completes.
         if (this.isRendering) {
             this.pendingRowCursor = rowCursor;
             return;
@@ -19274,9 +20504,6 @@ class RowsVirtualizer {
             const { viewport: vp, buffer } = this;
             await this.updateGridMetrics();
             const rowCount = this.rowCount;
-            if (!defined(rowCount)) {
-                return;
-            }
             if (rowCount === 0) {
                 if (vp.rows.length) {
                     for (let i = 0, iEnd = vp.rows.length; i < iEnd; ++i) {
@@ -19288,13 +20515,18 @@ class RowsVirtualizer {
                 this.rowCursor = 0;
                 return;
             }
-            // Stop rendering if there are no rows to render.
-            if (rowCount < 1) {
-                return;
-            }
+            const rowEnd = rowCount - 1;
             const isVirtualization = this.viewport.virtualRows;
+            if (isVirtualization && vp.grid.popups.size) {
+                for (const popup of Array.from(vp.grid.popups)) {
+                    if (popup.anchorElement &&
+                        !popup.anchorElement.isConnected) {
+                        popup.hide();
+                    }
+                }
+            }
             const rowsPerPage = isVirtualization ? Math.ceil((vp.grid.tableElement?.clientHeight || 0) /
-                this.defaultRowHeight) : Infinity; // Need to be refactored when add pagination
+                this.defaultRowHeight) : Infinity;
             let rows = vp.rows;
             if (!isVirtualization && rows.length > 50) {
                 // eslint-disable-next-line no-console
@@ -19302,28 +20534,26 @@ class RowsVirtualizer {
                     'virtualization is disabled. Consider enabling ' +
                     'virtualization in the rows settings.');
             }
-            if (!rows.length && rowCount > 0) {
-                const last = new Body_TableRow(vp, rowCount - 1);
+            if (!rows.length) {
+                const last = new Body_TableRow(vp, rowEnd);
                 await last.init();
                 vp.tbodyElement.appendChild(last.htmlElement);
                 await last.render();
                 rows.push(last);
                 if (isVirtualization) {
-                    const topOffset = Math.min(last.getDefaultTopOffset(), this.maxElementHeight -
-                        last.htmlElement.offsetHeight);
+                    const topOffset = Math.min(last.getDefaultTopOffset(), this.maxElementHeight - last.htmlElement.offsetHeight);
                     last.setTranslateY(topOffset);
                 }
             }
-            // The last row is always kept rendered for bottom alignment
+            // The last row is always kept rendered for bottom alignment.
             let alwaysLastRow = rows.length > 0 ? rows.pop() : void 0;
-            if (alwaysLastRow && alwaysLastRow.index !== rowCount - 1) {
+            if (alwaysLastRow && alwaysLastRow.index !== rowEnd) {
                 this.poolRow(alwaysLastRow);
                 alwaysLastRow = void 0;
             }
-            const from = Math.max(0, Math.min(rowCursor - buffer, rowCount - rowsPerPage));
-            // `to` should not include the alwaysLastRow index (rowCount - 1)
-            const to = Math.min(rowCursor + rowsPerPage + buffer, rowCount - 2 // -2 because alwaysLastRow is at rowCount - 1
-            );
+            const from = Math.max(0, Math.min(rowCursor - buffer, rowEnd - rowsPerPage + 1));
+            // `to` should not include the alwaysLastRow index (`rowEnd`).
+            const to = Math.min(rowCursor + rowsPerPage + buffer, rowEnd - 1);
             const tempRows = [];
             const currentFrom = rows[0]?.index;
             const currentTo = rows[rows.length - 1]?.index;
@@ -19348,10 +20578,10 @@ class RowsVirtualizer {
                 for (let i = from; i <= to; ++i) {
                     const firstRowIndex = rows.length > 0 ? rows[0].index : from;
                     const row = rows[i - firstRowIndex];
-                    // Recreate row when it is destroyed and it is in the range.
+                    // Recreate the row when it is missing from the target
+                    // range.
                     if (!row) {
-                        const newRow = await this.getOrCreateRow(i);
-                        rows.push(newRow);
+                        rows.push(await this.getOrCreateRow(i));
                     }
                 }
                 rows.sort((a, b) => a.index - b.index);
@@ -19386,15 +20616,14 @@ class RowsVirtualizer {
             for (let i = 0, iEnd = rows.length; i < iEnd; ++i) {
                 const row = rows[i];
                 if (!row.rendered) {
-                    // Ensure row is initialized before rendering
+                    // Ensure the row is initialized before rendering.
                     if (!row.htmlElement.hasAttribute('data-row-index')) {
                         await row.init();
                     }
                     vp.tbodyElement.insertBefore(row.htmlElement, vp.tbodyElement.lastChild);
                     await row.render();
                     if (isVirtualization) {
-                        const topOffset = Math.min(row.getDefaultTopOffset(), this.maxElementHeight -
-                            row.htmlElement.offsetHeight);
+                        const topOffset = Math.min(row.getDefaultTopOffset(), this.maxElementHeight - row.htmlElement.offsetHeight);
                         row.setTranslateY(topOffset);
                     }
                     continue;
@@ -19404,7 +20633,7 @@ class RowsVirtualizer {
                 }
             }
             if (!alwaysLastRow && rowCount > 0) {
-                alwaysLastRow = await this.getOrCreateRow(rowCount - 1);
+                alwaysLastRow = await this.getOrCreateRow(rowEnd);
             }
             if (alwaysLastRow) {
                 if (!alwaysLastRow.rendered) {
@@ -19426,30 +20655,42 @@ class RowsVirtualizer {
                 rows.push(alwaysLastRow);
             }
             // Focus the cell if the focus cursor is set
-            if (vp.focusCursor) {
-                const [rowIndex, columnIndex] = vp.focusCursor;
+            const hadPendingFocusCursor = !!vp.pendingFocusCursor;
+            if (vp.pendingFocusCursor) {
+                const [rowIndex, columnIndex] = vp.pendingFocusCursor;
                 const row = rows.find((row) => row.index === rowIndex);
                 if (row) {
-                    row.cells[columnIndex]?.htmlElement.focus({
-                        preventScroll: true
-                    });
+                    delete vp.pendingFocusCursor;
+                    vp.restoreRenderedCellFocus(row.cells[columnIndex], rowIndex, columnIndex);
+                    if (hadPendingFocusCursor) {
+                        vp.ensureRowFullyVisible(row);
+                    }
                 }
             }
-            // Set the focus anchor cell
+            else if (vp.focusCursor) {
+                const focusCursor = vp.focusCursor;
+                if (!focusCursor.bodySectionId) {
+                    const focusedRow = rows.find((row) => row.id === focusCursor.rowId);
+                    if (focusedRow) {
+                        vp.restoreRenderedCellFocus(focusedRow.cells[focusCursor.columnIndex], focusedRow.index, focusCursor.columnIndex);
+                    }
+                }
+            }
+            // Set the focus anchor cell.
             if ((!vp.focusCursor || !vp.focusAnchorCell?.row.rendered) &&
                 rows.length > 0) {
-                const rowIndex = rowCursor - rows[0].index;
-                const targetRow = rows[rowIndex];
-                if (targetRow &&
-                    targetRow.cells.length > 0 &&
-                    targetRow.cells[0]) {
-                    vp.setFocusAnchorCell(targetRow.cells[0]);
+                const anchorRowIndex = Math.max(0, rowCursor - rows[0].index);
+                const anchorRow = rows[anchorRowIndex];
+                if (anchorRow?.cells[0]) {
+                    vp.setFocusAnchorCell(anchorRow.cells[0]);
                 }
             }
+            await vp.syncAriaRowIndexes();
+            await this.afterRenderRows?.();
         }
         finally {
             this.isRendering = false;
-            // If there's a pending render request, process it
+            // If there is a pending render request, process it now.
             if (this.pendingRowCursor !== null) {
                 const pendingCursor = this.pendingRowCursor;
                 this.pendingRowCursor = null;
@@ -19545,6 +20786,88 @@ class RowsVirtualizer {
         }
     }
     /**
+     * Estimates the current top offset of a row in the virtualized scroll
+     * space, accounting for the active scroll compression offset.
+     *
+     * @param index
+     * The row index in the projected data order.
+     *
+     * @returns
+     * The estimated top offset in pixels.
+     */
+    getEstimatedRowTop(index) {
+        const topOffset = index * this.defaultRowHeight;
+        if (!this.viewport.virtualRows ||
+            this.gridHeightOverflow <= 0) {
+            return topOffset;
+        }
+        return Math.floor(topOffset - this.scrollOffset);
+    }
+    /**
+     * Estimates the current bottom offset of a row in the virtualized scroll
+     * space.
+     *
+     * @param index
+     * The row index in the projected data order.
+     *
+     * @param rowHeight
+     * The height of the row.
+     *
+     * @returns
+     * The estimated bottom offset in pixels.
+     */
+    getEstimatedRowBottom(index, rowHeight = this.defaultRowHeight) {
+        return this.getEstimatedRowTop(index) + rowHeight;
+    }
+    /**
+     * Measures the height of the first rendered row's first cell.
+     *
+     * @returns
+     * The measured row height or undefined if it cannot be measured.
+     */
+    measureRenderedRowHeight() {
+        const rows = this.viewport.rows;
+        if (!rows.length) {
+            return;
+        }
+        for (let i = 0, iEnd = rows.length; i < iEnd; ++i) {
+            const cell = rows[i].cells[0]?.htmlElement;
+            if (cell) {
+                const height = cell.offsetHeight;
+                return height > 0 ? height : void 0;
+            }
+        }
+    }
+    /**
+     * Applies a newly measured row height and refreshes related metrics.
+     *
+     * @param measuredHeight
+     * The measured row height in pixels.
+     *
+     * @returns
+     * Whether the default row height changed.
+     */
+    applyMeasuredRowHeight(measuredHeight) {
+        const nextHeight = Math.max(1, Math.round(measuredHeight));
+        if (!nextHeight || nextHeight === this.defaultRowHeight) {
+            return false;
+        }
+        this.defaultRowHeight = nextHeight;
+        this.totalGridHeight = this.rowCount * this.defaultRowHeight;
+        this.gridHeightOverflow = Math.max(this.totalGridHeight - this.maxElementHeight, 0);
+        const target = this.viewport.tbodyElement;
+        const scrollDenominator = this.maxElementHeight - target.clientHeight;
+        const scrollPercentage = scrollDenominator > 0 ?
+            target.scrollTop / scrollDenominator :
+            0;
+        this.scrollOffset = Math.floor(scrollPercentage * this.gridHeightOverflow);
+        if (this.viewport.virtualRows) {
+            this.adjustRowHeights();
+            this.adjustRowOffsets();
+        }
+        return true;
+    }
+    /**
      * Gets a row from the pool or creates a new one for the given index.
      *
      * @param index
@@ -19579,6 +20902,14 @@ class RowsVirtualizer {
      * The row to pool.
      */
     poolRow(row) {
+        const focusCursor = this.viewport.focusCursor;
+        const activeElement = document.activeElement;
+        if (focusCursor &&
+            focusCursor.rowId === row.id &&
+            activeElement instanceof Element &&
+            row.htmlElement.contains(activeElement)) {
+            this.viewport.preserveFocusDuringDetach();
+        }
         row.htmlElement.remove();
         if (this.rowPool.length < RowsVirtualizer.MAX_POOL_SIZE) {
             this.rowPool.push(row);
@@ -19611,13 +20942,15 @@ class RowsVirtualizer {
      * overflow-aware scrolling.
      */
     async updateGridMetrics() {
-        const rowCount = await this.viewport.grid.dataProvider?.getRowCount();
-        if (!defined(rowCount)) {
-            return;
-        }
-        this.rowCount = rowCount;
+        const providerRowCount = await this.viewport.grid.dataProvider
+            ?.getRowCount();
+        this.rowCount = defined(providerRowCount) ? providerRowCount : 0;
+        this.rowCount = this.getEffectiveRowCount ?
+            await this.getEffectiveRowCount(this.rowCount) :
+            this.rowCount;
         this.totalGridHeight = this.rowCount * this.defaultRowHeight;
         this.gridHeightOverflow = Math.max(this.totalGridHeight - this.maxElementHeight, 0);
+        this.rowCursor = Math.min(Math.max(this.rowCursor, 0), Math.max(0, this.rowCount - 1));
     }
     /**
      * Updates row translate offsets based on scroll scaling. When the grid
@@ -19684,7 +21017,7 @@ RowsVirtualizer.MAX_POOL_SIZE = 100;
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -19713,22 +21046,35 @@ class ColumnsResizer {
          */
         this.isResizing = false;
         /**
-         * The handles and their mouse down event listeners.
+         * The handles and their drag event listeners.
          */
         this.handles = [];
         /**
-         * Handles the mouse move event on the document.
+         * Handles the drag move event on the document.
          *
          * @param e
-         * The mouse event.
+         * The drag event.
          *
          * @internal
          */
-        this.onDocumentMouseMove = (e) => {
+        this.onDocumentDragMove = (e) => {
             if (!this.draggedResizeHandle || !this.draggedColumn) {
                 return;
             }
-            const diff = e.pageX - (this.dragStartX || 0);
+            /*
+             * In iOS, a touchmove event with e.touches[0].pageX === 0 can fire
+             * while holding the finger in place. Ignore it to avoid collapsing the
+             * column to its minimum width.
+             */
+            if ('touches' in e && e.touches[0]?.pageX === 0) {
+                return;
+            }
+            const pageX = ColumnsResizer.getPageX(e);
+            if (pageX === void 0) {
+                return;
+            }
+            ColumnsResizer.preventTouchDefault(e);
+            const diff = pageX - (this.dragStartX || 0);
             const vp = this.viewport;
             vp.columnResizing.resize(this, diff);
             vp.reflow();
@@ -19738,9 +21084,9 @@ class ColumnsResizer {
             });
         };
         /**
-         * Handles the mouse up event on the document.
+         * Handles the drag end event on the document.
          */
-        this.onDocumentMouseUp = () => {
+        this.onDocumentDragEnd = () => {
             this.draggedColumn?.header?.htmlElement?.classList.remove(Grid_Core_Globals.getClassName('resizedColumn'));
             if (!this.draggedResizeHandle?.matches(':hover')) {
                 this.draggedResizeHandle?.classList.remove('hovered');
@@ -19755,8 +21101,11 @@ class ColumnsResizer {
             });
         };
         this.viewport = viewport;
-        document.addEventListener('mousemove', this.onDocumentMouseMove);
-        document.addEventListener('mouseup', this.onDocumentMouseUp);
+        document.addEventListener('mousemove', this.onDocumentDragMove);
+        document.addEventListener('mouseup', this.onDocumentDragEnd);
+        document.addEventListener('touchmove', this.onDocumentDragMove, { passive: false });
+        document.addEventListener('touchend', this.onDocumentDragEnd);
+        document.addEventListener('touchcancel', this.onDocumentDragEnd);
     }
     /* *
      *
@@ -19783,6 +21132,29 @@ class ColumnsResizer {
         }
     }
     /**
+     * Returns the page X coordinate for a mouse or touch event.
+     *
+     * @param e
+     * The drag event.
+     */
+    static getPageX(e) {
+        if ('touches' in e) {
+            return e.touches[0]?.pageX ?? e.changedTouches[0]?.pageX;
+        }
+        return e.pageX;
+    }
+    /**
+     * Prevents touch scrolling from interrupting column dragging.
+     *
+     * @param e
+     * The drag event.
+     */
+    static preventTouchDefault(e) {
+        if ('touches' in e && e.cancelable) {
+            e.preventDefault();
+        }
+    }
+    /**
      * Adds event listeners to the handle.
      *
      * @param handle
@@ -19792,12 +21164,18 @@ class ColumnsResizer {
      * The column the handle belongs to.
      */
     addHandleListeners(handle, column) {
-        const onHandleMouseDown = (e) => {
+        const onHandleMouseDown = (event) => {
+            const e = event;
             const vp = column.viewport;
+            const pageX = ColumnsResizer.getPageX(e);
+            if (pageX === void 0) {
+                return;
+            }
+            ColumnsResizer.preventTouchDefault(e);
             this.isResizing = true;
             handle.classList.add('hovered');
             vp.reflow();
-            this.dragStartX = e.pageX;
+            this.dragStartX = pageX;
             this.draggedColumn = column;
             this.draggedResizeHandle = handle;
             this.columnStartWidth = column.getWidth();
@@ -19821,6 +21199,9 @@ class ColumnsResizer {
                 eventName: 'mousedown',
                 listener: onHandleMouseDown
             }, {
+                eventName: 'touchstart',
+                listener: onHandleMouseDown
+            }, {
                 eventName: 'mouseover',
                 listener: onHandleMouseOver
             }, {
@@ -19837,8 +21218,11 @@ class ColumnsResizer {
      * should be called on the destroy of the data grid.
      */
     removeEventListeners() {
-        document.removeEventListener('mousemove', this.onDocumentMouseMove);
-        document.removeEventListener('mouseup', this.onDocumentMouseUp);
+        document.removeEventListener('mousemove', this.onDocumentDragMove);
+        document.removeEventListener('mouseup', this.onDocumentDragEnd);
+        document.removeEventListener('touchmove', this.onDocumentDragMove);
+        document.removeEventListener('touchend', this.onDocumentDragEnd);
+        document.removeEventListener('touchcancel', this.onDocumentDragEnd);
         for (let i = 0, iEnd = this.handles.length; i < iEnd; i++) {
             const [handle, listeners] = this.handles[i];
             for (const { eventName, listener } of listeners) {
@@ -19854,6 +21238,471 @@ class ColumnsResizer {
  * */
 /* harmony default export */ const Actions_ColumnsResizer = (ColumnsResizer);
 
+;// ./code/grid/es-modules/Grid/Core/Table/Body/CellContextMenuBuiltInActions.js
+/* *
+ *
+ *  Grid Cell Context Menu built-in actions
+ *
+ *  (c) 2020-2026 Highsoft AS
+ *
+ *  A commercial license may be required depending on use.
+ *  See www.highcharts.com/license
+ *
+ *  Authors:
+ *  - Mikkel Espolin Birkeland
+ *
+ * */
+
+
+/* *
+ *
+ *  Constants
+ *
+ * */
+const warnedUnknownActionIds = new Set();
+const defaultBuiltInCellContextMenuActions = [];
+const builtInActionDefinitions = {};
+/**
+ * Registers one built-in context menu action.
+ *
+ * @param actionId
+ * Built-in action identifier.
+ *
+ * @param definition
+ * Action behavior definition.
+ *
+ * @param useByDefault
+ * Whether the action should be added to the default menu set.
+ */
+function registerBuiltInAction(actionId, definition, useByDefault = false) {
+    builtInActionDefinitions[actionId] = definition;
+    if (useByDefault &&
+        !defaultBuiltInCellContextMenuActions.includes(actionId)) {
+        defaultBuiltInCellContextMenuActions.push(actionId);
+    }
+}
+/* *
+ *
+ *  Functions
+ *
+ * */
+/**
+ * Checks whether a context menu item is a divider item.
+ *
+ * @param item
+ * Context menu item declaration.
+ *
+ * @return
+ * True when the item is a divider.
+ */
+function isDivider(item) {
+    return (typeof item === 'object' &&
+        !!item &&
+        'separator' in item &&
+        item.separator === true);
+}
+/**
+ * Checks whether an item is a built-in override declaration.
+ *
+ * @param item
+ * Context menu item declaration.
+ *
+ * @return
+ * True when the item is a built-in override.
+ */
+function isBuiltInOverride(item) {
+    return (typeof item === 'object' &&
+        !!item &&
+        'actionId' in item);
+}
+/**
+ * Checks whether an item contains nested submenu items.
+ *
+ * @param item
+ * Context menu item declaration.
+ *
+ * @return
+ * True when submenu items are provided.
+ */
+function hasNestedItems(item) {
+    return (isObject(item, true) &&
+        'items' in item &&
+        isArray(item.items));
+}
+/**
+ * Logs unknown built-in action ids once per id.
+ *
+ * @param actionId
+ * Unknown action id.
+ */
+function warnUnknownBuiltInAction(actionId) {
+    if (warnedUnknownActionIds.has(actionId)) {
+        return;
+    }
+    warnedUnknownActionIds.add(actionId);
+    // eslint-disable-next-line no-console
+    console.warn(`Grid cell context menu: Unknown built-in actionId "${actionId}".`);
+}
+/**
+ * Returns the current row id if available.
+ *
+ * @param cell
+ * Table cell for the context menu.
+ *
+ * @return
+ * Row id when available.
+ */
+function getCurrentRowId(cell) {
+    const rowId = cell.row.id;
+    if (isString(rowId) || Utilities_isNumber(rowId)) {
+        return rowId;
+    }
+}
+/**
+ * Returns the built-in action definition for a given action ID.
+ *
+ * @param actionId
+ * Built-in action id.
+ *
+ * @return
+ * Built-in action definition when known.
+ */
+function getBuiltInActionDefinition(actionId) {
+    const definition = builtInActionDefinitions[actionId];
+    if (definition) {
+        return definition;
+    }
+    warnUnknownBuiltInAction(actionId);
+}
+/**
+ * Resolves one built-in action declaration into a regular action item.
+ *
+ * @param actionId
+ * Built-in action id.
+ *
+ * @param cell
+ * Table cell for the context menu.
+ *
+ * @param override
+ * Optional label/icon/disabled overrides.
+ *
+ * @param isBranch
+ * Whether this item should be treated as a branch item.
+ *
+ * @return
+ * Resolved action item or undefined for unknown action ids.
+ */
+function resolveBuiltInAction(actionId, cell, override, isBranch) {
+    const definition = getBuiltInActionDefinition(actionId);
+    if (!definition) {
+        return;
+    }
+    const rowId = getCurrentRowId(cell);
+    if (definition.isVisible && !definition.isVisible(cell, rowId)) {
+        return;
+    }
+    const disabled = isBranch ?
+        !!override?.disabled :
+        definition.isDisabled(cell, rowId) || !!override?.disabled;
+    return {
+        label: override?.label || definition.getLabel(cell),
+        icon: override?.icon || definition.icon,
+        disabled,
+        onClick: isBranch ?
+            void 0 :
+            () => {
+                if (rowId === void 0) {
+                    return;
+                }
+                definition.onClick(cell, rowId);
+            }
+    };
+}
+/**
+ * Resolves raw item declarations recursively.
+ *
+ * @param cell
+ * Table cell for the context menu.
+ *
+ * @param rawItems
+ * Source item declarations.
+ *
+ * @param useDefaults
+ * Whether omitted items should resolve to top-level defaults.
+ *
+ * @return
+ * Resolved context menu items.
+ */
+function resolveCellContextMenuItemsAtLevel(cell, rawItems, useDefaults) {
+    const sourceItems = rawItems === void 0 ?
+        (useDefaults ? defaultBuiltInCellContextMenuActions : []) :
+        rawItems;
+    if (!sourceItems.length) {
+        return [];
+    }
+    const resolved = [];
+    for (const rawItem of sourceItems) {
+        if (isDivider(rawItem)) {
+            resolved.push(rawItem);
+            continue;
+        }
+        const isBranchCandidate = hasNestedItems(rawItem);
+        const childItems = isBranchCandidate ?
+            resolveCellContextMenuItemsAtLevel(cell, rawItem.items, false) :
+            [];
+        const isBranch = childItems.length > 0;
+        if (typeof rawItem === 'string') {
+            const builtInItem = resolveBuiltInAction(rawItem, cell);
+            if (builtInItem) {
+                resolved.push(builtInItem);
+            }
+            continue;
+        }
+        if (isBuiltInOverride(rawItem)) {
+            const builtInItem = resolveBuiltInAction(rawItem.actionId, cell, rawItem, isBranch);
+            if (builtInItem) {
+                if (isBranch) {
+                    builtInItem.items = childItems;
+                }
+                resolved.push(builtInItem);
+            }
+            continue;
+        }
+        const customItem = {
+            label: rawItem.label,
+            icon: rawItem.icon,
+            disabled: rawItem.disabled,
+            onClick: isBranch ? void 0 : rawItem.onClick,
+            items: isBranch ? childItems : void 0
+        };
+        resolved.push(customItem);
+    }
+    return resolved;
+}
+/**
+ * Resolves context menu items, including built-in action declarations.
+ *
+ * @param cell
+ * Table cell for the context menu.
+ *
+ * @return
+ * Resolved context menu items.
+ */
+function resolveCellContextMenuItems(cell) {
+    const options = cell.column?.options.cells?.contextMenu;
+    if (options?.enabled === false) {
+        return [];
+    }
+    const items = resolveCellContextMenuItemsAtLevel(cell, options?.items, true);
+    if (!items.length ||
+        options?.enabled === true ||
+        options?.items !== void 0) {
+        return items;
+    }
+    return items.some((item) => !('separator' in item) && !item.disabled) ? items : [];
+}
+/* *
+ *
+ *  Default export
+ *
+ * */
+/**
+ * Built-in cell context menu action helpers.
+ */
+/* harmony default export */ const CellContextMenuBuiltInActions = ({
+    defaultBuiltInCellContextMenuActions,
+    registerBuiltInAction,
+    resolveCellContextMenuItems
+});
+
+;// ./code/grid/es-modules/Grid/Core/Table/Body/CellContextSubMenu.js
+/* *
+ *
+ *  Grid Cell Context Submenu
+ *
+ *  (c) 2020-2026 Highsoft AS
+ *
+ *  A commercial license may be required depending on use.
+ *  See www.highcharts.com/license
+ *
+ *  Authors:
+ *  - Mikkel Espolin Birkeland
+ *
+ * */
+
+
+
+
+/* *
+ *
+ *  Functions
+ *
+ * */
+/**
+ * Closes all sibling submenus for a menu level.
+ *
+ * @param menu
+ * Parent menu level.
+ *
+ * @param activeButton
+ * Button that should keep its submenu open.
+ */
+function closeSiblingSubMenus(menu, activeButton) {
+    for (const button of menu.buttons) {
+        if (button === activeButton || !button.popup?.isVisible) {
+            continue;
+        }
+        button.popup.hide();
+    }
+}
+/**
+ * Checks whether item is a divider.
+ *
+ * @param item
+ * Resolved context menu item.
+ *
+ * @return
+ * True when the item is a divider.
+ */
+function isDividerItem(item) {
+    return 'separator' in item && item.separator === true;
+}
+/**
+ * Closes the full chain of menus from current submenu to root.
+ *
+ * @param menu
+ * Current menu in the chain.
+ */
+function closeCellContextMenuTree(menu) {
+    let currentMenu = menu;
+    while (currentMenu) {
+        const parentMenu = currentMenu instanceof CellContextSubMenu ?
+            currentMenu.openerButton?.contextMenu :
+            void 0;
+        currentMenu.hide();
+        currentMenu = parentMenu;
+    }
+}
+/**
+ * Opens focused branch submenu if available.
+ *
+ * @param menu
+ * Menu instance.
+ */
+function openFocusedSubMenu(menu) {
+    const focusedButton = menu.buttons[menu.focusCursor];
+    if (!focusedButton ||
+        focusedButton.wrapper?.querySelector('button[disabled]')) {
+        return;
+    }
+    focusedButton.click();
+}
+/**
+ * Renders resolved menu items into a context menu.
+ *
+ * @param menu
+ * Menu to render items into.
+ *
+ * @param cell
+ * Target table cell.
+ *
+ * @param items
+ * Resolved menu items.
+ */
+function renderResolvedCellContextMenuItems(menu, cell, items) {
+    for (const item of items) {
+        if (isDividerItem(item)) {
+            const container = menu.ensureItemsContainer();
+            if (container) {
+                const divider = document.createElement('li');
+                divider.className = Grid_Core_Globals.getClassName('menuDivider');
+                container.appendChild(divider);
+            }
+            continue;
+        }
+        const isBranch = !!item.items?.length;
+        const button = new UI_ContextMenuButton({
+            label: item.label,
+            icon: item.icon,
+            chevron: isBranch,
+            onClick: () => {
+                if (!button) {
+                    return;
+                }
+                if (item.disabled) {
+                    return;
+                }
+                if (isBranch) {
+                    closeSiblingSubMenus(menu, button);
+                    if (!button.popup) {
+                        button.popup = new CellContextSubMenu(menu.grid, button, cell, item.items);
+                    }
+                    if (!button.popup.isVisible) {
+                        button.popup.show(button.wrapper);
+                    }
+                    return;
+                }
+                item.onClick?.call(cell, cell);
+                closeCellContextMenuTree(menu);
+            }
+        }).add(menu);
+        if (button && item.disabled) {
+            button.wrapper?.querySelector('button')?.setAttribute('disabled', '');
+        }
+    }
+}
+/* *
+ *
+ *  Class
+ *
+ * */
+class CellContextSubMenu extends UI_ContextMenu {
+    /**
+     * Builds a submenu anchored next to its parent button.
+     *
+     * @param grid
+     * Grid instance.
+     *
+     * @param button
+     * Parent branch button.
+     *
+     * @param cell
+     * Target table cell.
+     *
+     * @param items
+     * Submenu items.
+     */
+    constructor(grid, button, cell, items) {
+        super(grid, button, { nextToAnchor: true });
+        this.cell = cell;
+        this.items = items;
+        this.openerButton = button;
+    }
+    renderContent() {
+        renderResolvedCellContextMenuItems(this, this.cell, this.items);
+    }
+    onKeyDown(event) {
+        if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            openFocusedSubMenu(this);
+            return;
+        }
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            this.hide();
+            this.openerButton.focus();
+            return;
+        }
+        super.onKeyDown(event);
+    }
+}
+/* *
+ *
+ *  Default Export
+ *
+ * */
+/* harmony default export */ const Body_CellContextSubMenu = ((/* unused pure expression or super */ null && (CellContextSubMenu)));
+
 ;// ./code/grid/es-modules/Grid/Core/Table/Body/CellContextMenu.js
 /* *
  *
@@ -19868,6 +21717,7 @@ class ColumnsResizer {
  *  - Mikkel Espolin Birkeland
  *
  * */
+
 
 
 
@@ -19912,30 +21762,20 @@ class CellContextMenu extends UI_ContextMenu {
         if (!cell) {
             return;
         }
-        const items = cell.column?.options.cells?.contextMenu?.items || [];
-        for (const item of items) {
-            if (item.separator) {
-                this.addDivider();
-                continue;
-            }
-            const btn = new UI_ContextMenuButton({
-                label: item.label,
-                icon: item.icon,
-                onClick: () => {
-                    if (item.disabled) {
-                        return;
-                    }
-                    item.onClick?.call(cell, cell);
-                    this.hide();
-                }
-            }).add(this);
-            if (btn && item.disabled) {
-                // Minimal disable support for v1. We don't currently have a
-                // dedicated ContextMenuButton API for disabled state.
-                // This keeps behavior consistent without introducing new CSS.
-                btn.wrapper?.querySelector('button')?.setAttribute('disabled', '');
-            }
+        const items = CellContextMenuBuiltInActions.resolveCellContextMenuItems(cell);
+        renderResolvedCellContextMenuItems(this, cell, items);
+    }
+    onKeyDown(event) {
+        if (event.key === 'ArrowRight') {
+            event.preventDefault();
+            openFocusedSubMenu(this);
+            return;
         }
+        if (event.key === 'ArrowLeft') {
+            event.preventDefault();
+            return;
+        }
+        super.onKeyDown(event);
     }
 }
 /* harmony default export */ const Body_CellContextMenu = (CellContextMenu);
@@ -19952,10 +21792,11 @@ class CellContextMenu extends UI_ContextMenu {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
+
 
 
 
@@ -20000,9 +21841,27 @@ class Table {
          */
         this.rows = [];
         /**
+         * Additional rendered body sections composed into the table.
+         */
+        this.bodySections = [];
+        /**
+         * Whether the current logical focus belongs to a body cell that has been
+         * detached from the DOM by virtualization.
+         */
+        this.hasDetachedFocus = false;
+        /**
          * The flag that indicates if the table rows are virtualized.
          */
         this.virtualRows = true;
+        /**
+         * Async hooks executed after the main row update cycle.
+         * @internal
+         */
+        this.afterUpdateRowsHooks = [];
+        /**
+         * Whether the table body min-height was set by the grid.
+         */
+        this.tbodyMinHeightManaged = false;
         /**
          * Handles the focus event on the table body.
          *
@@ -20011,8 +21870,7 @@ class Table {
          */
         this.onTBodyFocus = (e) => {
             e.preventDefault();
-            this.rows[this.rowsVirtualizer.rowCursor - this.rows[0].index]
-                ?.cells[0]?.htmlElement.focus();
+            this.getRenderedRows()[0]?.cells[0]?.htmlElement.focus();
         };
         /**
          * Handles the resize event.
@@ -20028,6 +21886,47 @@ class Table {
                 void this.rowsVirtualizer.scroll();
             }
             this.header?.scrollHorizontally(this.tbodyElement.scrollLeft);
+            fireEvent(this, 'bodyScroll', {
+                scrollLeft: this.tbodyElement.scrollLeft,
+                scrollTop: this.tbodyElement.scrollTop
+            });
+        };
+        /**
+         * Handles document focus changes while a logically focused cell is
+         * temporarily detached by virtualization.
+         *
+         * @param e
+         * The focus event.
+         */
+        this.onDocumentFocusIn = (e) => {
+            if (!this.hasDetachedFocus) {
+                return;
+            }
+            const target = e.target;
+            if (target instanceof Node &&
+                this.tableElement.contains(target)) {
+                this.clearDetachedFocus();
+                return;
+            }
+            this.clearDetachedFocus(true);
+        };
+        /**
+         * Clears detached logical focus when the user interacts outside of the
+         * table while the focused cell is not rendered.
+         *
+         * @param e
+         * The pointer event.
+         */
+        this.onDocumentPointerDown = (e) => {
+            if (!this.hasDetachedFocus) {
+                return;
+            }
+            const target = e.target;
+            if (target instanceof Node &&
+                this.tableElement.contains(target)) {
+                return;
+            }
+            this.clearDetachedFocus(true);
         };
         /**
          * Delegated click handler for cells.
@@ -20103,24 +22002,17 @@ class Table {
             if (!cell) {
                 return;
             }
-            // Disabled until meaningful functionality is ready.
-            // const isContextMenuKey = (
-            //     e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey)
-            // );
-            // if (isContextMenuKey && 'column' in cell && 'row' in cell) {
-            //     const tableCell = cell as TableCell;
-            //     const rect = tableCell.htmlElement.getBoundingClientRect();
-            //     const opened = this.openCellContextMenu(
-            //         tableCell,
-            //         rect.left + 4,
-            //         rect.bottom - 2
-            //     );
-            //     if (opened) {
-            //         e.preventDefault();
-            //         e.stopPropagation();
-            //         return;
-            //     }
-            // }
+            const isContextMenuKey = (e.key === 'ContextMenu' || (e.key === 'F10' && e.shiftKey));
+            if (isContextMenuKey && 'column' in cell && 'row' in cell) {
+                const tableCell = cell;
+                const rect = tableCell.htmlElement.getBoundingClientRect();
+                const opened = this.openCellContextMenu(tableCell, rect.left + 4, rect.bottom - 2);
+                if (opened) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+            }
             cell.onKeyDown(e);
         };
         this.grid = grid;
@@ -20136,33 +22028,15 @@ class Table {
         this.resizeObserver = new ResizeObserver(this.onResize);
         this.resizeObserver.observe(tableElement);
         this.tbodyElement.addEventListener('scroll', this.onScroll);
-        this.tbodyElement.addEventListener('focus', this.onTBodyFocus);
-        // Delegated cell events
-        this.tbodyElement.addEventListener('click', this.onCellClick);
-        this.tbodyElement.addEventListener('dblclick', this.onCellDblClick);
-        this.tbodyElement.addEventListener('contextmenu', this.onCellContextMenu);
-        this.tbodyElement.addEventListener('mousedown', this.onCellMouseDown);
-        this.tbodyElement.addEventListener('mouseover', this.onCellMouseOver);
-        this.tbodyElement.addEventListener('mouseout', this.onCellMouseOut);
-        this.tbodyElement.addEventListener('keydown', this.onCellKeyDown);
+        this.addBodyEventListeners(this.tbodyElement);
+        document.addEventListener('focusin', this.onDocumentFocusIn, true);
+        document.addEventListener('pointerdown', this.onDocumentPointerDown, true);
     }
     /* *
     *
     *  Methods
     *
     * */
-    /**
-     * The presentation version of the data table. It has applied modifiers
-     * and is ready to be rendered.
-     *
-     * @deprecated Use `grid.dataProvider` instead.
-     */
-    get dataTable() {
-        const dp = this.grid.dataProvider;
-        if (dp && 'getDataTable' in dp) {
-            return dp.getDataTable(true);
-        }
-    }
     /**
      * Initializes the table. Should be called after creation so that the table
      * can be asynchronously initialized.
@@ -20194,6 +22068,9 @@ class Table {
             // TODO(footer): Load & render footer
             // this.footer = new TableFooter(this);
             // this.footer.render();
+            // Ensure row widths are ready before first row render to prevent
+            // initial pinned-row misalignment.
+            this.columnResizing.reflow();
             await this.rowsVirtualizer.initialRender();
         }
         finally {
@@ -20202,6 +22079,55 @@ class Table {
             this.grid.hideLoading();
         }
     }
+    addBodyEventListeners(body) {
+        body.addEventListener('focus', this.onTBodyFocus);
+        body.addEventListener('click', this.onCellClick);
+        body.addEventListener('dblclick', this.onCellDblClick);
+        body.addEventListener('contextmenu', this.onCellContextMenu);
+        body.addEventListener('mousedown', this.onCellMouseDown);
+        body.addEventListener('mouseover', this.onCellMouseOver);
+        body.addEventListener('mouseout', this.onCellMouseOut);
+        body.addEventListener('keydown', this.onCellKeyDown);
+    }
+    removeBodyEventListeners(body) {
+        body.removeEventListener('focus', this.onTBodyFocus);
+        body.removeEventListener('click', this.onCellClick);
+        body.removeEventListener('dblclick', this.onCellDblClick);
+        body.removeEventListener('contextmenu', this.onCellContextMenu);
+        body.removeEventListener('mousedown', this.onCellMouseDown);
+        body.removeEventListener('mouseover', this.onCellMouseOver);
+        body.removeEventListener('mouseout', this.onCellMouseOut);
+        body.removeEventListener('keydown', this.onCellKeyDown);
+    }
+    /**
+     * Registers an auxiliary table body section.
+     *
+     * @param section
+     * Body section descriptor.
+     *
+     * @internal
+     */
+    registerBodySection(section) {
+        this.unregisterBodySection(section.id);
+        this.bodySections.push(section);
+        this.addBodyEventListeners(section.tbodyElement);
+    }
+    /**
+     * Unregisters an auxiliary table body section.
+     *
+     * @param sectionId
+     * Body section ID.
+     *
+     * @internal
+     */
+    unregisterBodySection(sectionId) {
+        const sectionIndex = this.bodySections.findIndex((section) => section.id === sectionId);
+        if (sectionIndex < 0) {
+            return;
+        }
+        this.removeBodyEventListeners(this.bodySections[sectionIndex].tbodyElement);
+        this.bodySections.splice(sectionIndex, 1);
+    }
     /**
      * Sets the minimum height of the table body.
      */
@@ -20209,10 +22135,21 @@ class Table {
         const { options } = this.grid;
         const minVisibleRows = options?.rendering?.rows?.minVisibleRows;
         const tbody = this.tbodyElement;
-        if (defined(minVisibleRows) &&
-            !getStyle(tbody, 'min-height', true)) {
-            tbody.style.minHeight = (minVisibleRows * this.rowsVirtualizer.defaultRowHeight) + 'px';
+        if (!defined(minVisibleRows)) {
+            if (this.tbodyMinHeightManaged) {
+                tbody.style.minHeight = '';
+                this.tbodyMinHeightManaged = false;
+            }
+            return;
         }
+        const hasUserMinHeight = !!getStyle(tbody, 'min-height', true);
+        if (!this.tbodyMinHeightManaged && hasUserMinHeight) {
+            return;
+        }
+        const extraRowsCount = this.bodySections.reduce((count, section) => count + section.getRows().length, 0);
+        const minScrollableRows = Math.max(0, minVisibleRows - extraRowsCount);
+        tbody.style.minHeight = (minScrollableRows * this.rowsVirtualizer.defaultRowHeight) + 'px';
+        this.tbodyMinHeightManaged = true;
     }
     /**
      * Checks if rows virtualization should be enabled.
@@ -20226,8 +22163,6 @@ class Table {
         if (defined(rows?.virtualization)) {
             return rows.virtualization;
         }
-        // Consider changing this to use the presentation table row count
-        // instead of the original data table row count.
         const rowCount = (await this.grid.dataProvider?.getRowCount()) ?? 0;
         const threshold = rows?.virtualizationThreshold ?? 50;
         if (grid.pagination) {
@@ -20261,7 +22196,7 @@ class Table {
         if (!dp) {
             return;
         }
-        vp.grid.querying.pagination.clampPage();
+        const focusCursor = vp.focusCursor;
         try {
             this.grid.showLoading();
             // Update data
@@ -20269,6 +22204,10 @@ class Table {
                 (vp.rows[vp.rows.length - 1]?.index ?? -1) + 1 :
                 0;
             await vp.grid.querying.proceed();
+            vp.grid.querying.pagination.clampPage();
+            if (vp.grid.querying.shouldBeUpdated) {
+                await vp.grid.querying.proceed();
+            }
             for (const column of vp.columns) {
                 column.loadData();
             }
@@ -20297,9 +22236,15 @@ class Table {
                     await rowsToUpdate[i].update();
                 }
             }
+            for (const hook of vp.afterUpdateRowsHooks) {
+                await hook();
+            }
             // Update the pagination controls
             vp.grid.pagination?.updateControls();
             vp.reflow();
+            if (focusCursor) {
+                vp.focusCellFromCursor(focusCursor, true);
+            }
         }
         finally {
             this.grid.hideLoading();
@@ -20315,6 +22260,11 @@ class Table {
         this.header?.reflow();
         // Reflow rows content dimensions
         this.rowsVirtualizer.reflowRows();
+        const measuredRowHeight = (this.rowsVirtualizer.measureRenderedRowHeight());
+        if (defined(measuredRowHeight)) {
+            this.rowsVirtualizer.applyMeasuredRowHeight(measuredRowHeight);
+        }
+        this.setTbodyMinHeight();
         // Reflow the pagination
         this.grid.pagination?.reflow();
         // Reflow popups
@@ -20322,6 +22272,7 @@ class Table {
             popup.reflow();
         });
         this.grid.dirtyFlags.delete('reflow');
+        fireEvent(this, 'afterReflow');
     }
     /**
      * Opens a cell context menu if configured and enabled.
@@ -20343,7 +22294,7 @@ class Table {
         if (options?.enabled === false) {
             return false;
         }
-        const items = options?.items || [];
+        const items = CellContextMenuBuiltInActions.resolveCellContextMenuItems(tableCell);
         if (!items.length) {
             return false; // Keep native browser menu
         }
@@ -20372,18 +22323,164 @@ class Table {
      * Try it: {@link https://jsfiddle.net/gh/get/library/pure/highcharts/highcharts/tree/master/samples/grid-lite/basic/scroll-to-row | Scroll to row}
      */
     scrollToRow(index) {
+        const viewportTopInset = this.getViewportTopInset();
         if (this.virtualRows) {
-            this.tbodyElement.scrollTop =
-                index * this.rowsVirtualizer.defaultRowHeight;
+            this.tbodyElement.scrollTop = Math.max(0, index * this.rowsVirtualizer.defaultRowHeight -
+                viewportTopInset);
             return;
         }
         const rowClass = '.' + Grid_Core_Globals.getClassName('rowElement');
-        const firstRowTop = this.tbodyElement
-            .querySelectorAll(rowClass)[0]
-            .getBoundingClientRect().top;
-        this.tbodyElement.scrollTop = (this.tbodyElement
-            .querySelectorAll(rowClass)[index]
-            .getBoundingClientRect().top) - firstRowTop;
+        const rows = this.tbodyElement.querySelectorAll(rowClass);
+        const firstRow = rows[0];
+        const safeIndex = Math.min(Math.max(0, index), Math.max(0, rows.length - 1));
+        const targetRow = rows[safeIndex];
+        if (!firstRow || !targetRow) {
+            return;
+        }
+        const firstRowTop = firstRow.getBoundingClientRect().top;
+        this.tbodyElement.scrollTop = Math.max(0, targetRow.getBoundingClientRect().top -
+            firstRowTop -
+            viewportTopInset);
+    }
+    /**
+     * Returns the top inset of the visible table body area. Composed modules
+     * can extend this via the `getViewportTopInset` event.
+     */
+    getViewportTopInset() {
+        const eventObject = {
+            top: 0
+        };
+        fireEvent(this, 'getViewportTopInset', eventObject);
+        return eventObject.top;
+    }
+    /**
+     * Ensures that a row is fully visible inside the scrollable body.
+     *
+     * @param row
+     * The row to reveal.
+     */
+    ensureRowFullyVisible(row) {
+        if (!row.htmlElement.isConnected ||
+            row.htmlElement.parentElement !== this.tbodyElement) {
+            return;
+        }
+        const tbodyRect = this.tbodyElement.getBoundingClientRect();
+        const rowRect = row.htmlElement.getBoundingClientRect();
+        const visibleTop = tbodyRect.top + this.getViewportTopInset();
+        const visibleBottom = tbodyRect.bottom;
+        const visibleHeight = Math.max(visibleBottom - visibleTop, 0);
+        const maxScrollTop = Math.max(this.tbodyElement.scrollHeight - this.tbodyElement.clientHeight, 0);
+        let nextScrollTop = this.tbodyElement.scrollTop;
+        if (rowRect.top < visibleTop) {
+            nextScrollTop -= visibleTop - rowRect.top;
+        }
+        else if (rowRect.bottom > visibleBottom) {
+            if (rowRect.height >= visibleHeight) {
+                nextScrollTop += rowRect.top - visibleTop;
+            }
+            else {
+                nextScrollTop += rowRect.bottom - visibleBottom;
+            }
+        }
+        this.tbodyElement.scrollTop = Math.max(0, Math.min(nextScrollTop, maxScrollTop));
+    }
+    /**
+     * Focuses a body cell by its row index in the rendered table order.
+     *
+     * @param rowIndex
+     * The target row index.
+     *
+     * @param columnIndex
+     * The target column index.
+     */
+    focusCellByRowIndex(rowIndex, columnIndex) {
+        if (columnIndex < 0 ||
+            columnIndex >= this.columns.length ||
+            rowIndex < 0 ||
+            rowIndex >= this.rowsVirtualizer.rowCount) {
+            return;
+        }
+        const targetRow = this.rows.find((row) => row.index === rowIndex);
+        const targetCell = targetRow?.cells[columnIndex];
+        if (targetCell) {
+            delete this.pendingFocusCursor;
+            this.clearDetachedFocus();
+            targetCell.htmlElement.focus({
+                preventScroll: true
+            });
+            if (targetRow?.htmlElement.parentElement === this.tbodyElement) {
+                this.ensureRowFullyVisible(targetRow);
+            }
+            return;
+        }
+        this.pendingFocusCursor = [rowIndex, columnIndex];
+        this.scrollToRow(rowIndex);
+    }
+    /**
+     * Marks the current logical focus as temporarily detached by
+     * virtualization.
+     */
+    preserveFocusDuringDetach() {
+        this.hasDetachedFocus = true;
+    }
+    /**
+     * Returns whether the provided cell currently owns detached logical focus.
+     *
+     * @param rowId
+     * Target row ID.
+     *
+     * @param columnIndex
+     * Target column index.
+     */
+    hasDetachedFocusAt(rowId, columnIndex) {
+        const focusCursor = this.focusCursor;
+        return !!(this.hasDetachedFocus &&
+            rowId !== void 0 &&
+            focusCursor &&
+            focusCursor.rowId === rowId &&
+            focusCursor.columnIndex === columnIndex);
+    }
+    /**
+     * Clears detached logical focus state and optionally the logical focus
+     * cursor itself.
+     *
+     * @param clearFocusCursor
+     * Whether to also clear the logical focus cursor.
+     */
+    clearDetachedFocus(clearFocusCursor = false) {
+        this.hasDetachedFocus = false;
+        if (clearFocusCursor) {
+            delete this.focusCursor;
+        }
+    }
+    /**
+     * Restores focus to a rendered body cell. Composed modules can prevent the
+     * default focus transfer via the `beforeRestoreCellFocus` event.
+     *
+     * @param cell
+     * Rendered body cell to focus.
+     *
+     * @param rowIndex
+     * Target row index in the rendered/projected order.
+     *
+     * @param columnIndex
+     * Target column index.
+     */
+    restoreRenderedCellFocus(cell, rowIndex, columnIndex) {
+        if (!cell) {
+            return;
+        }
+        const eventObject = {
+            cell,
+            columnIndex,
+            rowIndex
+        };
+        fireEvent(this, 'beforeRestoreCellFocus', eventObject, () => {
+            this.clearDetachedFocus();
+            cell.htmlElement.focus({
+                preventScroll: true
+            });
+        });
     }
     /**
      * Get the widthRatio value from the width in pixels. The widthRatio is
@@ -20428,41 +22525,49 @@ class Table {
         if (!(element instanceof Element)) {
             return;
         }
-        const td = element.closest('td');
-        if (!td) {
+        const cellElement = element.closest('.' + Grid_Core_Globals.getClassName('cell'));
+        if (!cellElement) {
             return;
         }
-        const tr = td.parentElement;
+        const tr = cellElement.parentElement;
         if (!tr) {
             return;
         }
-        const rowIndexAttr = tr.getAttribute('data-row-index');
-        if (rowIndexAttr === null) {
+        const tbody = tr.parentElement;
+        if (!tbody) {
             return;
         }
-        const rowIndex = parseInt(rowIndexAttr, 10);
-        const firstRowIndex = this.rows[0]?.index ?? 0;
-        const row = this.rows[rowIndex - firstRowIndex];
+        let row;
+        if (tbody === this.tbodyElement) {
+            const rowIndexAttr = tr.getAttribute('data-row-index');
+            if (rowIndexAttr === null) {
+                return;
+            }
+            const rowIndex = parseInt(rowIndexAttr, 10);
+            row = this.getRenderedRowByIndex(rowIndex);
+        }
+        else {
+            row = this.bodySections.find((section) => section.tbodyElement === tbody)?.getRowByElement(tr);
+        }
         if (!row) {
             return;
         }
         // Find cell index by position in row
-        const cellIndex = Array.prototype.indexOf.call(tr.children, td);
+        const cellIndex = Array.prototype.indexOf.call(tr.children, cellElement);
         return row.cells[cellIndex];
     }
     /**
      * Destroys the grid table.
      */
     destroy() {
-        this.tbodyElement.removeEventListener('focus', this.onTBodyFocus);
         this.tbodyElement.removeEventListener('scroll', this.onScroll);
-        this.tbodyElement.removeEventListener('click', this.onCellClick);
-        this.tbodyElement.removeEventListener('dblclick', this.onCellDblClick);
-        this.tbodyElement.removeEventListener('contextmenu', this.onCellContextMenu);
-        this.tbodyElement.removeEventListener('mousedown', this.onCellMouseDown);
-        this.tbodyElement.removeEventListener('mouseover', this.onCellMouseOver);
-        this.tbodyElement.removeEventListener('mouseout', this.onCellMouseOut);
-        this.tbodyElement.removeEventListener('keydown', this.onCellKeyDown);
+        document.removeEventListener('focusin', this.onDocumentFocusIn, true);
+        document.removeEventListener('pointerdown', this.onDocumentPointerDown, true);
+        this.removeBodyEventListeners(this.tbodyElement);
+        for (const section of this.bodySections) {
+            this.removeBodyEventListeners(section.tbodyElement);
+        }
+        this.bodySections.length = 0;
         this.resizeObserver.disconnect();
         this.columnsResizer?.removeEventListeners();
         this.header?.destroy();
@@ -20498,10 +22603,13 @@ class Table {
     applyStateMeta(meta) {
         this.tbodyElement.scrollTop = meta.scrollTop;
         this.tbodyElement.scrollLeft = meta.scrollLeft;
+        this.header?.scrollHorizontally(meta.scrollLeft);
+        fireEvent(this, 'bodyScroll', {
+            scrollLeft: meta.scrollLeft,
+            scrollTop: meta.scrollTop
+        });
         if (meta.focusCursor) {
-            const [rowIndex, columnIndex] = meta.focusCursor;
-            const row = this.rows[rowIndex - this.rows[0].index];
-            row?.cells[columnIndex]?.htmlElement.focus();
+            this.focusCellFromCursor(meta.focusCursor);
         }
     }
     /**
@@ -20539,7 +22647,76 @@ class Table {
      * The ID of the row.
      */
     getRow(id) {
-        return this.rows.find((row) => row.id === id);
+        return this.rows.find((row) => row.id === id) ||
+            this.getRenderedRows().find((row) => row.id === id);
+    }
+    /**
+     * Returns all rendered rows in visual order.
+     *
+     * @internal
+     */
+    getRenderedRows() {
+        return [
+            ...[].concat(...this.bodySections
+                .filter((section) => section.position === 'before')
+                .map((section) => section.getRows())),
+            ...this.rows,
+            ...[].concat(...this.bodySections
+                .filter((section) => section.position === 'after')
+                .map((section) => section.getRows()))
+        ];
+    }
+    /**
+     * Returns the rendered row with the provided presentation index.
+     *
+     * @param index
+     * The row index in the presentation table.
+     *
+     * @internal
+     */
+    getRenderedRowByIndex(index) {
+        return this.rows.find((row) => row.index === index);
+    }
+    async syncAriaRowIndexes() {
+        const headerRowsCount = this.header?.rows.length ?? 0;
+        const rows = this.getRenderedRows();
+        for (let i = 0, iEnd = rows.length; i < iEnd; ++i) {
+            this.grid.accessibility?.setRowIndex(rows[i].htmlElement, i + headerRowsCount + 1);
+        }
+        const baseRowCount = await this.grid.dataProvider?.getRowCount() || 0;
+        const tableElement = this.grid.tableElement;
+        if (tableElement) {
+            tableElement.setAttribute('aria-rowcount', (baseRowCount +
+                this.bodySections.reduce((count, section) => count + section.getRows().length, 0) +
+                headerRowsCount) + '');
+        }
+    }
+    focusCellFromCursor(cursor, defer = false) {
+        const focus = () => {
+            if (cursor.bodySectionId) {
+                this.bodySections.find((section) => section.id === cursor.bodySectionId)?.getRowById(cursor.rowId)
+                    ?.cells[cursor.columnIndex]
+                    ?.htmlElement.focus();
+                return;
+            }
+            void this.grid.dataProvider?.getRowIndex(cursor.rowId).then((rowIndex) => {
+                if (rowIndex === void 0) {
+                    return;
+                }
+                if (defer) {
+                    this.focusCellByRowIndex(rowIndex, cursor.columnIndex);
+                    return;
+                }
+                const row = this.getRenderedRowByIndex(rowIndex);
+                this.restoreRenderedCellFocus(row?.cells[cursor.columnIndex], rowIndex, cursor.columnIndex);
+            });
+        };
+        if (defer) {
+            setTimeout(focus);
+        }
+        else {
+            focus();
+        }
     }
 }
 /* *
@@ -20560,7 +22737,7 @@ class Table {
  *
  *  Authors:
  *  - Sophie Bremer
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -20732,7 +22909,7 @@ Modifiers_DataModifier.registerType('Sort', SortModifier);
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -20816,15 +22993,17 @@ class SortingController {
      * Returns the sorting options from the data grid options.
      */
     getSortingOptions() {
-        const grid = this.querying.grid, { columnOptionsMap } = grid;
-        if (!columnOptionsMap) {
-            return [];
-        }
-        const columnIDs = Object.keys(columnOptionsMap);
+        const grid = this.querying.grid;
+        const columnPolicy = grid.columnPolicy;
+        const columnIDs = columnPolicy.getColumnIds();
         const sortings = [];
         for (let i = 0, iEnd = columnIDs.length; i < iEnd; ++i) {
             const columnId = columnIDs[i];
-            const columnOptions = columnOptionsMap[columnId]?.options || {};
+            if (columnPolicy.isColumnUnbound(columnId)) {
+                continue;
+            }
+            const columnOptions = columnPolicy
+                .getIndividualColumnOptions(columnId) || {};
             const order = columnOptions.sorting?.order;
             if (order) {
                 sortings.push({
@@ -20871,19 +23050,31 @@ class SortingController {
      */
     createModifier() {
         const sortings = (this.currentSortings ||
-            (this.currentSorting ? [this.currentSorting] : [])).filter((sorting) => !!(sorting.columnId && sorting.order));
+            (this.currentSorting ? [this.currentSorting] : [])).filter((sorting) => !!(sorting.columnId &&
+            sorting.order &&
+            !this.querying.grid.columnPolicy.isColumnUnbound(sorting.columnId)));
         if (!sortings.length) {
             return;
         }
         const grid = this.querying.grid;
+        const sourceSortings = sortings
+            .map((sorting) => ({
+            ...sorting,
+            sourceColumnId: grid.columnPolicy.getColumnSourceId(sorting.columnId)
+        }))
+            .filter((sorting) => !!sorting.sourceColumnId);
+        if (!sourceSortings.length) {
+            return;
+        }
         const defaultCompare = grid.options?.columnDefaults?.sorting?.compare;
         return new Modifiers_SortModifier({
-            direction: sortings[0].order,
-            columns: sortings.map((sorting) => ({
-                column: sorting.columnId,
+            direction: sourceSortings[0].order,
+            columns: sourceSortings.map((sorting) => ({
+                column: sorting.sourceColumnId,
                 direction: sorting.order,
-                compare: grid.columnOptionsMap?.[sorting.columnId]
-                    ?.options?.sorting?.compare || defaultCompare
+                compare: grid.columnPolicy
+                    .getIndividualColumnOptions(sorting.columnId)
+                    ?.sorting?.compare || defaultCompare
             }))
         });
     }
@@ -20894,436 +23085,6 @@ class SortingController {
  *
  * */
 /* harmony default export */ const Querying_SortingController = (SortingController);
-
-;// ./code/grid/es-modules/Data/Modifiers/FilterModifier.js
-/* *
- *
- *  (c) 2009-2026 Highsoft AS
- *
- *  A commercial license may be required depending on use.
- *  See www.highcharts.com/license
- *
- *
- *  Authors:
- *  - Dawid Dragula
- *
- * */
-
-
-
-/* *
- *
- *  Class
- *
- * */
-/**
- * Filters out table rows matching a given condition.
- */
-class FilterModifier extends Modifiers_DataModifier {
-    /* *
-     *
-     *  Static Functions
-     *
-     * */
-    /**
-     * Compiles a filter condition into a callback function.
-     *
-     * @param {FilterCondition} condition
-     * Condition to compile.
-     */
-    static compile(condition) {
-        if (isFunction(condition)) {
-            return condition;
-        }
-        const op = condition.operator;
-        switch (op) {
-            case 'and': {
-                const subs = condition.conditions.map((c) => this.compile(c));
-                return (row, table, i) => subs.every((cond) => cond(row, table, i));
-            }
-            case 'or': {
-                const subs = condition.conditions.map((c) => this.compile(c));
-                return (row, table, i) => subs.some((cond) => cond(row, table, i));
-            }
-            case 'not': {
-                const sub = this.compile(condition.condition);
-                return (row, table, i) => !sub(row, table, i);
-            }
-        }
-        const { columnId: col, value } = condition;
-        switch (op) {
-            case '==':
-                // eslint-disable-next-line eqeqeq
-                return (row) => row[col] == value;
-            case '===':
-                return (row) => row[col] === value;
-            case '!=':
-                // eslint-disable-next-line eqeqeq
-                return (row) => row[col] != value;
-            case '!==':
-                return (row) => row[col] !== value;
-            case '>':
-                return (row) => (row[col] || 0) > (value || 0);
-            case '>=':
-                return (row) => (row[col] || 0) >= (value || 0);
-            case '<':
-                return (row) => (row[col] || 0) < (value || 0);
-            case '<=':
-                return (row) => (row[col] || 0) <= (value || 0);
-            case 'empty':
-                return (row) => row[col] === null || row[col] === '';
-        }
-        const { ignoreCase } = condition;
-        const str = (val) => {
-            const s = '' + val;
-            return (ignoreCase ?? true) ? s.toLowerCase() : s;
-        };
-        switch (op) {
-            case 'contains':
-                return (row) => str(row[col]).includes(str(value));
-            default:
-                return (row) => str(row[col])[op](str(value));
-        }
-    }
-    /* *
-     *
-     *  Constructor
-     *
-     * */
-    /**
-     * Constructs an instance of the filter modifier.
-     *
-     * @param {Partial<FilterModifierOptions>} [options]
-     * Options to configure the filter modifier.
-     */
-    constructor(options) {
-        super();
-        this.options = merge(FilterModifier.defaultOptions, options);
-    }
-    /* *
-     *
-     *  Functions
-     *
-     * */
-    /**
-     * Filters out table rows matching a given condition. If the given table
-     * does not have defined a `modified` property, the filtering is applied
-     * in-place on the original table rather than on a `modified` copy.
-     *
-     * @param {DataTable} table
-     * Table to modify.
-     *
-     * @param {DataEventDetail} [eventDetail]
-     * Custom information for pending events.
-     *
-     * @return {DataTable}
-     * Table with `modified` property as a reference or modified table, if
-     * `modified` property of the original table is undefined.
-     */
-    modifyTable(table, eventDetail) {
-        const modifier = this;
-        modifier.emit({ type: 'modify', detail: eventDetail, table });
-        const { condition } = modifier.options;
-        if (!condition) {
-            // If no condition is set, return the unmodified table.
-            return table;
-        }
-        const matchRow = FilterModifier.compile(condition);
-        const modified = table.getModified();
-        const rows = [];
-        const indexes = [];
-        for (let i = 0, iEnd = table.getRowCount(); i < iEnd; ++i) {
-            const row = table.getRowObject(i);
-            if (!row) {
-                continue;
-            }
-            if (matchRow(row, table, i)) {
-                rows.push(row);
-                indexes.push(table.getOriginalRowIndex(i));
-            }
-        }
-        modified.deleteRows();
-        modified.setRows(rows);
-        modified.setOriginalRowIndexes(indexes);
-        modifier.emit({ type: 'afterModify', detail: eventDetail, table });
-        return table;
-    }
-}
-/* *
- *
- *  Static Properties
- *
- * */
-/**
- * Default options for the filter modifier.
- */
-FilterModifier.defaultOptions = {
-    type: 'Filter'
-};
-Modifiers_DataModifier.registerType('Filter', FilterModifier);
-/* *
- *
- *  Default Export
- *
- * */
-/* harmony default export */ const Modifiers_FilterModifier = (FilterModifier);
-
-;// ./code/grid/es-modules/Grid/Core/Querying/FilteringController.js
-/* *
- *
- *  Grid Filtering Controller class
- *
- *  (c) 2020-2026 Highsoft AS
- *
- *  A commercial license may be required depending on use.
- *  See www.highcharts.com/license
- *
- *
- *  Authors:
- *  - Dawid Dragula
- *
- * */
-
-
-
-/* *
- *
- *  Class
- *
- * */
-/**
- * Class that manages one of the data grid querying types - filtering.
- */
-class FilteringController {
-    /* *
-    *
-    *  Constructor
-    *
-    * */
-    /**
-     * Constructs the FilteringController instance.
-     *
-     * @param querying
-     * The querying controller instance.
-     */
-    constructor(querying) {
-        /**
-         * A map of the filtering conditions for each column.
-         */
-        this.columnConditions = {};
-        this.querying = querying;
-    }
-    /* *
-    *
-    *  Functions
-    *
-    * */
-    /**
-     * Maps filtering options to the filtering condition.
-     *
-     * @param columnId
-     * Id of the column to filter.
-     *
-     * @param options
-     * Filtering options.
-     */
-    static mapOptionsToFilter(columnId, options) {
-        const { condition, value } = options;
-        const isStringValue = isString(value);
-        const stringifiedValue = isStringValue ? value : '';
-        const nonValueConditions = ['empty', 'notEmpty', 'true', 'false'];
-        if ((typeof value === 'undefined' ||
-            (isStringValue && !stringifiedValue)) && !nonValueConditions.includes(condition ?? '')) {
-            return;
-        }
-        switch (condition) {
-            case 'contains':
-                return {
-                    columnId,
-                    operator: 'contains',
-                    value: stringifiedValue
-                };
-            case 'doesNotContain':
-                return {
-                    operator: 'not',
-                    condition: {
-                        columnId,
-                        operator: 'contains',
-                        value: stringifiedValue
-                    }
-                };
-            case 'equals':
-                return {
-                    columnId,
-                    operator: '===',
-                    value
-                };
-            case 'doesNotEqual':
-                return {
-                    columnId,
-                    operator: '!==',
-                    value
-                };
-            case 'beginsWith':
-                return {
-                    columnId,
-                    operator: 'startsWith',
-                    value: stringifiedValue
-                };
-            case 'endsWith':
-                return {
-                    columnId,
-                    operator: 'endsWith',
-                    value: stringifiedValue
-                };
-            case 'greaterThan':
-                return {
-                    columnId,
-                    operator: '>',
-                    value
-                };
-            case 'greaterThanOrEqualTo':
-                return {
-                    columnId,
-                    operator: '>=',
-                    value
-                };
-            case 'lessThan':
-                return {
-                    columnId,
-                    operator: '<',
-                    value
-                };
-            case 'lessThanOrEqualTo':
-                return {
-                    columnId,
-                    operator: '<=',
-                    value
-                };
-            case 'before':
-                return {
-                    columnId,
-                    operator: '<',
-                    value
-                };
-            case 'after':
-                return {
-                    columnId,
-                    operator: '>',
-                    value
-                };
-            case 'empty':
-                return {
-                    columnId,
-                    operator: 'empty',
-                    value
-                };
-            case 'notEmpty':
-                return {
-                    operator: 'not',
-                    condition: {
-                        columnId,
-                        operator: 'empty',
-                        value
-                    }
-                };
-            case 'true':
-                return {
-                    columnId,
-                    operator: '===',
-                    value: true
-                };
-            case 'false':
-                return {
-                    columnId,
-                    operator: '===',
-                    value: false
-                };
-        }
-    }
-    /**
-     * Loads filtering options from the data grid options.
-     */
-    loadOptions() {
-        const columnOptionsMap = this.querying.grid.columnOptionsMap;
-        const newConditions = {};
-        if (columnOptionsMap) {
-            const columnIds = Object.keys(columnOptionsMap);
-            for (let i = 0, iEnd = columnIds.length; i < iEnd; ++i) {
-                const columnId = columnIds[i];
-                const filteringOptions = columnOptionsMap[columnId]?.options?.filtering;
-                if (!filteringOptions) {
-                    continue;
-                }
-                const condition = FilteringController.mapOptionsToFilter(columnId, filteringOptions);
-                if (condition) {
-                    newConditions[columnId] = condition;
-                }
-            }
-        }
-        this.columnConditions = newConditions;
-        this.updateModifier();
-    }
-    /**
-     * Adds a new filtering condition to the specified column.
-     *
-     * @param columnId
-     * The column ID to filter in.
-     *
-     * @param options
-     * The filtering options.
-     */
-    addColumnFilterCondition(columnId, options) {
-        const condition = FilteringController.mapOptionsToFilter(columnId, options);
-        if (condition) {
-            this.columnConditions[columnId] = condition;
-        }
-        else {
-            delete this.columnConditions[columnId];
-        }
-        this.updateModifier();
-    }
-    /**
-     * Clears the filtering condition for the specified column. If no column ID
-     * is provided, clears all the column filtering conditions.
-     *
-     * @param columnId
-     * The column ID to clear or `undefined` to clear all the column filtering
-     * conditions.
-     */
-    clearColumnFiltering(columnId) {
-        if (!columnId) {
-            this.columnConditions = {};
-        }
-        else {
-            delete this.columnConditions[columnId];
-        }
-        this.updateModifier();
-    }
-    /**
-     * Updates the modifier based on the current column conditions.
-     */
-    updateModifier() {
-        const columnConditions = Object.values(this.columnConditions);
-        this.querying.shouldBeUpdated = true;
-        if (columnConditions.length < 1) {
-            delete this.modifier;
-            return;
-        }
-        this.modifier = new Modifiers_FilterModifier({
-            condition: {
-                operator: 'and',
-                conditions: columnConditions
-            }
-        });
-    }
-}
-/* *
- *
- *  Default Export
- *
- * */
-/* harmony default export */ const Querying_FilteringController = (FilteringController);
 
 ;// ./code/grid/es-modules/Data/Modifiers/RangeModifier.js
 /* *
@@ -21336,7 +23097,7 @@ class FilteringController {
  *
  *  Authors:
  *  - Sophie Bremer
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -21438,6 +23199,12 @@ Modifiers_DataModifier.registerType('Range', RangeModifier);
  *
  * */
 
+/* *
+ *
+ *  Imports
+ *
+ * */
+
 
 /* *
  *
@@ -21486,12 +23253,16 @@ class PaginationController {
      * Gets the total number of pages.
      */
     get totalPages() {
-        return this.currentPageSize > 0 ? Math.ceil(this.totalItems / this.currentPageSize) : 1;
+        const computed = this.currentPageSize > 0 ? Math.ceil(this.totalItems / this.currentPageSize) : 1;
+        return Math.max(1, computed);
     }
     /**
      * Clamps the current page to the valid range [1, totalPages].
      */
     clampPage() {
+        if (this.totalItemsCount === void 0) {
+            return;
+        }
         const target = Math.max(1, Math.min(this.currentPage, this.totalPages || 1));
         if (this.currentPage === target) {
             return;
@@ -21543,7 +23314,9 @@ class PaginationController {
      * The number of rows before pagination. Default is the number of rows in
      * the original data table.
      */
-    createModifier(rowsCountBeforePagination = (this.querying.grid.dataTable?.rowCount || 0)) {
+    createModifier(rowsCountBeforePagination = (hasDataTableProvider(this.querying.grid.dataProvider) ?
+        this.querying.grid.dataProvider.getDataTable()?.rowCount || 0 :
+        0)) {
         if (!this.enabled) {
             return;
         }
@@ -21578,7 +23351,7 @@ class PaginationController {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -21660,7 +23433,11 @@ class QueryingController {
      * Apply all modifiers to the data provider.
      */
     async modifyData() {
-        await this.grid.dataProvider?.applyQuery();
+        const dataProvider = this.grid.dataProvider;
+        if (!dataProvider) {
+            return;
+        }
+        await dataProvider.applyQuery();
         this.shouldBeUpdated = false;
     }
 }
@@ -21683,10 +23460,11 @@ class QueryingController {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
+
 
 
 
@@ -21740,11 +23518,9 @@ class Grid {
      */
     constructor(renderTo, options, afterLoadCallback) {
         /**
-         * The user options declared for the columns as an object of column ID to
-         * column options.
-         * @internal
+         * Resolver for data binding and column capabilities.
          */
-        this.columnOptionsMap = {};
+        this.columnPolicy = new Core_ColumnPolicyResolver();
         /**
          * The options that were declared by the user when creating the Grid
          * or when updating it.
@@ -21770,6 +23546,10 @@ class Grid {
          */
         this.dirtyFlags = new Set();
         /**
+         * Per-row metadata shared across Grid modules.
+         */
+        this.rowMeta = new Map();
+        /**
          * Internal redraw queue used to prevent concurrent `redraw()` calls from
          * interleaving async DOM work and corrupting the state (for example
          * rendering duplicate pagination controls when `update()` is called
@@ -21794,31 +23574,6 @@ class Grid {
      *  Methods
      *
      * */
-    /**
-     * The data source of the Grid. It contains the original data table
-     * that was passed to the Grid.
-     *
-     * @deprecated Use `dataProvider` instead.
-     */
-    get dataTable() {
-        const dp = this.dataProvider;
-        if (dp && 'getDataTable' in dp) {
-            return dp.getDataTable();
-        }
-    }
-    /**
-     * The presentation table of the Grid. It contains a modified version
-     * of the data table that is used for rendering the Grid content. If
-     * not modified, just a reference to the original data table.
-     *
-     * @deprecated Use `dataProvider` instead.
-     */
-    get presentationTable() {
-        const dp = this.dataProvider;
-        if (dp && 'getDataTable' in dp) {
-            return dp.getDataTable(true);
-        }
-    }
     /*
      * Initializes the accessibility controller.
      */
@@ -21863,7 +23618,7 @@ class Grid {
     }
     /**
      * Loads the new user options to all the important fields (`userOptions`,
-     * `options` and `columnOptionsMap`).
+     * `options` and column policy state).
      *
      * @param newOptions
      * The options that were declared by the user.
@@ -21880,12 +23635,15 @@ class Grid {
         // Operate on a copy of the options argument
         newOptions = merge(newOptions);
         const diff = {};
+        const preserveIdOnlyColumnOptions = (newOptions.data?.autogenerateColumns ??
+            this.userOptions.data?.autogenerateColumns ??
+            this.options?.data?.autogenerateColumns) === false;
         if (newOptions.columns) {
             if (oneToOne) {
-                diff.columns = this.setColumnOptionsOneToOne(newOptions.columns);
+                diff.columns = this.setColumnOptionsOneToOne(newOptions.columns, preserveIdOnlyColumnOptions);
             }
             else {
-                diff.columns = this.setColumnOptions(newOptions.columns);
+                diff.columns = this.setColumnOptions(newOptions.columns, false, preserveIdOnlyColumnOptions);
             }
             delete newOptions.columns;
         }
@@ -21896,8 +23654,9 @@ class Grid {
         merge(true, diff, diffObjects(newOptions, this.userOptions));
         this.userOptions = merge(this.userOptions, newOptions);
         this.options = merge(this.options ?? Defaults_defaultOptions, this.userOptions);
+        this.columnPolicy.setColumnDefaults(this.options?.columnDefaults);
         this.viewport?.columns.forEach((column) => {
-            column.options = createOptionsProxy(this.columnOptionsMap?.[column.id]?.options ?? {}, this.options?.columnDefaults);
+            column.options = createOptionsProxy(this.columnPolicy.getIndividualColumnOptions(column.id) ?? {}, this.options?.columnDefaults);
         });
         return diff;
     }
@@ -21908,12 +23667,12 @@ class Grid {
     reloadColumnOptions() {
         const colOptions = this.userOptions.columns;
         if (!colOptions) {
-            this.columnOptionsMap = {};
+            this.columnPolicy.clearColumnOptions();
             return;
         }
         if (colOptions.length < 1) {
             delete this.userOptions.columns;
-            this.columnOptionsMap = {};
+            this.columnPolicy.clearColumnOptions();
             return;
         }
         const columnOptionsMap = {};
@@ -21923,7 +23682,13 @@ class Grid {
                 options: colOptions[i]
             };
         }
-        this.columnOptionsMap = columnOptionsMap;
+        this.columnPolicy.setColumnOptionsMap(columnOptionsMap);
+    }
+    /**
+     * Refreshes the cached source column ids available in the data provider.
+     */
+    async refreshAvailableSourceColumnIds() {
+        this.columnPolicy.setAvailableSourceColumnIds((await this.dataProvider?.getColumnIds()) || []);
     }
     /**
      * Sets the new column options to the userOptions field.
@@ -21935,13 +23700,16 @@ class Grid {
      * Whether to overwrite the existing column options with the new ones.
      * Default is `false`.
      *
+     * @param preserveIdOnlyColumnOptions
+     * Whether to preserve the id only column options. Default is `false`.
+     *
      * @returns
      * An object of the changed column options in form of a record of
      * `[column.id]: column.options`.
      *
      * @internal
      */
-    setColumnOptions(newColumnOptions, overwrite = false) {
+    setColumnOptions(newColumnOptions, overwrite = false, preserveIdOnlyColumnOptions = false) {
         const columnDiffOptions = {};
         if (!this.userOptions.columns) {
             this.userOptions.columns = this.options?.columns ?? [];
@@ -21949,9 +23717,13 @@ class Grid {
         const columnOptions = this.userOptions.columns;
         for (let i = 0, iEnd = newColumnOptions.length; i < iEnd; ++i) {
             const newOptions = newColumnOptions[i];
-            const colOptionsIndex = this.columnOptionsMap?.[newOptions.id]?.index ?? -1;
+            const colOptionsIndex = this.columnPolicy.getColumnOptionIndex(newOptions.id) ?? -1;
             // If the new column options contain only the id.
             if (Object.keys(newOptions).length < 2) {
+                if (preserveIdOnlyColumnOptions && colOptionsIndex === -1) {
+                    columnOptions.push(newOptions);
+                    continue;
+                }
                 if (overwrite && colOptionsIndex !== -1) {
                     columnDiffOptions[newOptions.id] = diffObjects(columnOptions[colOptionsIndex], { id: newOptions.id }, true);
                     columnOptions.splice(colOptionsIndex, 1);
@@ -21989,11 +23761,14 @@ class Grid {
      * @param newColumnOptions
      * The new column options that should be loaded.
      *
+     * @param preserveIdOnlyColumnOptions
+     * Whether to preserve the id only column options. Default is `false`.
+     *
      * @returns
      * The difference between the previous and the new column options in form
      * of a record of `[column.id]: column.options`.
      */
-    setColumnOptionsOneToOne(newColumnOptions) {
+    setColumnOptionsOneToOne(newColumnOptions, preserveIdOnlyColumnOptions = false) {
         const prevColumnOptions = this.userOptions.columns;
         const columnOptions = [];
         const columnDiffOptions = {};
@@ -22010,7 +23785,8 @@ class Grid {
                 columnDiffOptions[newOptions.id] = diffOptions;
             }
             const resultOptions = merge(prevOptions ?? {}, newOptions);
-            if (Object.keys(resultOptions).length > 1) {
+            if (preserveIdOnlyColumnOptions ||
+                Object.keys(resultOptions).length > 1) {
                 columnOptions.push(resultOptions);
             }
         }
@@ -22048,7 +23824,7 @@ class Grid {
             if (!this.dataProvider ||
                 ('data' in diff) ||
                 ('dataTable' in diff)) {
-                if ( // Handle backward compatibility
+                if ( // Preserve legacy root-level `dataTable` option
                 diff.dataTable &&
                     this.options?.dataTable &&
                     this.options?.data?.providerType === 'local') {
@@ -22225,6 +24001,7 @@ class Grid {
                 return;
             }
             await this.dataProvider?.init();
+            await this.refreshAvailableSourceColumnIds();
             if (flagsToProcess.has('sorting') ||
                 flagsToProcess.has('filtering') ||
                 paginationWasDirty) {
@@ -22327,7 +24104,9 @@ class Grid {
         if (viewport.validator?.errorCell) {
             return;
         }
-        const normalized = (sortings || []).filter((sorting) => !!(sorting.columnId && sorting.order));
+        const normalized = (sortings || []).filter((sorting) => !!(sorting.columnId &&
+            sorting.order &&
+            !this.columnPolicy.isColumnUnbound(sorting.columnId)));
         const sortingController = this.querying.sorting;
         const previousSortings = sortingController.currentSortings || [];
         const eventColumnIds = new Set();
@@ -22404,6 +24183,7 @@ class Grid {
         this.initContainer(this.renderTo);
         this.initAccessibility();
         this.initPagination();
+        await this.refreshAvailableSourceColumnIds();
         this.querying.loadOptions();
         await this.querying.proceed();
         await this.renderViewport();
@@ -22420,16 +24200,16 @@ class Grid {
      * The index of the row.
      */
     hoverRow(rowIndex) {
-        const rows = this.viewport?.rows;
-        if (!rows) {
+        const viewport = this.viewport;
+        if (!viewport) {
             return;
         }
-        const firstRowIndex = this.viewport?.rows[0]?.index ?? 0;
         if (this.hoveredRowIndex !== void 0) {
-            rows[this.hoveredRowIndex - firstRowIndex]?.setHoveredState(false);
+            viewport.getRenderedRowByIndex(this.hoveredRowIndex)
+                ?.setHoveredState(false);
         }
         if (rowIndex !== void 0) {
-            rows[rowIndex - firstRowIndex]?.setHoveredState(true);
+            viewport.getRenderedRowByIndex(rowIndex)?.setHoveredState(true);
         }
         this.hoveredRowIndex = rowIndex;
     }
@@ -22461,16 +24241,16 @@ class Grid {
      * The index of the row.
      */
     syncRow(rowIndex) {
-        const rows = this.viewport?.rows;
-        if (!rows) {
+        const viewport = this.viewport;
+        if (!viewport) {
             return;
         }
-        const firstRowIndex = this.viewport?.rows[0]?.index ?? 0;
         if (this.syncedRowIndex !== void 0) {
-            rows[this.syncedRowIndex - firstRowIndex]?.setSyncedState(false);
+            viewport.getRenderedRowByIndex(this.syncedRowIndex)
+                ?.setSyncedState(false);
         }
         if (rowIndex !== void 0) {
-            rows[rowIndex - firstRowIndex]?.setSyncedState(true);
+            viewport.getRenderedRowByIndex(rowIndex)?.setSyncedState(true);
         }
         this.syncedRowIndex = rowIndex;
     }
@@ -22632,42 +24412,33 @@ class Grid {
      * grid, in the correct order.
      */
     async getEnabledColumnIDs() {
-        const { columnOptionsMap } = this;
         const header = this.options?.header;
         const headerColumns = this.getColumnIds(header || [], false);
-        const columnsIncluded = this.options?.rendering?.columns?.included || (headerColumns && headerColumns.length > 0 ?
-            headerColumns : await this.dataProvider?.getColumnIds());
-        if (!columnsIncluded?.length) {
-            return [];
+        const dataOptions = this.options?.data;
+        const autogenerateColumns = !dataOptions ||
+            dataOptions.autogenerateColumns !== false;
+        let autoColumns = this.columnPolicy.getAvailableSourceColumnIds();
+        if (!autoColumns) {
+            await this.refreshAvailableSourceColumnIds();
+            autoColumns = this.columnPolicy.getAvailableSourceColumnIds() || [];
         }
-        if (!columnOptionsMap) {
-            return columnsIncluded;
-        }
-        let columnId;
-        const result = [];
-        for (let i = 0, iEnd = columnsIncluded.length; i < iEnd; ++i) {
-            columnId = columnsIncluded[i];
-            if (columnOptionsMap?.[columnId]?.options?.enabled !== false) {
-                result.push(columnId);
-            }
-        }
-        return result;
+        return this.columnPolicy.getColumnsForRender(headerColumns, autogenerateColumns, autoColumns, this.options?.columns?.map((column) => column.id));
     }
     loadDataProvider() {
         this.dataProvider?.destroy();
         this.querying.shouldBeUpdated = true;
+        this.columnPolicy.setAvailableSourceColumnIds();
         const userDT = this.options?.dataTable;
         const dataOptions = this.options?.data ?? {
             providerType: 'local',
             dataTable: userDT ?? {}
         };
-        // Just for the backward compatibility, remove in the future
+        // Preserve legacy root-level `dataTable` option for now.
         if (dataOptions.providerType === 'local' &&
             !dataOptions.dataTable && userDT) {
             dataOptions.dataTable = 'clone' in userDT ?
                 userDT : new Data_DataTable(userDT);
         }
-        // End of backward compatibility snippet
         const DataProviderConstructor = DataProviderRegistry.types[dataOptions.providerType ?? 'local'] ??
             DataProviderRegistry.types.local;
         this.dataProvider = new DataProviderConstructor(this.querying, dataOptions);
@@ -22708,7 +24479,7 @@ class Grid {
      * after destruction by calling the `render` method.
      */
     destroy(onlyDOM = false) {
-        fireEvent(this, 'beforeDestroy');
+        fireEvent(this, 'beforeDestroy', { onlyDOM });
         this.isRendered = false;
         const dgIndex = Grid.grids.findIndex((dg) => dg === this);
         this.dataProvider?.destroy();
@@ -22760,60 +24531,6 @@ class Grid {
         delete this.loadingWrapper;
     }
     /**
-     * Returns the grid data as a JSON string.
-     *
-     * **Note:** This method only works with `LocalDataProvider`.
-     * For other data providers, use your data source directly.
-     *
-     * @deprecated
-     *
-     * @param modified
-     * Whether to return the modified data table (after filtering/sorting/etc.)
-     * or the unmodified, original one. Default value is set to `true`.
-     *
-     * @return
-     * JSON representation of the data
-     */
-    getData(modified = true) {
-        if (!this.dataProvider || !('getDataTable' in this.dataProvider)) {
-            // eslint-disable-next-line no-console
-            console.warn('getData() works only with LocalDataProvider.');
-            return JSON.stringify({
-                error: 'getData() works only with LocalDataProvider.'
-            }, null, 2);
-        }
-        const dataTable = this.dataProvider.getDataTable(modified);
-        const tableColumns = dataTable?.columns;
-        const outputColumns = {};
-        if (!this.enabledColumns || !tableColumns) {
-            return '{}';
-        }
-        const typeParser = (type) => {
-            const TypeMap = {
-                number: Number,
-                datetime: Number,
-                string: String,
-                'boolean': Boolean
-            };
-            return (value) => (defined(value) ? TypeMap[type](value) : null);
-        };
-        for (const columnId of Object.keys(tableColumns)) {
-            const column = this.viewport?.getColumn(columnId);
-            if (column) {
-                const columnData = tableColumns[columnId];
-                const parser = typeParser(column.dataType);
-                outputColumns[columnId] = (() => {
-                    const result = [];
-                    for (let i = 0, iEnd = columnData.length; i < iEnd; ++i) {
-                        result.push(parser(columnData[i]));
-                    }
-                    return result;
-                })();
-            }
-        }
-        return JSON.stringify(outputColumns, null, 2);
-    }
-    /**
      * Returns the current Grid options.
      *
      * @param onlyUserOptions
@@ -22845,10 +24562,11 @@ class Grid {
         // Clean up the column options by removing the ones that have no other
         // options than `id`:
         const oldColumnOptions = options.columns;
+        const keepIdOnlyColumns = options.data?.autogenerateColumns === false;
         if (oldColumnOptions) {
             options.columns = [];
             for (const columnOption of oldColumnOptions) {
-                if (Object.keys(columnOption).length > 1) {
+                if (keepIdOnlyColumns || Object.keys(columnOption).length > 1) {
                     options.columns.push(columnOption);
                 }
             }
@@ -23155,7 +24873,7 @@ DataPool.defaultOptions = {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *  - Sebastian Bochan
  *
  * */
@@ -23362,7 +25080,7 @@ function destroyCredits() {
  *
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -23897,7 +25615,7 @@ class CSVConverter extends Converters_DataConverter {
         }, linesCount = lines.length;
         for (let i = 0; i < linesCount; i++) {
             let inStr = false, c, cn, cl, token = '';
-            // We should be able to detect dateformats within 13 rows
+            // We should be able to detect dateFormats within 13 rows
             if (i > 13) {
                 break;
             }
@@ -24992,7 +26710,7 @@ Connectors_DataConnector.registerType('HTMLTable', HTMLTableConnector);
  *
  *
  *  Authors:
- *  - Pawel Lysy
+ *  - Paweł Lysy
  *  - Kamil Kubik
  *
  * */
@@ -25233,7 +26951,7 @@ Converters_DataConverter.registerType('JSON', JSONConverter);
  *
  *
  *  Authors:
- *  - Pawel Lysy
+ *  - Paweł Lysy
  *  - Kamil Kubik
  *
  * */
@@ -25391,7 +27109,7 @@ Connectors_DataConnector.registerType('JSON', JSONConnector);
  *
  *  Authors:
  *  - Sophie Bremer
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -25729,97 +27447,6 @@ Modifiers_DataModifier.registerType('Invert', InvertModifier);
  * */
 /* harmony default export */ const Modifiers_InvertModifier = ((/* unused pure expression or super */ null && (InvertModifier)));
 
-;// ./code/grid/es-modules/Grid/Core/Data/DataProvider.js
-/* *
- *
- *  Data Provider abstract class
- *
- *  (c) 2020-2025 Highsoft AS
- *
- *  License: www.highcharts.com/license
- *
- *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
- *
- *  Authors:
- *  - Dawid Dragula
- *
- * */
-
-
-/**
- * Base class for Grid data providers.
- *
- * Data providers are responsible for serving data to the grid, applying query
- * modifiers and persisting edits.
- */
-class DataProvider {
-    /* *
-     *
-     *  Constructor
-     *
-     * */
-    constructor(queryingController, options) {
-        this.querying = queryingController;
-        this.options = options;
-    }
-    /* *
-     *
-     *  Methods
-     *
-     * */
-    /**
-     * Initializes the data provider.
-     */
-    init() {
-        return Promise.resolve();
-    }
-    /**
-     * Returns the number of items before pagination has been applied.
-     */
-    async getPrePaginationRowCount() {
-        return await this.getRowCount();
-    }
-    /**
-     * Helper method to assume the data type of a column based on the sample
-     * of the column data.
-     *
-     * @param columnSample
-     * The sample of the column data to determine the data type from.
-     *
-     * @param columnId
-     * The id of the column to determine the data type for.
-     */
-    static assumeColumnDataType(columnSample, columnId) {
-        for (let i = 0, iEnd = columnSample.length; i < iEnd; ++i) {
-            if (!defined(columnSample[i])) {
-                // If the data is null or undefined, we should look
-                // at the next value to determine the type.
-                continue;
-            }
-            switch (typeof columnSample[i]) {
-                case 'number':
-                    return 'number';
-                case 'boolean':
-                    return 'boolean';
-                default:
-                    return 'string';
-            }
-        }
-        // eslint-disable-next-line no-console
-        console.warn(`Column "${columnId}" sample does not contain any defined ` +
-            'values; defaulting dataType to "string". Set `dataType` option ' +
-            'for the column to determine the data type and avoid unnecessary ' +
-            'column scanning.');
-        return 'string';
-    }
-}
-/* *
- *
- * Default Export
- *
- * */
-/* harmony default export */ const Data_DataProvider = ((/* unused pure expression or super */ null && (DataProvider)));
-
 ;// ./code/grid/es-modules/Grid/Core/Data/LocalDataProvider.js
 /* *
  *
@@ -25832,7 +27459,7 @@ class DataProvider {
  *  !!!!!!! SOURCE GETS TRANSPILED BY TYPESCRIPT. EDIT TS FILE ONLY. !!!!!!!
  *
  *  Authors:
- *  - Dawid Dragula
+ *  - Dawid Draguła
  *
  * */
 
@@ -25903,25 +27530,7 @@ class LocalDataProvider extends DataProvider {
             });
             this.dataTableEventDestructors.push(fn);
         }
-        const idColId = this.options.idColumn;
-        if (idColId) {
-            const idColumn = table.getColumn(idColId, true);
-            if (!idColumn) {
-                throw new Error(`Column "${idColId}" not found in table.`);
-            }
-            const map = new Map();
-            for (let i = 0, len = idColumn.length; i < len; ++i) {
-                const value = idColumn[i];
-                if (!isString(value) && !Utilities_isNumber(value)) {
-                    throw new Error('idColumn must contain only string or number values.');
-                }
-                map.set(value, i);
-            }
-            if (map.size !== idColumn.length) {
-                throw new Error('idColumn must contain unique values.');
-            }
-            this.originalRowIndexesMap = map;
-        }
+        this.originalRowIndexesMap = this.createOriginalRowIndexesMap();
     }
     async handleTableChange(e) {
         this.querying.shouldBeUpdated = true;
@@ -26002,11 +27611,17 @@ class LocalDataProvider extends DataProvider {
      * The local (presentation table) row index to get the row ID for.
      */
     async getRowId(rowIndex) {
+        const idColId = this.options.idColumn;
+        if (idColId) {
+            const rawId = this.presentationTable?.getCell(idColId, rowIndex);
+            if (isString(rawId) || Utilities_isNumber(rawId)) {
+                return Promise.resolve(rawId);
+            }
+        }
         const originalRowIndex = await this.getOriginalRowIndexFromLocal(rowIndex);
         if (!defined(originalRowIndex) || !this.dataTable) {
             return Promise.resolve(void 0);
         }
-        const idColId = this.options.idColumn;
         if (!idColId) {
             return Promise.resolve(originalRowIndex);
         }
@@ -26044,12 +27659,10 @@ class LocalDataProvider extends DataProvider {
         return Promise.resolve(this.presentationTable?.getOriginalRowIndex(localRowIndex));
     }
     /**
-     * Returns the local (presentation table) row index for a given original
-     * data table row index.
+     * Returns the local row index for a given original row index.
      *
      * @param originalRowIndex
-     * The original data table row index to get the presentation table row index
-     * for.
+     * The original row index to get the local row index for.
      */
     getLocalRowIndexFromOriginal(originalRowIndex) {
         return Promise.resolve(this.presentationTable?.getLocalRowIndex(originalRowIndex));
@@ -26066,21 +27679,17 @@ class LocalDataProvider extends DataProvider {
     getValue(columnId, rowIndex) {
         return Promise.resolve(this.presentationTable?.getCell(columnId, rowIndex));
     }
-    async setValue(value, columnId, rowId) {
-        const localRowIndex = await this.getRowIndex(rowId);
-        if (!defined(localRowIndex)) {
+    setValue(value, columnId, rowId) {
+        const originalIndex = this.resolveOriginalRowIndex(rowId);
+        if (originalIndex === void 0) {
             // eslint-disable-next-line no-console
             console.error('[setValue] Wrong row ID:', rowId);
-            return;
+            return Promise.resolve();
         }
-        const rowIndex = await this.getOriginalRowIndexFromLocal(localRowIndex);
-        if (!defined(rowIndex)) {
-            // eslint-disable-next-line no-console
-            console.error('[setValue] Wrong local row index:', localRowIndex);
-            return;
-        }
-        this.dataTable?.setCell(columnId, rowIndex, value, { fromGrid: true });
-        return;
+        this.dataTable?.setCell(columnId, originalIndex, value, {
+            fromGrid: true
+        });
+        return Promise.resolve();
     }
     /**
      * Applies querying modifiers and updates the presentation table.
@@ -26103,6 +27712,17 @@ class LocalDataProvider extends DataProvider {
         else {
             interTable = originalDataTable.getModified();
         }
+        const grid = this.querying.grid;
+        if ('treeView' in grid && grid.treeView) {
+            try {
+                grid.treeView.sync();
+                interTable = grid.treeView.projectTable(interTable);
+            }
+            catch (error) {
+                // eslint-disable-next-line no-console
+                console.error(error.message);
+            }
+        }
         this.prePaginationRowCount = interTable.rowCount;
         // Pagination modifier
         const paginationModifier = controller.pagination.createModifier(interTable.rowCount);
@@ -26112,6 +27732,37 @@ class LocalDataProvider extends DataProvider {
             interTable = interTable.getModified();
         }
         this.presentationTable = interTable;
+    }
+    createOriginalRowIndexesMap() {
+        const idColId = this.options.idColumn;
+        const table = this.dataTable;
+        if (!idColId || !table) {
+            return;
+        }
+        const idColumn = table.getColumn(idColId, true);
+        if (!idColumn) {
+            throw new Error(`Column "${idColId}" not found in table.`);
+        }
+        const map = new Map();
+        for (let i = 0, len = idColumn.length; i < len; ++i) {
+            const value = idColumn[i];
+            if (!isString(value) && !Utilities_isNumber(value)) {
+                throw new Error('idColumn must contain only string or number values.');
+            }
+            map.set(value, i);
+        }
+        if (map.size !== idColumn.length) {
+            throw new Error('idColumn must contain unique values.');
+        }
+        return map;
+    }
+    resolveOriginalRowIndex(rowId) {
+        if (this.originalRowIndexesMap) {
+            return this.originalRowIndexesMap.get(rowId);
+        }
+        if (Utilities_isNumber(rowId)) {
+            return rowId;
+        }
     }
     destroy() {
         this.clearDataTableEvents();
