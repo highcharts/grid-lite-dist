@@ -1,11 +1,11 @@
 /**
- * @license Highcharts Grid v3.0.0 (2026-05-06)
+ * @license Highcharts Grid v3.1.0 (2026-08-06)
  * @module grid/grid-lite
  *
  * (c) 2009-2026 Highsoft AS
  *
- * A commercial license may be required depending on use.
- * See www.highcharts.com/license
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
  */
 import type _Options from './es-modules/Grid/Core/Options.ts';
 import AST from './es-modules/Core/Renderer/HTML/AST.js';
@@ -18,6 +18,7 @@ import _Grid from './es-modules/Grid/Core/Grid.js';
 import DataModifier from './es-modules/Data/Modifiers/DataModifier.js';
 import DataPool from './es-modules/Data/DataPool.js';
 import DataTable from './es-modules/Data/DataTable.js';
+import CellContextMenuBuiltInActions from './es-modules/Grid/Core/Table/CellContextMenu/CellContextMenuBuiltInActions.js';
 import Table from './es-modules/Grid/Core/Table/Table.js';
 import SvgIcons from './es-modules/Grid/Core/UI/SvgIcons.js';
 import Pagination from './es-modules/Grid/Core/Pagination/Pagination.js';
@@ -36,6 +37,11 @@ import './es-modules/Grid/Core/Data/LocalDataProvider.js';
 import './es-modules/Grid/Core/Responsive/ResponsiveComposition.js';
 declare const G: {
     AST: typeof AST;
+    CellContextMenuBuiltInActions: {
+        readonly registerBuiltInAction: typeof import("./es-modules/Grid/Core/Table/CellContextMenu/CellContextMenuBuiltInActions.js").registerBuiltInAction;
+        readonly registerBuiltInGroup: typeof import("./es-modules/Grid/Core/Table/CellContextMenu/CellContextMenuBuiltInActions.js").registerBuiltInGroup;
+        readonly resolveCellContextMenuItems: typeof import("./es-modules/Grid/Core/Table/CellContextMenu/CellContextMenuBuiltInActions.js").resolveCellContextMenuItems;
+    };
     ColumnResizing: {
         readonly initMode: typeof import("./es-modules/Grid/Core/Table/ColumnResizing/ColumnResizing.js").initMode;
         readonly types: {
@@ -77,11 +83,11 @@ declare const G: {
         helpers: Record<string, Function>;
         numberFormat: (this: Templating.Owner | void, number: number, decimals: number, decimalPoint?: string, thousandsSep?: string) => string;
     };
-    version: "3.0.0";
+    version: "3.1.0";
     win: Window & typeof globalThis;
 };
-export { AST, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataProviderRegistry, DataTable, _Grid as Grid, _Options as Options, Pagination, SvgIcons, Table, Templating };
-export declare const defaultOptions: import("./es-modules/Shared/Types.js").DeepPartial<_Options>, grid: typeof _Grid.grid, grids: (_Grid | undefined)[], isHighContrastModeActive: () => boolean, product: string, setOptions: typeof import("./es-modules/Grid/Core/Defaults.js").setOptions, version: "3.0.0", win: Window & typeof globalThis;
+export { AST, CellContextMenuBuiltInActions, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataProviderRegistry, DataTable, _Grid as Grid, _Options as Options, Pagination, SvgIcons, Table, Templating };
+export declare const defaultOptions: import("./es-modules/Shared/Types.js").DeepPartial<_Options>, grid: typeof _Grid.grid, grids: (_Grid | undefined)[], isHighContrastModeActive: () => boolean, product: string, setOptions: typeof import("./es-modules/Grid/Core/Defaults.js").setOptions, version: "3.1.0", win: Window & typeof globalThis;
 declare namespace G {
     type Options = _Options;
 }

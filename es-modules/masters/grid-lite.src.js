@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: LicenseRef-Highcharts
 /**
- * @license Highcharts Grid v3.0.0 (2026-05-06)
+ * @license Highcharts Grid v3.1.0 (2026-08-06)
  * @module grid/grid-lite
  *
  * (c) 2009-2026 Highsoft AS
  *
- * A commercial license may be required depending on use.
- * See www.highcharts.com/license
+ * A commercial license may be required depending on use,
+ * see www.highcharts.com/license
  */
 import AST from '../Core/Renderer/HTML/AST.js';
 import Templating from '../Core/Templating.js';
@@ -20,6 +20,7 @@ import DataPool from '../Data/DataPool.js';
 import DataTable from '../Data/DataTable.js';
 import Defaults from '../Grid/Core/Defaults.js';
 import Globals from '../Grid/Core/Globals.js';
+import CellContextMenuBuiltInActions from '../Grid/Core/Table/CellContextMenu/CellContextMenuBuiltInActions.js';
 import whcm from '../Accessibility/HighContrastMode.js';
 import Table from '../Grid/Core/Table/Table.js';
 import CreditsLiteComposition from '../Grid/Lite/Credits/CreditsLiteComposition.js';
@@ -47,6 +48,7 @@ import '../Grid/Core/Responsive/ResponsiveComposition.js';
  * */
 const G = {
     AST,
+    CellContextMenuBuiltInActions,
     ColumnResizing,
     DataConnector,
     DataConverter,
@@ -77,6 +79,6 @@ ResponsiveComposition.compose(G.Grid);
  * Named Exports
  *
  * */
-export { AST, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataProviderRegistry, DataTable, _Grid as Grid, Pagination, SvgIcons, Table, Templating };
+export { AST, CellContextMenuBuiltInActions, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataProviderRegistry, DataTable, _Grid as Grid, Pagination, SvgIcons, Table, Templating };
 export const { defaultOptions, grid, grids, isHighContrastModeActive, product, setOptions, version, win } = G;
 export default G;
