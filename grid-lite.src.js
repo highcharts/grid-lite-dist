@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: LicenseRef-Highcharts
 /**
- * @license Highcharts Grid v3.1.0 (2026-08-06)
+ * @license Highcharts Grid v3.2.0 (2026-09-18)
  * @module grid/grid-lite
  *
  * (c) 2009-2026 Highsoft AS
@@ -25,36 +25,17 @@ return /******/ (() => { // webpackBootstrap
 /******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/define property getters */
-/******/ 	(() => {
-/******/ 		// define getter/value functions for harmony exports
-/******/ 		__webpack_require__.d = (exports, definition) => {
-/******/ 			if(Array.isArray(definition)) {
-/******/ 				var i = 0;
-/******/ 				while(i < definition.length) {
-/******/ 					var key = definition[i++];
-/******/ 					var binding = definition[i++];
-/******/ 					if(!__webpack_require__.o(exports, key)) {
-/******/ 						if(binding === 0) {
-/******/ 							Object.defineProperty(exports, key, { enumerable: true, value: definition[i++] });
-/******/ 						} else {
-/******/ 							Object.defineProperty(exports, key, { enumerable: true, get: binding });
-/******/ 						}
-/******/ 					} else if(binding === 0) { i++; }
-/******/ 				}
-/******/ 			} else {
-/******/ 				for(var key in definition) {
-/******/ 					if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
-/******/ 						Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
-/******/ 					}
-/******/ 				}
+/******/ 	// define getter/value functions for harmony exports
+/******/ 	__webpack_require__.d = (exports, definition) => {
+/******/ 		for(var key in definition) {
+/******/ 			if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 				Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 			}
-/******/ 		};
-/******/ 	})();
+/******/ 		}
+/******/ 	};
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
-/******/ 	(() => {
-/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
-/******/ 	})();
+/******/ 	__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop));
 /******/ 	
 /************************************************************************/
 let __webpack_exports__ = {};
@@ -95,7 +76,7 @@ var Globals;
      *  Constants
      *
      * */
-    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '3.1.0', Globals.win = (typeof window !== 'undefined' ?
+    Globals.SVG_NS = 'http://www.w3.org/2000/svg', Globals.product = 'Highcharts', Globals.version = '3.2.0', Globals.win = (typeof window !== 'undefined' ?
         window :
         {}), // eslint-disable-line node/no-unsupported-features/es-builtins
     Globals.doc = Globals.win.document, Globals.svg = !!Globals.doc?.createElementNS?.(Globals.SVG_NS, 'svg')?.createSVGRect, Globals.pageLang = Globals.doc?.documentElement?.closest('[lang]')?.lang, Globals.userAgent = Globals.win.navigator?.userAgent || '', Globals.isChrome = Globals.win.chrome, Globals.isFirefox = Globals.userAgent.indexOf('Firefox') !== -1, Globals.isMS = /(edge|msie|trident)/i.test(Globals.userAgent) && !Globals.win.opera, Globals.isSafari = !Globals.isChrome && Globals.userAgent.indexOf('Safari') !== -1, Globals.isTouchDevice = /(Mobile|Android|Windows Phone)/.test(Globals.userAgent), Globals.isWebKit = Globals.userAgent.indexOf('AppleWebKit') !== -1, Globals.deg2rad = Math.PI * 2 / 360, Globals.marginNames = [
@@ -106,14 +87,16 @@ var Globals;
     ], Globals.noop = function () { }, Globals.supportsPassiveEvents = (function () {
         // Checks whether the browser supports passive events, (#11353).
         let supportsPassive = false;
-        // Object.defineProperty doesn't work on IE as well as passive
-        // events - instead of using polyfill, we can exclude IE totally.
+        // Accessors don't work on IE as well as passive events - instead
+        // of using polyfill, we can exclude IE totally. The getter has to
+        // be enumerable, or wrappers that shallow-copy the options never
+        // read it (#25092).
         if (!Globals.isMS) {
-            const opts = Object.defineProperty({}, 'passive', {
-                get: function () {
-                    supportsPassive = true;
+            const opts = {
+                get passive() {
+                    return (supportsPassive = true);
                 }
-            });
+            };
             if (Globals.win.addEventListener && Globals.win.removeEventListener) {
                 Globals.win.addEventListener('testPassive', Globals.noop, opts);
                 Globals.win.removeEventListener('testPassive', Globals.noop, opts);
@@ -636,6 +619,13 @@ function extend(a, b) {
         a = {};
     }
     for (n in b) { // eslint-disable-line guard-for-in
+        // Prototype pollution (#14883). Keys like `__proto__` may arrive as
+        // own, enumerable properties through `JSON.parse`, in which case
+        // assigning them would mutate the prototype of the target instead of
+        // adding a property.
+        if (n === '__proto__' || n === 'constructor') {
+            continue;
+        }
         a[n] = b[n];
     }
     return a;
@@ -906,7 +896,7 @@ function getStyle(el, prop, toInt) {
     const css = win.getComputedStyle(el, void 0); // eslint-disable-line no-undefined
     if (css) {
         style = css.getPropertyValue(prop);
-        if (pick(toInt, prop !== 'opacity')) {
+        if (toInt ?? prop !== 'opacity') {
             style = pInt(style);
         }
     }
@@ -1156,7 +1146,7 @@ function merge(extendOrSource, ...sources) {
 function normalizeTickInterval(interval, multiples, magnitude, allowDecimals, hasTickAmount) {
     let i, retInterval = interval;
     // Round to a tenfold of 1, 2, 2.5 or 5
-    magnitude = pick(magnitude, getMagnitude(interval));
+    magnitude = (magnitude ?? getMagnitude(interval));
     const normalized = interval / magnitude;
     // Multiples for a linear scale
     if (!multiples) {
@@ -1269,20 +1259,22 @@ function pad(number, length, padder) {
             .replace('-', '')
             .length).join(padder || '0') + number;
 }
-/* eslint-disable jsdoc/check-param-names */
+/* eslint-disable valid-jsdoc */
 /**
  * Return the first value that is not null or undefined.
  *
+ * @deprecated 13.0.2
+ * Use nullish coalescing (`??`) or explicit fallback logic instead.
+ *
  * @function Highcharts.pick<T>
  *
- * @param {...Array<T|null|undefined>} items
+ * @param {...(T|null|undefined)} args
  *        Variable number of arguments to inspect.
  *
  * @return {T}
  *         The value of the first argument that is not null or undefined.
  */
-function pick() {
-    const args = arguments;
+function pick(...args) {
     const length = args.length;
     for (let i = 0; i < length; i++) {
         const arg = args[i];
@@ -1291,7 +1283,7 @@ function pick() {
         }
     }
 }
-/* eslint-enable jsdoc/check-param-names */
+/* eslint-enable valid-jsdoc */
 /**
  * Shortcut for parseInt
  *
@@ -1560,7 +1552,6 @@ function wrap(obj, method, func) {
 
 ;// ./code/grid/es-modules/Core/Utilities.js
 /* unused harmony import specifier */ var Utilities_isNumber;
-/* unused harmony import specifier */ var Utilities_pick;
 /* *
  *
  *  (c) 2010-2026 Highsoft AS
@@ -1676,7 +1667,8 @@ function insertItem(item, collection) {
         !collection[i] ||
             // Handle index option, the element to insert has lower index
             (Utilities_isNumber(indexOption) &&
-                indexOption < Utilities_pick(collection[i].options.index, collection[i]._i)) ||
+                indexOption < (collection[i].options.index ??
+                    collection[i]._i)) ||
             // Insert the new item before other internal items
             // (navigator)
             collection[i].options.isInternal) {
@@ -1762,7 +1754,7 @@ const uniqueKey = (function () {
  * State of the serial mode.
  */
 function useSerialIds(mode) {
-    return (serialMode = Utilities_pick(mode, serialMode));
+    return (serialMode = (mode ?? serialMode));
 }
 /* *
  *
@@ -2395,17 +2387,25 @@ class AST {
                 markup, 'text/html');
         }
         catch {
-            // There are two cases where this fails:
-            // 1. IE9 and PhantomJS, where the DOMParser only supports parsing
-            //    XML
-            // 2. Due to a Chromium issue where chart redraws are triggered by
-            //    a `beforeprint` event (#16931),
-            //    https://issues.chromium.org/issues/40222135
+            // Due to a Chromium issue where chart redraws are triggered by a
+            // `beforeprint` event (#16931),
+            // https://issues.chromium.org/issues/40222135, the Trusted
+            // Types `createHTML` callback can throw "The provided callback
+            // is no longer runnable" while the browser is mid-print. Retry
+            // with the raw string - `DOMParser` itself is not a Trusted
+            // Types sink, so parsing it directly is safe.
+            try {
+                doc = new DOMParser().parseFromString(markup, 'text/html');
+            }
+            catch {
+                // Ignore, fall through to the inert-document fallback below.
+            }
         }
         if (!doc) {
-            const body = createElement('div');
-            body.innerHTML = markup;
-            doc = { body };
+            // Never assign untrusted markup to a live document's innerHTML.
+            // Parse into a detached, inert document instead.
+            doc = Core_Globals.doc.implementation.createHTMLDocument('');
+            doc.body.innerHTML = markup;
         }
         const appendChildNodes = (node, addTo) => {
             // Preserve the camelCase of SVG tags via localName (#24702).
@@ -2642,7 +2642,6 @@ AST.allowedTags = [
     'span',
     'stop',
     'strong',
-    'style',
     'sub',
     'sup',
     'svg',
@@ -2945,6 +2944,29 @@ const ChartDefaults = {
      * @type      {Highcharts.ChartLoadCallbackFunction}
      * @context   Highcharts.Chart
      * @apioption chart.events.load
+     */
+    /**
+     * Fires while the chart is panned by mouse drag. Panning must be
+     * enabled through [chart.panning](#chart.panning). One parameter,
+     * `event`, is passed to the function, containing common event
+     * information as well as `event.originalEvent`, the underlying pointer
+     * event. Note that the event fires for every mouse move during the
+     * drag, not once per gesture.
+     *
+     * Calling `event.preventDefault()` or returning false prevents the
+     * default panning of the axes. In Highcharts Maps, and on ordinal axes
+     * in Highcharts Stock, the panning is applied outside the default
+     * action and is not prevented.
+     *
+     * Panning by touch does not fire this event, unless
+     * [chart.zooming.singleTouch](#chart.zooming.singleTouch) is enabled and
+     * no zoom type is set. Single-finger drags are then handled as mouse
+     * drags and fire this event.
+     *
+     * @type      {Highcharts.ChartPanCallbackFunction}
+     * @since     7.0.2
+     * @context   Highcharts.Chart
+     * @apioption chart.events.pan
      */
     /**
      * Fires when the chart is redrawn, either after a call to
@@ -4337,6 +4359,10 @@ const isDateTimeFormatOptions = (obj) => obj.main === void 0;
  *
  * @param {Highcharts.TimeOptions} [options] Time options as defined in
  * [chart.options.time](/highcharts/time).
+ *
+ * @param {Highcharts.LangOptions} [lang]
+ * Language options. When `options.locale` is not set, `lang.locale` is used as
+ * the locale fallback for locale-aware date formatting.
  */
 class TimeBase {
     /* *
@@ -4355,8 +4381,8 @@ class TimeBase {
         };
         this.variableTimezone = false;
         this.Date = TimeBase_win.Date;
-        this.update(options);
         this.lang = lang;
+        this.update(options);
     }
     /* *
      *
@@ -4468,7 +4494,9 @@ class TimeBase {
     /**
      * Shorthand to get a cached `Intl.DateTimeFormat` instance.
      */
-    dateTimeFormat(options, timestamp, locale = this.options.locale || pageLang) {
+    dateTimeFormat(options, timestamp, locale = (this.options.locale ||
+        this.lang?.locale ||
+        pageLang)) {
         const cacheKey = JSON.stringify(options) + locale;
         if (isString(options)) {
             options = this.str2dtf(options);
@@ -6000,6 +6028,13 @@ const defaultOptions = {
          * @apioption title.align
          */
         /**
+         * A CSS class name to apply to the title's container div,
+         * allowing unique CSS styling for each chart.
+         *
+         * @type      {string}
+         * @apioption title.className
+         */
+        /**
          * The margin between the title and the plot area, or if a subtitle
          * is present, the margin between the subtitle and the plot area.
          *
@@ -6060,6 +6095,13 @@ const defaultOptions = {
          * @default undefined
          * @since 2.0
          * @apioption subtitle.align
+         */
+        /**
+         * A CSS class name to apply to the subtitle's container div,
+         * allowing unique CSS styling for each chart.
+         *
+         * @type      {string}
+         * @apioption subtitle.className
          */
         /**
          * When the subtitle is floating, the plot area will not move to make
@@ -7300,6 +7342,9 @@ const defaultOptions = {
          * below the column, but as `followTouchMove` is true, the tooltip will
          * jump from column to column as the user swipes across the plot area.
          *
+         * @sample {highcharts} highcharts/tooltip/followtouchmove/
+         *         Tooltip follows touch move
+         *
          * @type      {boolean}
          * @default   {highcharts} true
          * @default   {highstock} true
@@ -8190,6 +8235,10 @@ const defaultOptions = {
         /**
          * The URL for the credits label.
          *
+         * URLs that do not start with one of the
+         * [AST.allowedReferences](https://api.highcharts.com/class-reference/Highcharts.AST#.allowedReferences),
+         * for example `javascript:` URLs, are ignored.
+         *
          * @sample {highcharts} highcharts/credits/href/
          *         Custom URL and text
          * @sample {highmaps} maps/credits/customized/
@@ -8405,6 +8454,41 @@ const DefaultOptions = {
  * @param {global.Event} event
  *        The event that occurred.
  */
+/**
+ * Gets fired while the chart is panned by mouse drag. Calling
+ * `event.preventDefault()` or returning `false` prevents the default panning
+ * of the axes.
+ *
+ * @callback Highcharts.ChartPanCallbackFunction
+ *
+ * @param {Highcharts.Chart} this
+ *        The chart on which the event occurred.
+ *
+ * @param {Highcharts.ChartPanEventObject} event
+ *        The event that occurred.
+ */
+/**
+ * Contains common event information. Through the `originalEvent` property you
+ * can access the pointer event that triggered the panning.
+ *
+ * @interface Highcharts.ChartPanEventObject
+ */ /**
+* The pointer event that triggered the panning.
+* @name Highcharts.ChartPanEventObject#originalEvent
+* @type {Highcharts.PointerEventObject}
+*/ /**
+* Prevents the default behavior of the event.
+* @name Highcharts.ChartPanEventObject#preventDefault
+* @type {Function}
+*/ /**
+* The event target.
+* @name Highcharts.ChartPanEventObject#target
+* @type {Highcharts.Chart}
+*/ /**
+* The event type.
+* @name Highcharts.ChartPanEventObject#type
+* @type {"pan"}
+*/
 /**
  * Fires when the chart is redrawn, either after a call to `chart.redraw()` or
  * after an axis, series or point is modified with the `redraw` option set to
@@ -8741,7 +8825,7 @@ function format(str = '', ctx, owner) {
                 replacement = `"${replacement}"`;
             }
         }
-        str = str.replace(match.find, pick(replacement, ''));
+        str = str.replace(match.find, (replacement ?? ''));
     });
     return hasSub ? format(str, ctx, owner) : str;
 }
@@ -8905,8 +8989,8 @@ const Templating = {
  *
  * */
 const classNamePrefix = 'hcg-';
-const version = '3.1.0';
-const buildDate = '2026-08-06';
+const version = '3.2.0';
+const buildDate = '2026-09-18';
 const rawClassNames = {
     container: 'container',
     themed: 'themed',
@@ -9047,6 +9131,32 @@ const getClassName = (classNameKey) => classNamePrefix + rawClassNames[className
 HTML_AST.allowedAttributes.push('srcset', 'media');
 HTML_AST.allowedTags.push('picture', 'source');
 /* *
+ *
+ *  Constants
+ *
+ * */
+/**
+ * Form control attributes allowed on top of `AST.allowedAttributes`, which
+ * covers none of them - filtering through AST alone would drop every
+ * documented option. Anything in neither list is dropped, so untrusted user
+ * options cannot add inline event handlers. The ones listed are safe verbatim:
+ * none carries a URL, and values are set through `setAttribute`, never
+ * `innerHTML`. Worst case is a slow `pattern` regex.
+ */
+const allowedInputAttributes = [
+    'autofocus',
+    'checked',
+    'max',
+    'maxlength',
+    'min',
+    'minlength',
+    'multiple',
+    'pattern',
+    'placeholder',
+    'size',
+    'step'
+];
+/* *
 *
 *  Functions
 *
@@ -9162,6 +9272,37 @@ function setHTMLContent(element, content) {
     }
     else {
         element.innerText = content;
+    }
+}
+/**
+ * Applies attributes coming from the user options to an element, skipping the
+ * ones that are not allowed.
+ *
+ * @param element
+ * The element to apply the attributes to.
+ *
+ * @param attributes
+ * The attributes declared in the options.
+ */
+function setUserAttributes(element, attributes) {
+    if (!attributes) {
+        return;
+    }
+    const rest = {};
+    for (const [key, value] of Object.entries(attributes)) {
+        // Attribute names are case-insensitive in HTML
+        if (allowedInputAttributes.indexOf(key.toLowerCase()) > -1) {
+            element.setAttribute(key, '' + value);
+        }
+        else {
+            rest[key] = value;
+        }
+    }
+    // The remaining attributes are left to the core sanitizer, which
+    // reports the rejected ones and escapes the values it keeps.
+    const filtered = HTML_AST.filterUserAttributes(rest);
+    for (const key of Object.keys(filtered)) {
+        element.setAttribute(key, '' + filtered[key]);
     }
 }
 /**
@@ -9364,6 +9505,47 @@ function mergeStyleValues(target, ...styleValues) {
     return mergedStyle;
 }
 /**
+ * Applies inline styles from options to an element, removing the properties
+ * applied by the previous call so that updates stay deterministic and leave
+ * layout styles set elsewhere on the element untouched.
+ *
+ * @param element
+ * Element to style.
+ *
+ * @param previousProperties
+ * CSS property names applied by the previous call.
+ *
+ * @param styles
+ * Style object to apply.
+ *
+ * @returns
+ * CSS property names applied by this call, to pass to the next one.
+ */
+function applyTrackedStyles(element, previousProperties, styles) {
+    const elementStyle = element.style;
+    if (previousProperties) {
+        for (const property of previousProperties) {
+            elementStyle.removeProperty(property);
+        }
+    }
+    if (!styles) {
+        return;
+    }
+    const appliedProperties = [];
+    for (const key of Object.keys(styles)) {
+        const value = styles[key];
+        if (!defined(value)) {
+            continue;
+        }
+        const property = key.indexOf('-') > -1 ?
+            key :
+            key.replace(/[A-Z]/g, '-$&').toLowerCase();
+        elementStyle.setProperty(property, String(value));
+        appliedProperties.push(property);
+    }
+    return appliedProperties;
+}
+/**
  * Waits for the next animation frame.
  */
 function waitForAnimationFrame() {
@@ -9383,6 +9565,7 @@ function waitForAnimationFrame() {
     isHTML,
     sanitizeText,
     setHTMLContent,
+    setUserAttributes,
     createOptionsProxy,
     formatText,
     joinClassNames,
@@ -9390,6 +9573,7 @@ function waitForAnimationFrame() {
     isDeepEqual,
     resolveStyleValue,
     mergeStyleValues,
+    applyTrackedStyles,
     waitForAnimationFrame
 });
 
@@ -10305,13 +10489,19 @@ const { setLength: DataTableCore_setLength, splice: DataTableCore_splice } = Dat
 class DataTableCore {
     constructor(options = {}) {
         this.isDataTable = true;
-        this.autoId = !options.id;
+        // Reject IDs that would pollute the prototype of ID-keyed maps.
+        const id = this.isPollutingKey(options.id) ? void 0 : options.id;
+        this.autoId = !id;
         this.columns = {};
-        this.id = (options.id || uniqueKey());
+        this.id = (id || uniqueKey());
         this.rowCount = 0;
         this.versionTag = uniqueKey();
         let rowCount = 0;
         objectEach(options.columns || {}, (column, columnId) => {
+            if (columnId === '__proto__' ||
+                columnId === 'constructor') {
+                return;
+            }
             this.columns[columnId] = column.slice();
             rowCount = Math.max(rowCount, column.length);
         });
@@ -10322,6 +10512,17 @@ class DataTableCore {
      *  Functions
      *
      * */
+    /**
+     * Checks whether a key would pollute the prototype if used to index a
+     * plain object (e.g. as a column ID or table ID).
+     *
+     * @private
+     * @param {string|undefined} key The key to check.
+     * @return {boolean} True if the key is unsafe to use.
+     */
+    isPollutingKey(key) {
+        return key === '__proto__' || key === 'constructor';
+    }
     /**
      * Applies a row count to the table by setting the `rowCount` property and
      * adjusting the length of all columns.
@@ -10480,6 +10681,10 @@ class DataTableCore {
     setColumns(columns, rowIndex, eventDetail) {
         let rowCount = this.rowCount;
         objectEach(columns, (column, columnId) => {
+            if (columnId === '__proto__' ||
+                columnId === 'constructor') {
+                return;
+            }
             this.columns[columnId] = column.slice();
             rowCount = column.length;
         });
@@ -10518,11 +10723,14 @@ class DataTableCore {
      * @emits #afterSetRows
      */
     setRow(row, rowIndex = this.rowCount, insert, eventDetail) {
-        var _a;
         const { columns } = this, indexRowCount = insert ? this.rowCount + 1 : rowIndex + 1, rowKeys = Object.keys(row);
         if (eventDetail?.addColumns !== false) {
             for (let i = 0, iEnd = rowKeys.length; i < iEnd; i++) {
-                columns[_a = rowKeys[i]] || (columns[_a] = new Array(this.rowCount));
+                const rowKey = rowKeys[i];
+                if (!this.isPollutingKey(rowKey) &&
+                    !Object.hasOwnProperty.call(columns, rowKey)) {
+                    columns[rowKey] = new Array(this.rowCount);
+                }
             }
         }
         objectEach(columns, (column, columnId) => {
@@ -11212,6 +11420,9 @@ class DataTable extends Data_DataTableCore {
     hasRowWith(columnId, cellValue) {
         const table = this;
         const column = table.columns[columnId];
+        if (!column) {
+            return false;
+        }
         // Normal array
         if (Array.isArray(column)) {
             return (column.indexOf(cellValue) !== -1);
@@ -11257,8 +11468,14 @@ class DataTable extends Data_DataTableCore {
      * Returns `true` if successful, `false` if the column was not found.
      */
     changeColumnId(columnId, newColumnId) {
+        if (columnId === '__proto__' ||
+            columnId === 'constructor' ||
+            newColumnId === '__proto__' ||
+            newColumnId === 'constructor') {
+            return false;
+        }
         const table = this, columns = table.columns;
-        if (columns[columnId]) {
+        if (Object.hasOwnProperty.call(columns, columnId)) {
             if (columnId !== newColumnId) {
                 columns[newColumnId] = columns[columnId];
                 delete columns[columnId];
@@ -11291,8 +11508,14 @@ class DataTable extends Data_DataTableCore {
      * @emits #afterSetCell
      */
     setCell(columnId, rowIndex, cellValue, eventDetail) {
+        if (columnId === '__proto__' ||
+            columnId === 'constructor') {
+            return;
+        }
         const table = this, columns = table.columns, modifier = table.modifier;
-        let column = columns[columnId];
+        let column = Object.hasOwnProperty.call(columns, columnId) ?
+            columns[columnId] :
+            void 0;
         if (column && column[rowIndex] === cellValue) {
             return;
         }
@@ -11361,6 +11584,10 @@ class DataTable extends Data_DataTableCore {
         else {
             for (let i = 0, iEnd = columnIds.length, column, tableColumn, columnId, ArrayConstructor; i < iEnd; ++i) {
                 columnId = columnIds[i];
+                if (columnId === '__proto__' ||
+                    columnId === 'constructor') {
+                    continue;
+                }
                 column = columns[columnId];
                 tableColumn = tableColumns[columnId];
                 ArrayConstructor = Object.getPrototypeOf((tableColumn && typeAsOriginal) ? tableColumn : column).constructor;
@@ -11575,6 +11802,23 @@ class DataTable extends Data_DataTableCore {
         });
     }
 }
+/**
+ * Type guard narrowing an arbitrary value to a valid table cell value.
+ *
+ * @param {*} value
+ * Candidate value.
+ *
+ * @return {boolean}
+ * `true` when the value is a valid `CellType`.
+ */
+function isCellValue(value) {
+    const valueType = typeof value;
+    return (value === null ||
+        valueType === 'undefined' ||
+        valueType === 'boolean' ||
+        valueType === 'number' ||
+        valueType === 'string');
+}
 /* *
  *
  *  Default Export
@@ -11748,7 +11992,7 @@ class DataConnector {
     getColumnOrder() {
         const connector = this, columns = connector.metadata.columns, names = Object.keys(columns || {});
         if (names.length) {
-            return names.sort((a, b) => (pick(columns[a].index, 0) - pick(columns[b].index, 0)));
+            return names.sort((a, b) => ((columns[a].index ?? 0) - (columns[b].index ?? 0)));
         }
     }
     /**
@@ -12554,9 +12798,10 @@ class DataCursor {
      *  Constructor
      *
      * */
-    constructor(stateMap = {}) {
+    constructor(stateMap = Object.create(null)) {
         this.emittingRegister = [];
-        this.listenerMap = {};
+        // Table IDs are used as keys, so keep the maps prototype-less.
+        this.listenerMap = Object.create(null);
         this.stateMap = stateMap;
     }
     /* *
@@ -14290,6 +14535,16 @@ const pathDefaults = {
     'stroke-linecap': 'round',
     'stroke-linejoin': 'round'
 };
+const allowedPathAttributes = [
+    'd',
+    'fill',
+    'opacity',
+    'stroke',
+    'stroke-width',
+    'stroke-linecap',
+    'stroke-linejoin',
+    'transform'
+];
 /* *
 *
 *  Functions
@@ -14333,11 +14588,7 @@ function createSvgFromDefinition(def) {
     svg.setAttribute('fill', fill ?? 'none');
     for (const childDefinition of children ?? []) {
         const path = createElement('path');
-        const attrKeys = new Set([
-            ...Object.keys(childDefinition),
-            ...Object.keys(pathDefaults)
-        ]);
-        for (const attr of attrKeys) {
+        for (const attr of allowedPathAttributes) {
             const value = childDefinition[attr] ?? pathDefaults[attr];
             if (value !== void 0) {
                 path.setAttribute(attr, value.toString());
@@ -14651,7 +14902,7 @@ class Pagination {
             currentPage: currentPage,
             totalPages: totalPages
         });
-        this.pageInfoElement.innerHTML = pageInfoText;
+        this.pageInfoElement.textContent = pageInfoText;
     }
     /**
      * Render the controls buttons and page numbers.
@@ -14957,7 +15208,7 @@ class Pagination {
         }
         const button = Pagination_makeHTMLElement('button', {
             className: Grid_Core_Globals.getClassName('button'),
-            innerHTML: pageNumber.toString()
+            innerText: pageNumber.toString()
         }, this.pageNumbersContainer);
         if (isActive) {
             button.classList.add(Grid_Core_Globals.getClassName('buttonSelected'));
@@ -14979,7 +15230,7 @@ class Pagination {
             return;
         }
         const ellipsisElement = Pagination_makeHTMLElement('span', {
-            innerHTML: '...'
+            innerText: '...'
         }, this.pageNumbersContainer);
         ellipsisElement.title = this.lang?.ellipsis ?? '';
         // Set aria-label for a11y
@@ -14999,7 +15250,7 @@ class Pagination {
             className: Pagination_joinClassNames(Grid_Core_Globals.getClassName('paginationPageSize'), pageSizeSelector?.className)
         }, this.contentWrapper);
         Pagination_makeHTMLElement('span', {
-            innerHTML: this.lang?.pageSizeLabel ?? ''
+            innerText: this.lang?.pageSizeLabel ?? ''
         }, container);
         this.pageSizeSelect = Pagination_makeHTMLElement('select', {
             className: Grid_Core_Globals.getClassName('input'),
@@ -15008,7 +15259,7 @@ class Pagination {
         this.pageSizeSelectorOptions.forEach((option) => {
             const optionElement = document.createElement('option');
             optionElement.value = option.toString();
-            optionElement.innerHTML = option.toString();
+            optionElement.textContent = option.toString();
             if (option === this.controller.currentPageSize) {
                 optionElement.selected = true;
             }
@@ -15954,7 +16205,10 @@ class ColumnFiltering {
         const hideOperatorSelect = column.viewport.grid.columnPolicy
             .isFilterOperatorSelectHidden(column.id);
         if (!hideOperatorSelect) {
-            input.placeholder = pick(column.viewport.grid.options?.lang?.filterValuePlaceholder, Defaults_defaultOptions.lang?.filterValuePlaceholder, '');
+            input.placeholder =
+                column.viewport.grid.options?.lang?.filterValuePlaceholder ??
+                    Defaults_defaultOptions.lang?.filterValuePlaceholder ??
+                    '';
             input.removeAttribute('aria-label');
             return;
         }
@@ -16178,11 +16432,20 @@ function escapeStringForHTML(str) {
         .replace(/\//g, '&#x2F;');
 }
 /**
- * Get an element by ID
+ * Get the shadow root the element lives in, if any. Lookups in the main
+ * document do not cross a shadow boundary. (#22682)
  * @private
  */
-function getElement(id) {
-    return HTMLUtilities_doc.getElementById(id);
+function getShadowRoot(el) {
+    const root = el?.getRootNode();
+    return root?.host ? root : void 0;
+}
+/**
+ * Get an element by ID, from the reference element's shadow root if it has one.
+ * @private
+ */
+function getElement(id, referenceElement) {
+    return (getShadowRoot(referenceElement) || HTMLUtilities_doc).getElementById(id);
 }
 /**
  * Get a fake mouse event of a given type. If relatedTarget is not given,
@@ -16354,6 +16617,7 @@ const HTMLUtilities = {
     getElement,
     getFakeMouseEvent,
     getHeadingTagNameForElement,
+    getShadowRoot,
     removeChildNodes,
     removeClass,
     removeElement,
@@ -17450,6 +17714,12 @@ class Column {
          * The cells of the column.
          */
         this.cells = [];
+        /**
+         * Class names applied to every element of the column (header, body and
+         * filter cells): the ones from the `className` option, plus the ones
+         * features contribute.
+         */
+        this.classNames = [];
         const { grid } = viewport;
         this.id = id;
         this.index = index;
@@ -17465,6 +17735,9 @@ class Column {
             });
         }
         this.options = Column_createOptionsProxy(grid.columnPolicy.getIndividualColumnOptions(id) ?? {}, grid.options?.columnDefaults);
+        if (this.options.className) {
+            this.classNames.push(...this.options.className.split(/\s+/g));
+        }
     }
     /* *
     *
@@ -17513,14 +17786,45 @@ class Column {
     async getCellValue(cell) {
         const valueGetter = this.options.cells?.valueGetter;
         if (valueGetter) {
-            return await valueGetter.call(cell, cell);
+            return this.conformValue(await valueGetter.call(cell, cell));
+        }
+        if (this.valueResolver) {
+            const resolved = await this.valueResolver.call(cell, cell);
+            if (defined(resolved)) {
+                return this.conformValue(resolved);
+            }
         }
         const sourceColumnId = this.viewport.grid.columnPolicy
             .getColumnSourceId(this.id);
         if (!sourceColumnId) {
             return void 0;
         }
-        return this.viewport.grid.dataProvider?.getValue(sourceColumnId, cell.row.index);
+        return this.conformValue(await this.viewport.grid.dataProvider?.getValue(sourceColumnId, cell.row.index));
+    }
+    /**
+     * Whether the column derives its cell values from the row instead of
+     * reading them from the data, so editing a cell of the row must re-resolve
+     * them.
+     */
+    isDerived() {
+        return !!(this.options.cells?.valueGetter || this.valueResolver);
+    }
+    /**
+     * Keeps a value the grid resolves for a cell within the column's declared
+     * `dataType`, so cell formatters and renderers written for the column never
+     * receive a foreign type. Values derived by the grid are the usual source:
+     * a numeric aggregator over a text column resolves to `0`.
+     *
+     * @param value
+     * Resolved cell value.
+     */
+    conformValue(value) {
+        if (this.dataType === 'string' &&
+            defined(value) &&
+            typeof value !== 'string') {
+            return String(value);
+        }
+        return value;
     }
     /**
      * Creates a cell content instance.
@@ -17552,6 +17856,18 @@ class Column {
         return (await dp?.getColumnDataType(sourceColumnId)) ?? 'string';
     }
     /**
+     * Adds the column class names to one of its elements.
+     *
+     * @param element
+     * Element of the column (a header, body or filter cell).
+     */
+    applyClassNames(element) {
+        if (!this.classNames.length) {
+            return;
+        }
+        element.classList.add(...this.classNames);
+    }
+    /**
      * Registers a cell in the column.
      *
      * @param cell
@@ -17559,9 +17875,7 @@ class Column {
      */
     registerCell(cell) {
         cell.htmlElement.setAttribute('data-column-id', this.id);
-        if (this.options.className) {
-            cell.htmlElement.classList.add(...this.options.className.split(/\s+/g));
-        }
+        this.applyClassNames(cell.htmlElement);
         if (this.viewport.grid.hoveredColumnId === this.id) {
             cell.htmlElement.classList.add(Grid_Core_Globals.getClassName('hoveredColumn'));
         }
@@ -18165,30 +18479,7 @@ class Cell {
      * A style object to apply.
      */
     setCustomStyles(styles) {
-        const elementStyle = this.htmlElement.style;
-        const getCSSPropertyName = (property) => (property.indexOf('-') > -1 ?
-            property :
-            property.replace(/[A-Z]/g, '-$&').toLowerCase());
-        if (this.customStyleProperties) {
-            for (const property of this.customStyleProperties) {
-                elementStyle.removeProperty(property);
-            }
-        }
-        if (!styles) {
-            delete this.customStyleProperties;
-            return;
-        }
-        const appliedProperties = [];
-        for (const key of Object.keys(styles)) {
-            const value = styles[key];
-            if (value === void 0 || value === null) {
-                continue;
-            }
-            const property = getCSSPropertyName(String(key));
-            elementStyle.setProperty(property, String(value));
-            appliedProperties.push(property);
-        }
-        this.customStyleProperties = appliedProperties;
+        this.customStyleProperties = applyTrackedStyles(this.htmlElement, this.customStyleProperties, styles);
     }
     /**
      * Destroys the cell.
@@ -20422,9 +20713,7 @@ class HeaderCell extends Table_Cell {
             this.htmlElement.setAttribute('data-column-id', column.id);
             this.htmlElement.setAttribute('aria-label', column.id);
             // Add user column classname
-            if (column.options.className) {
-                this.htmlElement.classList.add(...column.options.className.split(/\s+/g));
-            }
+            column.applyClassNames(this.htmlElement);
             // Add resizing
             this.resizeHandle = column.viewport.columnsResizer
                 ?.renderColumnDragHandles(column, this);
@@ -21116,9 +21405,7 @@ class FilterCell extends Header_HeaderCell {
         this.htmlElement.setAttribute('scope', 'col');
         this.htmlElement.setAttribute('data-column-id', column.id);
         // Add user column classname
-        if (column.options.className) {
-            this.htmlElement.classList.add(...column.options.className.split(/\s+/g));
-        }
+        column.applyClassNames(this.htmlElement);
         this.setCustomClassName(column.options.header?.className);
         fireEvent(this, 'afterRender', { column, filtering: true });
     }
@@ -21692,10 +21979,24 @@ class TableCell extends Table_Cell {
         fireEvent(this, 'afterDataMutation', updateRowsEvent);
         if (vp.grid.querying.willNotModify() &&
             !updateRowsEvent.requiresFullRowsUpdate) {
+            await this.updateDerivedCells();
             return false;
         }
         await vp.updateRows();
         return true;
+    }
+    /**
+     * Re-resolves the cells of the same row that derive their value from it, so
+     * a summary column (for example a row total) follows an edited source cell.
+     * A full rows update covers them already.
+     */
+    async updateDerivedCells() {
+        for (let i = 0, iEnd = this.row.cells.length; i < iEnd; ++i) {
+            const cell = this.row.cells[i];
+            if (cell !== this && cell.column?.isDerived()) {
+                await cell.setValue();
+            }
+        }
     }
     /**
      * Returns whether the cell is currently editable.
@@ -26405,6 +26706,7 @@ class PaginationController {
 
 
 
+
 /* *
  *
  *  Class
@@ -26457,17 +26759,22 @@ class QueryingController {
         this.pagination.loadOptions();
     }
     /**
-     * Creates a list of modifiers that should be applied to the data table.
+     * Whether the query leaves the data table untouched, so that a cell edit
+     * does not need a requery.
      */
     willNotModify() {
-        return (!this.sorting.modifier &&
-            !this.filtering.modifier);
+        return this.getGroupedModifiers().length === 0;
     }
     /**
      * Returns a list of modifiers that should be applied to the data table.
+     *
+     * Features can contribute their own modifiers through the
+     * `getGroupedModifiers` event. Those run first, so that sorting and
+     * filtering see the columns they produce.
      */
     getGroupedModifiers() {
         const modifiers = [];
+        fireEvent(this.grid, 'getGroupedModifiers', { modifiers });
         if (this.sorting.modifier) {
             modifiers.push(this.sorting.modifier);
         }
@@ -26738,9 +27045,17 @@ class Grid {
     }
     /**
      * Refreshes the cached source column ids available in the data provider.
+     *
+     * A feature that materializes its own column into the queried table can add
+     * its id to the event payload, so that the column counts as bound (and is
+     * therefore sortable, filterable and exportable).
      */
     async refreshAvailableSourceColumnIds() {
-        this.columnPolicy.setAvailableSourceColumnIds((await this.dataProvider?.getColumnIds()) || []);
+        const event = {
+            columnIds: (await this.dataProvider?.getColumnIds()) || []
+        };
+        fireEvent(this, 'refreshSourceColumnIds', event);
+        this.columnPolicy.setAvailableSourceColumnIds(event.columnIds);
     }
     /**
      * Sets the new column options to the userOptions field.
@@ -27585,7 +27900,6 @@ class Grid {
     destroy(onlyDOM = false) {
         fireEvent(this, 'beforeDestroy', { onlyDOM });
         this.isRendered = false;
-        const dgIndex = Grid.grids.findIndex((dg) => dg === this);
         this.dataProvider?.destroy();
         this.accessibility?.destroy();
         this.pagination?.destroy();
@@ -27601,7 +27915,7 @@ class Grid {
         Object.keys(this).forEach((key) => {
             delete this[key];
         });
-        Grid.grids.splice(dgIndex, 1);
+        erase(Grid.grids, this);
     }
     /**
      * Grey out the Grid and show a loading indicator.
@@ -27625,7 +27939,9 @@ class Grid {
         const loadingSpan = makeHTMLElement('span', {
             className: Grid_Core_Globals.getClassName('loadingMessage')
         }, this.loadingWrapper);
-        setHTMLContent(loadingSpan, pick(message, this.options?.lang?.loading, ''));
+        setHTMLContent(loadingSpan, (message ??
+            this.options?.lang?.loading ??
+            ''));
     }
     /**
      * Removes the loading indicator.
@@ -27986,6 +28302,7 @@ DataPool.defaultOptions = {
 
 
 
+
 const { makeHTMLElement: Credits_makeHTMLElement, setHTMLContent: Credits_setHTMLContent } = GridUtils;
 /* *
  *
@@ -28041,13 +28358,29 @@ class Credits {
             Credits_setHTMLContent(this.textElement, text);
         }
         if (href) {
-            this.textElement.setAttribute('href', href || '');
+            this.setHref(href);
         }
         if (grid.descriptionElement) {
             contentWrapper?.insertBefore(this.containerElement, grid.descriptionElement);
         }
         else {
             contentWrapper?.appendChild(this.containerElement);
+        }
+    }
+    /**
+     * Set the anchor's href, dropping URLs that are not allowed references.
+     *
+     * @param href
+     * The href to set on the anchor element. If undefined or unsafe, the href
+     * attribute will be removed.
+     */
+    setHref(href) {
+        const filtered = href && HTML_AST.filterUserAttributes({ href }).href;
+        if (filtered) {
+            this.textElement.setAttribute('href', filtered);
+        }
+        else {
+            this.textElement.removeAttribute('href');
         }
     }
     renderAnchor() {
@@ -29311,7 +29644,7 @@ function buildQueryRange(options = {}) {
     return googleSpreadsheetRange || ((alphabet[startColumn || 0] || 'A') +
         (Math.max((startRow || 0), 0) + 1) +
         ':' +
-        (alphabet[pick(endColumn, 25)] || 'Z') +
+        (alphabet[(endColumn ?? 25)] || 'Z') +
         (endRow ?
             Math.max(endRow, 0) :
             'Z'));
