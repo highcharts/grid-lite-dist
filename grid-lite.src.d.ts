@@ -1,5 +1,5 @@
 /**
- * @license Highcharts Grid v3.1.0 (2026-08-06)
+ * @license Highcharts Grid v3.2.0 (2026-09-18)
  * @module grid/grid-lite
  *
  * (c) 2009-2026 Highsoft AS
@@ -83,11 +83,11 @@ declare const G: {
         helpers: Record<string, Function>;
         numberFormat: (this: Templating.Owner | void, number: number, decimals: number, decimalPoint?: string, thousandsSep?: string) => string;
     };
-    version: "3.1.0";
+    version: "3.2.0";
     win: Window & typeof globalThis;
 };
 export { AST, CellContextMenuBuiltInActions, ColumnResizing, DataConnector, DataConverter, DataCursor, DataModifier, DataPool, DataProviderRegistry, DataTable, _Grid as Grid, _Options as Options, Pagination, SvgIcons, Table, Templating };
-export declare const defaultOptions: import("./es-modules/Shared/Types.js").DeepPartial<_Options>, grid: typeof _Grid.grid, grids: (_Grid | undefined)[], isHighContrastModeActive: () => boolean, product: string, setOptions: typeof import("./es-modules/Grid/Core/Defaults.js").setOptions, version: "3.1.0", win: Window & typeof globalThis;
+export declare const defaultOptions: import("./es-modules/Shared/Types.js").DeepPartial<_Options>, grid: typeof _Grid.grid, grids: (_Grid | undefined)[], isHighContrastModeActive: () => boolean, product: string, setOptions: typeof import("./es-modules/Grid/Core/Defaults.js").setOptions, version: "3.2.0", win: Window & typeof globalThis;
 declare namespace G {
     type Options = _Options;
 }
