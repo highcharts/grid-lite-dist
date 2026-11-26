@@ -6,7 +6,7 @@ Highcharts Grid Lite is the free version of [Highcharts Grid](https://www.highch
 - Product page: [highcharts.com/products/grid](https://www.highcharts.com/products/grid/)
 - Demos: [highcharts.com/demo](https://www.highcharts.com/demo#highcharts-grid-demo-general)
 - Download: [highcharts.com/download](http://www.highcharts.com/download)
-- License: [wwww.highcharts.com/license-grid-lite](https://shop.highcharts.com/license-grid-lite)
+- License: [shop.highcharts.com/license-grid-lite](https://shop.highcharts.com/license-grid-lite)
 - Documentation: [highcharts.com/docs/grid](https://www.highcharts.com/docs/grid/installation)
 - Support: [highcharts.com/support](http://www.highcharts.com/support)
 - Issues: [github.com/highcharts](https://github.com/highcharts/highcharts/issues)
@@ -33,6 +33,16 @@ Then, import the package into your project:
 import * as Grid from "@highcharts/grid-lite";
 import "@highcharts/grid-lite/css/grid-lite.css";
 ```
+
+### Using React?
+
+Use the official React package, which handles Grid setup, cleanup and CSS for you:
+
+```bash
+npm install @highcharts/grid-lite-react
+```
+
+See [@highcharts/grid-lite-react](https://www.npmjs.com/package/@highcharts/grid-lite-react) and the [React guide](https://www.highcharts.com/docs/grid/frameworks/react/getting-started). Guides for [Angular](https://www.highcharts.com/docs/grid/frameworks/angular) and [Vue](https://www.highcharts.com/docs/grid/frameworks/vue) are also available.
 
 ### Use CDN
 
